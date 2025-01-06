@@ -41,6 +41,9 @@
 8. **Seasonal & Local Ingredients**
    - Recommend recipes based on seasonal or locally available ingredients.
 
+9. **Top cooked meals** - simialr to spotify wrapped year 
+   - list the top cooked meals during the year.
+
 ---
 
 ### AI Assistant Enhancements
@@ -78,11 +81,11 @@
    - Allow users to share videos or behind-the-scenes clips.
 
 5. **Weekly Challenges or Themes**
-   - Host weekly events like “Recipe of the Day” or “Community Cookbook.”
-
-6. **Support and Encouragement Features**
-   - A forum for questions, advice, or a “buddy system” for moms.
-   - Host expert Q&A sessions to provide meal planning support.
+   - Host weekly events like “Recipe of the week” or “Community Cookbook.”
+      - Recipe of the week: the top-upvoted recipe duirng the week.
+      - Community Cookbook: 
+         - grap the monthly top-upvoted recipes
+         - put the recipe of it's user in the cookbook (with user's handle)
 
 ---
 
@@ -95,3 +98,10 @@
 
 3. **Prioritization Based on Research**
    - Use user research insights to prioritize features for development.
+
+---
+
+### Post Deployment Feature
+1. **Support and Encouragement Features**
+   - A forum for questions, advice, or a “buddy system” for moms.
+   - Host expert Q&A sessions to provide meal planning support.
