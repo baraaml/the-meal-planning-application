@@ -9,3 +9,5 @@ const registerSchema = Joi.object({
     .required()
     .messages({ "any.only": "Passwords must match" }),
 });
+
+module.exports = { registerSchema };
