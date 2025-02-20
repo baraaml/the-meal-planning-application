@@ -7,31 +7,78 @@ const BadRequestError = require("../errors/badRequestError");
 const UnauthenticatedError = require("../errors/UnauthenticatedError");
 const { StatusCodes } = require("http-status-codes");
 const { registerSchema } = require("../validators/authValidator");
+const { generateOTP, hashOTP, verifyHashedOTP } = require("../utils/otpUtlis");
+const passwordUtils = require("../utils/passwordUtils");
+
 const prisma = require("../config/prismaClient");
 
 // @desc register a new user
 // @route api/v1/users/register
 // @access Public
 const registerUserController = async (req, res) => {
-  const { name, email, password } = req.body;
+  const { username, email, password } = req.body;
 
-  // // Check if email exists
-  const existingUser = await prisma.user.findUnique({
-    where: { email: email.toLowerCase() },
+  // // Check if email or username exist
+  const existingUser = await prisma.user.findFirst({
+    where: {
+      OR: [
+        { email: email.toLowerCase() },
+        { username: username.toLowerCase() },
+      ],
+    },
   });
-  if (existingUser) throw new BadRequestError("Email already registered");
+  if (existingUser) {
+    if (existingUser.email === email.toLowerCase()) {
+      throw new BadRequestError("Email already registered");
+    }
+    if (existingUser.username === username.toLowerCase()) {
+      throw new BadRequestError("Username already registered");
+    }
+  }
+
+  // hash the password
+  const hashedPassword = await passwordUtils.hash(password);
+
+  // generate and hash OTP
+  const otp = generateOTP();
+  const hashedOTP = await hashOTP(otp);
+
+  // Set OTP expiration time (15 minutes)
+  const expirationTime = new Date();
+  expirationTime.setMinutes(expirationTime.getMinutes() + 15);
+
+  // store the user data in the database with isVerified: false
+  const user = await prisma.$transaction(async (prisma) => {
+    const newUser = await prisma.user.create({
+      data: {
+        username: username.toLowerCase(),
+        email: email.toLowerCase(),
+        password: hashedPassword,
+        isVerified: false,
+      },
+    });
+
+    await prisma.verificationCode.create({
+      data: {
+        code: hashedOTP,
+        expiresAt: expirationTime,
+        userId: newUser.id,
+      },
+    });
+
+    return newUser;
+  });
+
+  // send the verification code to the user email
+  
 
   // // Register user
   // const user = await registerUser({ name, email, password });
-
-  // // Generate token
-  // const token = generateAuthToken(user);
 
   // res.status(StatusCodes.CREATED).json({
   //   success: true,
   //   msg: "New user is created",
   //   user,
-  //   token,
   // });
 
   res.status(StatusCodes.CREATED).json("New user is created");

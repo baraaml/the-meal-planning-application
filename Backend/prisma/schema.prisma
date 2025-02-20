@@ -8,14 +8,27 @@ datasource db {
 }
 
 model User {
-  id                String   @id @default(uuid())
-  name              String   @db.VarChar(50)  // Limit name length
-  username          String   @unique @db.VarChar(50) @default("user")
-  email             String   @unique @db.VarChar(255) // Enforce standard email length
-  password          String   @db.Text  // Hashes are long, so use Text
-  isVerified        Boolean  @default(false)
-  verificationCode  String?  @db.VarChar(6)  // Store 6-digit verification codes
-  verificationExpiresAt DateTime? // Store expiry time for verification codes
-  createdAt         DateTime @default(now())
+  id                String              @id @default(uuid())
+  name              String?              @db.VarChar(50)
+  username          String              @unique @db.VarChar(50)
+  email             String              @unique @db.VarChar(255)
+  password          String              @db.Text
+  isVerified        Boolean             @default(false)
+  verifiedAt        DateTime?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @default(now()) @updatedAt
+  verificationCodes VerificationCode[]  // One-to-many relation to verification codes
 }
 
+model VerificationCode {
+  id        String    @id @default(uuid())
+  code      String    @db.Text
+  expiresAt DateTime
+  createdAt DateTime  @default(now())
+  isUsed    Boolean   @default(false)
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@unique([userId, code]) // Optional: prevents duplicate codes per user if desired
+}
