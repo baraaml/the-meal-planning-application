@@ -22,21 +22,35 @@ app.use(errorHandlerMiddleware);
 
 const port = process.env.PORT || 3001;
 
-const start = async () => {
+const startServer = async () => {
   try {
     await prisma.$connect();
-    app.listen(port, () => console.log(`Server is listening on ${port}...`));
+    const server = app.listen(port, () =>
+      console.log(`Server is listening on ${port}...`)
+    );
+
+    // Graceful shutdown
+    process.on("SIGINT", async () => {
+      await prisma.$disconnect();
+      console.log("Prisma disconnected. Server shutting down...");
+      server.close(() => process.exit(0));
+    });
+
+    process.on("SIGTERM", async () => {
+      await prisma.$disconnect();
+      console.log("Prisma disconnected due to termination signal.");
+      server.close(() => process.exit(0));
+    });
   } catch (error) {
     console.error("Error starting server:", error);
     process.exit(1);
   }
 };
 
-// Graceful shutdown
-process.on("SIGINT", async () => {
-  await prisma.$disconnect();
-  console.log("Prisma disconnected. Server shutting down...");
-  process.exit(0);
-});
+// Only start the server if this file is executed directly (not when imported in tests)
+if (require.main === module) {
+  startServer();
+}
 
-start();
+// Export the Express app (without starting the server) for testing
+module.exports = app;

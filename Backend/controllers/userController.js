@@ -6,18 +6,14 @@ const {
 const BadRequestError = require("../errors/badRequestError");
 const UnauthenticatedError = require("../errors/UnauthenticatedError");
 const { StatusCodes } = require("http-status-codes");
-
-const prisma = new require("../config/prismaClient");
+const { registerSchema } = require("../validators/authValidator");
+const prisma = require("../config/prismaClient");
 
 // @desc register a new user
 // @route api/v1/users/register
 // @access Public
 const registerUserController = async (req, res) => {
   const { name, email, password } = req.body;
-
-  if (!name) throw new BadRequestError("Please provide your name");
-  if (!email) throw new BadRequestError("Please provide your email");
-  if (!password) throw new BadRequestError("Please provide your password");
 
   // // Check if email exists
   // const emailExists = await prisma.user.findUnique({ where: { email } });
@@ -36,7 +32,7 @@ const registerUserController = async (req, res) => {
   //   token,
   // });
 
-  res.send("Register user");
+  res.status(StatusCodes.CREATED).json("New user is created");
 };
 
 // @desc login a user
