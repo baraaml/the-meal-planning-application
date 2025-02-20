@@ -16,8 +16,10 @@ const registerUserController = async (req, res) => {
   const { name, email, password } = req.body;
 
   // // Check if email exists
-  // const emailExists = await prisma.user.findUnique({ where: { email } });
-  // if (emailExists) throw new BadRequestError("Email already in use");
+  const existingUser = await prisma.user.findUnique({
+    where: { email: email.toLowerCase() },
+  });
+  if (existingUser) throw new BadRequestError("Email already registered");
 
   // // Register user
   // const user = await registerUser({ name, email, password });
