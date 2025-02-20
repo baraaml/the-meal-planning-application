@@ -27,9 +27,9 @@ router.patch("/change-password", changePassword);
 //  User Management Routes
 router
   .route("/:id")
-  .get(protect, getSingleUser)
-  .patch(protect, updateUser)
-  .delete(protect, deleteUser);
+  .get(getSingleUser)
+  .patch(updateUser)
+  .delete(deleteUser);
 
 // Admin Routes
 router.get("/", getAllUsers);

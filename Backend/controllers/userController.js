@@ -19,22 +19,24 @@ const registerUserController = async (req, res) => {
   if (!email) throw new BadRequestError("Please provide your email");
   if (!password) throw new BadRequestError("Please provide your password");
 
-  // Check if email exists
-  const emailExists = await prisma.user.findUnique({ where: { email } });
-  if (emailExists) throw new BadRequestError("Email already in use");
+  // // Check if email exists
+  // const emailExists = await prisma.user.findUnique({ where: { email } });
+  // if (emailExists) throw new BadRequestError("Email already in use");
 
-  // Register user
-  const user = await registerUser({ name, email, password });
+  // // Register user
+  // const user = await registerUser({ name, email, password });
 
-  // Generate token
-  const token = generateAuthToken(user);
+  // // Generate token
+  // const token = generateAuthToken(user);
 
-  res.status(StatusCodes.CREATED).json({
-    success: true,
-    msg: "New user is created",
-    user,
-    token,
-  });
+  // res.status(StatusCodes.CREATED).json({
+  //   success: true,
+  //   msg: "New user is created",
+  //   user,
+  //   token,
+  // });
+
+  res.send("Register user");
 };
 
 // @desc login a user
