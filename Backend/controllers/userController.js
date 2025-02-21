@@ -49,40 +49,36 @@ const registerUserController = async (req, res) => {
   expirationTime.setMinutes(expirationTime.getMinutes() + 15);
 
   // store the user data in the database with isVerified: false
-  // const user = await prisma.$transaction(async (prisma) => {
-  //   const newUser = await prisma.user.create({
-  //     data: {
-  //       username: username.toLowerCase(),
-  //       email: email.toLowerCase(),
-  //       password: hashedPassword,
-  //       isVerified: false,
-  //     },
-  //   });
+  const user = await prisma.$transaction(async (prisma) => {
+    const newUser = await prisma.user.create({
+      data: {
+        username: username.toLowerCase(),
+        email: email.toLowerCase(),
+        password: hashedPassword,
+        isVerified: false,
+      },
+    });
 
-  //   await prisma.verificationCode.create({
-  //     data: {
-  //       code: hashedOTP,
-  //       expiresAt: expirationTime,
-  //       userId: newUser.id,
-  //     },
-  //   });
+    await prisma.verificationCode.create({
+      data: {
+        code: hashedOTP,
+        expiresAt: expirationTime,
+        userId: newUser.id,
+      },
+    });
 
-  //   return newUser;
-  // });
+    return newUser;
+  });
 
   // send the verification code to the user email
   await sendVerificationEmail(email, otp);
 
-  // // Register user
-  // const user = await registerUser({ name, email, password });
-
-  // res.status(StatusCodes.CREATED).json({
-  //   success: true,
-  //   msg: "New user is created",
-  //   user,
-  // });
-
-  res.status(StatusCodes.CREATED).json("New user is created");
+  // send response
+  res.status(StatusCodes.CREATED).json({
+    success: true,
+    message:
+      "User account created successfully. Please check your email for the verification code.",
+  });
 };
 
 // @desc login a user
