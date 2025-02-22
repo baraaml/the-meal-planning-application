@@ -144,9 +144,6 @@ const verifyEmail = async (req, res) => {
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
 
-  if (!email) throw new BadRequestError("Please provide your email");
-  if (!password) throw new BadRequestError("Please provide your password");
-
   // Find user by email
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user) throw new UnauthenticatedError("Invalid email");
