@@ -89,11 +89,8 @@ const registerUserController = async (req, res) => {
 const verifyEmail = async (req, res) => {
   const { otp, email } = req.body;
 
-  console.log(otp, email);
-
   // hash OTP
   const hashedOTP = await hashOTP(otp);
-  console.log(hashedOTP);
 
   // find it in the verfication table
   const otpExists = await prisma.verificationCode.findFirst({
