@@ -7,7 +7,7 @@ const BadRequestError = require("../errors/badRequestError");
 const UnauthenticatedError = require("../errors/UnauthenticatedError");
 const { StatusCodes } = require("http-status-codes");
 const { registerSchema } = require("../validators/authValidator");
-const { generateOTP, hashOTP, verifyHashedOTP } = require("../utils/otpUtlis");
+const { generateOTP, hashOTP, verifyHashedOTP, deleteOldOTPs } = require("../utils/otpUtlis");
 const passwordUtils = require("../utils/passwordUtils");
 const { sendVerificationEmail } = require("../utils/emailUtlis");
 const tokenUtils = require("../utils/tokenUtils");
@@ -99,7 +99,7 @@ const verifyEmail = async (req, res) => {
     },
     include: { user: true },
   });
-  
+
   if (!otpExists || !(await verifyHashedOTP(otp, otpExists.code))) {
     throw new UnauthenticatedError("Invalid or expired OTP");
   }
