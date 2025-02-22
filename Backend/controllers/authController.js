@@ -7,7 +7,12 @@ const BadRequestError = require("../errors/badRequestError");
 const UnauthenticatedError = require("../errors/UnauthenticatedError");
 const { StatusCodes } = require("http-status-codes");
 const { registerSchema } = require("../validators/authValidator");
-const { generateOTP, hashOTP, verifyHashedOTP, deleteOldOTPs } = require("../utils/otpUtlis");
+const {
+  generateOTP,
+  hashOTP,
+  verifyHashedOTP,
+  deleteOldOTPs,
+} = require("../utils/otpUtlis");
 const passwordUtils = require("../utils/passwordUtils");
 const { sendVerificationEmail } = require("../utils/emailUtlis");
 const tokenUtils = require("../utils/tokenUtils");
@@ -189,16 +194,20 @@ const logoutUser = async (req, res) => {
   res.send("Logout user");
 };
 
+const resendVerification = async (req, res) => {
+  res.send("Resend verification otp");
+};
+
+const forgetPassword = async (req, res) => {
+  res.send("Forget password");
+};
+
+const refreshToken = async (req, res) => {
+  res.send("refresh-token");
+};
+
 const changePassword = async (req, res) => {
   res.send("Change password");
-};
-
-const updateUser = async (req, res) => {
-  res.send("Update user");
-};
-
-const deleteUser = async (req, res) => {
-  res.send("Delete user");
 };
 
 module.exports = {
@@ -208,7 +217,8 @@ module.exports = {
   getSingleUser,
   logoutUser,
   changePassword,
-  updateUser,
-  deleteUser,
   verifyEmail,
+  resendVerification,
+  forgetPassword,
+  refreshToken,
 };

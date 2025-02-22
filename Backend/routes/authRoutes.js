@@ -3,11 +3,12 @@ const express = require("express");
 const {
   registerUser,
   loginUser,
-  getSingleUser,
-  getAllUsers,
   logoutUser,
   changePassword,
   verifyEmail,
+  resendVerification,
+  forgetPassword,
+  refreshToken,
 } = require("../controllers/authController");
 
 // register
@@ -20,16 +21,12 @@ const router = express.Router();
 router.post("/login", loginUser);
 router.post("/register", validateRequest(registerSchema), registerUser);
 router.post("/verify-email", validateRequest(otpSchema), verifyEmail);
-router.post("/resend-verification", loginUser);
-router.post("/froget-password", loginUser);
-router.post("/refresh-token", loginUser);
+router.post("/resend-verification", resendVerification);
+router.post("/froget-password", forgetPassword);
+router.post("/refresh-token", refreshToken);
 
 // Protected Routes
 router.post("/logout", logoutUser);
 router.patch("/change-password", changePassword);
-
-// Admin Routes
-router.get("/", getAllUsers);
-router.get("/:id", getSingleUser);
 
 module.exports = router;
