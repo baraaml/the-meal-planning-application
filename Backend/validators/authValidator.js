@@ -59,4 +59,29 @@ const registerSchema = Joi.object({
     }),
 });
 
-module.exports = { registerSchema };
+const otpSchema = Joi.object({
+  email: Joi.string()
+    .trim()
+    .lowercase()
+    .custom((value, helpers) => {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+        return helpers.error("string.email");
+      }
+      return value;
+    })
+    .required()
+    .messages({
+      "string.email": "Please provide a valid email address.",
+      "string.empty": "Email is required.",
+    }),
+  otp: Joi.string()
+    .length(6)
+    .pattern(/^\d{6}$/)
+    .required()
+    .messages({
+      "string.empty": "OTP is required",
+      "string.pattern.base": "Invalid OTP",
+    }),
+});
+
+module.exports = { registerSchema, otpSchema };

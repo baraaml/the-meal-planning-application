@@ -10,7 +10,7 @@ const { registerSchema } = require("../validators/authValidator");
 const { generateOTP, hashOTP, verifyHashedOTP } = require("../utils/otpUtlis");
 const passwordUtils = require("../utils/passwordUtils");
 const { sendVerificationEmail } = require("../utils/emailUtlis");
-
+const tokenUtils = require("../utils/tokenUtils");
 const prisma = require("../config/prismaClient");
 
 // @desc register a new user
@@ -81,6 +81,61 @@ const registerUserController = async (req, res) => {
   });
 };
 
+const verifyEmail = async (req, res) => {
+  const { otp, email } = req.body;
+
+  console.log(otp, email);
+
+  // hash OTP
+  const hashedOTP = await hashOTP(otp);
+  console.log(hashedOTP);
+
+  // find it in the verfication table
+  const otpExists = await prisma.verificationCode.findFirst({
+    where: {
+      isUsed: false,
+      expiresAt: { gt: new Date() },
+      user: { email: email.toLowerCase() },
+    },
+    include: { user: true },
+  });
+  
+  if (!otpExists || !(await verifyHashedOTP(otp, otpExists.code))) {
+    throw new UnauthenticatedError("Invalid or expired OTP");
+  }
+
+  await prisma.$transaction(async (prisma) => {
+    // Update the user to mark him as verified
+    await prisma.user.update({
+      where: { id: otpExists.user.id },
+      data: {
+        isVerified: true,
+        verifiedAt: new Date(),
+      },
+    });
+
+    await prisma.verificationCode.delete({
+      where: { id: otpExists.id },
+    });
+  });
+
+  // Generate a token
+  const token = tokenUtils.sign({ userId: otpExists.user.id });
+
+  res.status(StatusCodes.OK).json({
+    success: true,
+    message: `Email verified successfully `,
+    data: {
+      token: token,
+      user: {
+        id: otpExists.user.id,
+        email: otpExists.user.email,
+        isVerified: true,
+      },
+    },
+  });
+};
+
 // @desc login a user
 // @route api/v1/users/login
 // @access Public
@@ -144,10 +199,6 @@ const updateUser = async (req, res) => {
 
 const deleteUser = async (req, res) => {
   res.send("Delete user");
-};
-
-const verifyEmail = async (req, res) => {
-  res.send("Verify email");
 };
 
 module.exports = {

@@ -14,15 +14,15 @@ const {
 
 // register
 const validateRequest = require("../middlewares/validate");
-const { registerSchema } = require("../validators/authValidator");
+const { registerSchema, otpSchema } = require("../validators/authValidator");
 
 const router = express.Router();
 
 // Public Routes
 router.post("/register", validateRequest(registerSchema), registerUser);
+router.post("/verify-email", validateRequest(otpSchema), verifyEmail);
 router.post("/login", loginUser);
 router.post("/froget-password", loginUser);
-router.get("/verify-email", verifyEmail);
 
 // Protected Routes
 router.post("/logout", logoutUser);

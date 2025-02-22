@@ -17,7 +17,6 @@ model User {
   verifiedAt        DateTime?
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @default(now()) @updatedAt
-  verificationCodes VerificationCode[]  // One-to-many relation to verification codes
 }
 
 model VerificationCode {

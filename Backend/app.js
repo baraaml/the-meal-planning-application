@@ -1,6 +1,7 @@
 const express = require("express");
 require("express-async-errors");
 require("dotenv").config();
+require("./utils/cron"); // This will automatically start the cleanup job
 const { PrismaClient } = require("@prisma/client");
 
 const prisma = new PrismaClient();
