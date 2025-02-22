@@ -32,7 +32,7 @@ const registerSchema = Joi.object({
     .required()
     .messages({
       "string.email": "Please provide a valid email address.",
-      "string.empty": "Eail is requiremd.",
+      "string.empty": "Eail is required.",
     }),
 
   password: Joi.string()

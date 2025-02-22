@@ -5,7 +5,7 @@ DB_NAME=mealflow
 DB_HOST=localhost
 DB_PORT=5432
 
-.PHONY: db-setup-linux db-drop-linux db-setup-windows db-drop-windows db-migrate git-login git-pull git-push git-connect git-init git-branch git-push-branch
+.PHONY: db-setup-linux db-drop-linux db-setup-windows db-drop-windows db-migrate git-login git-pull git-push git-connect git-init git-create-branch
 
 # Setup Database and User (Linux)
 db-setup-linux:
@@ -91,38 +91,29 @@ git-pull:
 	fi
 	@echo "Pull completed!"
 
-# GitHub Push Changes (detects main/master branch)
+# GitHub Push Changes (handles non-existent remote branch)
 git-push:
 	@echo "Pushing changes..."
-	@if git branch -r | grep -q "origin/main"; then \
-		BRANCH=main; \
-	elif git branch -r | grep -q "origin/master"; then \
-		BRANCH=master; \
-	else \
-		echo "No remote branch found (main or master)"; exit 1; \
-	fi; \
-	git add .; \
-	git commit -m "Auto commit" || echo "No changes to commit"; \
-	git push origin $${BRANCH}
-	@echo "Push completed!"
-
-# Create a New Git Branch and Push
-git-branch:
-	@echo "Creating and pushing a new branch..."
-	@read -p "Enter new branch name: " BRANCH_NAME; \
-	git checkout -b "$$BRANCH_NAME"; \
-	git add .; \
-	git commit -m "Initial commit on $$BRANCH_NAME" || echo "No changes to commit"; \
-	git push -u origin "$$BRANCH_NAME"; \
-	echo "Pushed branch: $$BRANCH_NAME"
-
-# Push an Existing Branch
-git-push-branch:
-	@echo "Pushing an existing branch..."
 	@read -p "Enter the branch name to push: " BRANCH_NAME; \
-	if git show-ref --verify --quiet "refs/heads/$$BRANCH_NAME"; then \
-		git push origin "$$BRANCH_NAME"; \
-		echo "Pushed branch: $$BRANCH_NAME"; \
+	if git branch -r | grep -q "origin/$$BRANCH_NAME"; then \
+		git pull origin $$BRANCH_NAME; \
+		git add .; \
+		git commit -m "Auto commit" || echo "No changes to commit"; \
+		git push origin $$BRANCH_NAME --force; \
+		echo "Push completed!"; \
 	else \
-		echo "Branch '$$BRANCH_NAME' does not exist."; exit 1; \
+		echo "Branch '$$BRANCH_NAME' does not exist on remote. Creating and pushing..."; \
+		git push -u origin $$BRANCH_NAME; \
+		echo "Branch '$$BRANCH_NAME' created and pushed to remote."; \
+	fi
+
+# Create a New Git Branch
+git-create-branch:
+	@echo "Creating a new branch..."
+	@read -p "Enter new branch name: " BRANCH_NAME; \
+	if git show-ref --verify --quiet "refs/heads/$$BRANCH_NAME"; then \
+		echo "Branch '$$BRANCH_NAME' already exists locally."; exit 1; \
+	else \
+		git checkout -b "$$BRANCH_NAME"; \
+		echo "Created branch: $$BRANCH_NAME"; \
 	fi
