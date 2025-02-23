@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Meal Flow</string>
+    <string name="join">Join our community</string>
+    <string name="REmail">Continue with email</string>
+    <string name="ForgotPassword"> Forgot password ?</string>
+    <string name="Register"> Register</string>
+    <string name="NotAccount">Don’t have an account ? </string>
+
+
+
+</resources>
