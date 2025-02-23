@@ -9,7 +9,7 @@ datasource db {
 
 model User {
   id                String              @id @default(uuid())
-  name              String?              @db.VarChar(50)
+  name              String?             @db.VarChar(50)
   username          String              @unique @db.VarChar(50)
   email             String              @unique @db.VarChar(255)
   password          String              @db.Text
@@ -17,7 +17,12 @@ model User {
   verifiedAt        DateTime?
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @default(now()) @updatedAt
+
+  // Add this:
+  verificationCodes VerificationCode[]
+  refreshTokens     RefreshToken[]
 }
+
 
 model VerificationCode {
   id        String    @id @default(uuid())

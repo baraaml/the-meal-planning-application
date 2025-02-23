@@ -122,7 +122,7 @@ const verifyEmail = async (req, res) => {
   });
 
   // Generate a token
-  const token = tokenUtils.sign({ userId: otpExists.user.id });
+  const token = tokenUtils.signAccessToken({ userId: otpExists.user.id });
 
   res.status(StatusCodes.OK).json({
     success: true,
@@ -148,18 +148,46 @@ const loginUser = async (req, res) => {
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user) throw new UnauthenticatedError("Invalid email");
 
+  // ensure the user is verified
+  if (user.isVerified === false) {
+    throw new UnauthenticatedError(
+      "Account not verified. Please verify your email"
+    );
+  }
+
   // Check password
   const isPasswordCorrect = await comparePassword(password, user.password);
   if (!isPasswordCorrect) throw new UnauthenticatedError("Invalid password");
 
-  // Generate token
-  const token = generateAuthToken(user);
+  // Generate short-lived access token
+  const accessToken = tokenUtils.signAccessToken({ userId: user.id });
+
+  // Generate long-lived refresh token
+  const refreshToken = tokenUtils.signRefreshToken({ userId: user.id });
+  const refreshTokenExpiry = new Date();
+  refreshTokenExpiry.setFullYear(refreshTokenExpiry.getFullYear() + 1); // 1 year expiry
+
+  // Store refresh token in the database
+  await prisma.refreshToken.create({
+    data: {
+      token: refreshToken,
+      userId: user.id,
+      expiresAt: refreshTokenExpiry,
+    },
+  });
 
   res.status(StatusCodes.OK).json({
     success: true,
-    msg: "Login successful",
-    user,
-    token,
+    message: "Login successful",
+    data: {
+      accessToken: accessToken,
+      refreshToken: refreshToken,
+      user: {
+        id: user.id,
+        eamil: user.email,
+        isVerified: user.isVerified,
+      },
+    },
   });
 };
 
