@@ -26,11 +26,11 @@ router.post("/login", validateRequest(loginSchema), loginUser);
 router.post("/register", validateRequest(registerSchema), registerUser);
 router.post("/verify-email", validateRequest(otpSchema), verifyEmail);
 router.post("/resend-verification", resendVerification);
-router.post("/froget-password", forgetPassword);
+router.post("/forget-password", forgetPassword);
 
 // Protected Routes
 router.post("/logout", logoutUser);
 router.patch("/change-password", changePassword);
-router.post("/refresh-token", refreshToken);
+router.get("/refresh-token", refreshToken);
 
 module.exports = router;

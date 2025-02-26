@@ -86,13 +86,13 @@ const registerUserController = async (req, res) => {
   });
 };
 
+// @desc verify the otp code and activate the account
+// @route api/v1/users/verify-email
+// @access Public
 const verifyEmail = async (req, res) => {
   const { otp, email } = req.body;
 
-  // hash OTP
-  const hashedOTP = await hashOTP(otp);
-
-  // find it in the verfication table
+  // Find the verification entry for the given email
   const otpExists = await prisma.verificationCode.findFirst({
     where: {
       isUsed: false,
@@ -106,31 +106,49 @@ const verifyEmail = async (req, res) => {
     throw new UnauthenticatedError("Invalid or expired OTP");
   }
 
+  const userId = otpExists.user.id;
+
   await prisma.$transaction(async (prisma) => {
-    // Update the user to mark him as verified
+    // Mark the user as verified
     await prisma.user.update({
-      where: { id: otpExists.user.id },
+      where: { id: userId },
       data: {
         isVerified: true,
         verifiedAt: new Date(),
       },
     });
 
+    // Remove the used OTP entry
     await prisma.verificationCode.delete({
       where: { id: otpExists.id },
     });
   });
 
-  // Generate a token
-  const token = tokenUtils.signAccessToken({ userId: otpExists.user.id });
+  // Generate short-lived access token
+  const accessToken = tokenUtils.signAccessToken({ userId });
 
-  res.status(StatusCodes.OK).json({
-    success: true,
-    message: `Email verified successfully `,
+  // Generate long-lived refresh token
+  const refreshToken = tokenUtils.signRefreshToken({ userId });
+  const refreshTokenExpiry = new Date();
+  refreshTokenExpiry.setFullYear(refreshTokenExpiry.getFullYear() + 1); // 1 year expiry
+
+  // Store refresh token in database
+  await prisma.refreshToken.create({
     data: {
-      token: token,
+      token: refreshToken,
+      userId,
+      expiresAt: refreshTokenExpiry,
+    },
+  });
+
+  res.status(StatusCodes.ACCEPTED).json({
+    success: true,
+    message: "Email verified successfully",
+    data: {
+      accessToken,
+      refreshToken,
       user: {
-        id: otpExists.user.id,
+        id: userId,
         email: otpExists.user.email,
         isVerified: true,
       },
@@ -167,13 +185,17 @@ const loginUser = async (req, res) => {
   const refreshTokenExpiry = new Date();
   refreshTokenExpiry.setFullYear(refreshTokenExpiry.getFullYear() + 1); // 1 year expiry
 
-  // Store refresh token in the database
-  await prisma.refreshToken.create({
-    data: {
-      token: refreshToken,
-      userId: user.id,
-      expiresAt: refreshTokenExpiry,
-    },
+  // Remove existing refresh tokens before adding a new one
+  await prisma.$transaction(async (prisma) => {
+    await prisma.refreshToken.deleteMany({ where: { userId: user.id } });
+    // Store refresh token in the database
+    await prisma.refreshToken.create({
+      data: {
+        token: refreshToken,
+        userId: user.id,
+        expiresAt: refreshTokenExpiry,
+      },
+    });
   });
 
   res.status(StatusCodes.OK).json({
