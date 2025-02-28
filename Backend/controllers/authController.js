@@ -206,32 +206,11 @@ const loginUser = async (req, res) => {
       refreshToken: refreshToken,
       user: {
         id: user.id,
-        eamil: user.email,
+        email: user.email,
         isVerified: user.isVerified,
       },
     },
   });
-};
-
-// @desc get all users
-// @route api/v1/users
-// @access Public
-const getAllUsers = async (req, res) => {
-  const users = await prisma.user.findMany();
-  res.status(StatusCodes.OK).json(users);
-};
-
-// @desc get a single user
-// @route api/v1/users/:id
-// @access Public
-const getSingleUser = async (req, res) => {
-  const { id } = req.params;
-
-  const user = await prisma.user.findUnique({ where: { id: Number(id) } });
-
-  if (!user) throw new BadRequestError("User not found");
-
-  res.status(StatusCodes.OK).json(user);
 };
 
 const logoutUser = async (req, res) => {
@@ -257,8 +236,6 @@ const changePassword = async (req, res) => {
 module.exports = {
   registerUser: registerUserController, // Renamed to avoid conflict with imported function
   loginUser,
-  getAllUsers,
-  getSingleUser,
   logoutUser,
   changePassword,
   verifyEmail,

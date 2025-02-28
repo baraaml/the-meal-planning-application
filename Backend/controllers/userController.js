@@ -5,14 +5,21 @@ const prisma = require("../config/prismaClient");
 // @route GET /api/v1/users/me
 // @access Private
 const getSingleUser = async (req, res) => {
-  res.status(StatusCodes.OK).json({ message: "User retrieved successfully" });
+  const { id } = req.params;
+
+  const user = await prisma.user.findUnique({ where: { id: Number(id) } });
+
+  if (!user) throw new BadRequestError("User not found");
+
+  res.status(StatusCodes.OK).json(user);
 };
 
 // @desc Get all users (Admin Only)
 // @route GET /api/v1/users
 // @access Admin
 const getAllUsers = async (req, res) => {
-  res.status(StatusCodes.OK).json({ message: "All users retrieved" });
+  const users = await prisma.user.findMany();
+  res.status(StatusCodes.OK).json(users);
 };
 
 // @desc Update the authenticated user

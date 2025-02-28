@@ -8,11 +8,13 @@ const prisma = new PrismaClient();
 const app = express();
 
 const authRouter = require("./routes/authRoutes");
+const userRouter = require("./routes/userRoutes");
 const notFound = require("./middlewares/notFound");
 const errorHandlerMiddleware = require("./middlewares/errorHandler");
 
 app.use(express.json());
 app.use("/api/v1/users", authRouter);
+app.use("/api/v1/users", userRouter);
 
 app.get("/", (req, res) => {
   res.send("Hello ma man");
