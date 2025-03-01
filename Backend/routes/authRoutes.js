@@ -7,7 +7,7 @@ const {
   changePassword,
   verifyEmail,
   resendVerification,
-  forgetPassword,
+  forgotPassword,
   refreshToken,
 } = require("../controllers/authController");
 
@@ -20,6 +20,7 @@ const {
   otpSchema,
   loginSchema,
   resendVerificationSchema,
+  forgotPasswordSchema,
 } = require("../validators/authValidator");
 
 const router = express.Router();
@@ -33,7 +34,11 @@ router.post(
   validateRequest(resendVerificationSchema),
   resendVerification
 );
-router.post("/forget-password", forgetPassword);
+router.post(
+  "/forgot-password",
+  validateRequest(forgotPasswordSchema),
+  forgotPassword
+);
 
 // Protected Routes
 router.post("/logout", logoutUser);

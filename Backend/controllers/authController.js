@@ -292,7 +292,7 @@ const resendVerification = async (req, res) => {
   });
 };
 
-const forgetPassword = async (req, res) => {
+const forgotPassword = async (req, res) => {
   res.send("Forget password");
 };
 
@@ -311,6 +311,6 @@ module.exports = {
   changePassword,
   verifyEmail,
   resendVerification,
-  forgetPassword,
+  forgotPassword,
   refreshToken,
 };

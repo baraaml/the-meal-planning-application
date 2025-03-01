@@ -64,9 +64,14 @@ const resendVerificationSchema = Joi.object({
   email: emailSchema,
 });
 
+const forgotPasswordSchema = Joi.object({
+  email: emailSchema,
+});
+
 module.exports = {
   registerSchema,
   loginSchema,
   otpSchema,
   resendVerificationSchema,
+  forgotPasswordSchema,
 };
