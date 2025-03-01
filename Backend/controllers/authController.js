@@ -233,12 +233,13 @@ const resendVerification = async (req, res) => {
   }
 
   // Ensure the user is not already verified
-  if (user.isVerified === True) {
+  if (user.isVerified === true) {
     throw new BadRequestError(
       "User is already verified, Please go to login page"
     );
   }
 
+  // getting the last otp if exists
   const lastOtp = await prisma.verificationCode.findFirst({
     where: {
       userId: user.id,
@@ -248,11 +249,16 @@ const resendVerification = async (req, res) => {
     },
   });
 
+  console.log(lastOtp);
+
   // Check rate limiting (only allow resending once per minute)
   if (lastOtp) {
     const now = new Date();
     const lastRequestTime = new Date(lastOtp.createdAt);
-    lastRequestTime.setTime(lastRequestTime.getMinutes() + 1);
+    lastRequestTime.setMinutes(lastRequestTime.getMinutes() + 1);
+
+    console.log(now);
+    console.log(lastRequestTime);
 
     if (now < lastRequestTime) {
       throw new BadRequestError("Please wait before requesting another OTP.");
@@ -284,17 +290,6 @@ const resendVerification = async (req, res) => {
     success: true,
     message: "A new verification code has been sent to your email.",
   });
-
-  // validate inputs (email) ✅
-  // check database for this email exists or not ✅
-  // Ensure the user is not already verified ✅
-  // Check rate limiting (only allow resending once per minute) ✅
-  // generate otp for this email ✅
-  // hash otp ✅
-  // set otp for just 15 min ✅
-  // store the otp in the database, ensure to rewrite if there exists old otps for this user ✅
-  // send the OTP to the user email
-  // send response
 };
 
 const forgetPassword = async (req, res) => {
