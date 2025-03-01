@@ -17,6 +17,7 @@ const passwordUtils = require("../utils/passwordUtils");
 const { sendVerificationEmail } = require("../utils/emailUtlis");
 const tokenUtils = require("../utils/tokenUtils");
 const prisma = require("../config/prismaClient");
+const BadrequestError = require("../errors/badRequestError");
 
 // @desc register a new user
 // @route api/v1/users/register
@@ -218,7 +219,82 @@ const logoutUser = async (req, res) => {
 };
 
 const resendVerification = async (req, res) => {
-  res.send("Resend verification otp");
+  const { email } = req.body;
+
+  const user = await prisma.user.findUnique({
+    where: {
+      email: email,
+    },
+  });
+
+  // Ensure the user exists in the database
+  if (!user) {
+    throw new BadRequestError("User not found");
+  }
+
+  // Ensure the user is not already verified
+  if (user.isVerified === True) {
+    throw new BadRequestError(
+      "User is already verified, Please go to login page"
+    );
+  }
+
+  const lastOtp = await prisma.verificationCode.findFirst({
+    where: {
+      userId: user.id,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  // Check rate limiting (only allow resending once per minute)
+  if (lastOtp) {
+    const now = new Date();
+    const lastRequestTime = new Date(lastOtp.createdAt);
+    lastRequestTime.setTime(lastRequestTime.getMinutes() + 1);
+
+    if (now < lastRequestTime) {
+      throw new BadRequestError("Please wait before requesting another OTP.");
+    }
+  }
+
+  // generate and hash new OTP
+  const otp = generateOTP();
+  const hashedOTP = await hashOTP(otp);
+  const expirationTime = new Date();
+  expirationTime.setMinutes(expirationTime.getMinutes() + 15);
+
+  // store hashed otp and delete old ones
+  await prisma.$transaction(async (prisma) => {
+    await prisma.verificationCode.deleteMany({ where: { userId: user.id } });
+    await prisma.verificationCode.create({
+      data: {
+        code: hashedOTP,
+        expiresAt: expirationTime,
+        userId: user.id,
+      },
+    });
+  });
+
+  // send the OTP to the user email
+  await sendVerificationEmail(email, otp);
+
+  res.status(StatusCodes.OK).json({
+    success: true,
+    message: "A new verification code has been sent to your email.",
+  });
+
+  // validate inputs (email) ✅
+  // check database for this email exists or not ✅
+  // Ensure the user is not already verified ✅
+  // Check rate limiting (only allow resending once per minute) ✅
+  // generate otp for this email ✅
+  // hash otp ✅
+  // set otp for just 15 min ✅
+  // store the otp in the database, ensure to rewrite if there exists old otps for this user ✅
+  // send the OTP to the user email
+  // send response
 };
 
 const forgetPassword = async (req, res) => {

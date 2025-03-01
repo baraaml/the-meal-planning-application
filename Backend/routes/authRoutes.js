@@ -13,10 +13,13 @@ const {
 
 // register
 const validateRequest = require("../middlewares/validate");
+
+// validators
 const {
   registerSchema,
   otpSchema,
   loginSchema,
+  resendVerificationSchema,
 } = require("../validators/authValidator");
 
 const router = express.Router();
@@ -25,7 +28,11 @@ const router = express.Router();
 router.post("/login", validateRequest(loginSchema), loginUser);
 router.post("/register", validateRequest(registerSchema), registerUser);
 router.post("/verify-email", validateRequest(otpSchema), verifyEmail);
-router.post("/resend-verification", resendVerification);
+router.post(
+  "/resend-verification",
+  validateRequest(resendVerificationSchema),
+  resendVerification
+);
 router.post("/forget-password", forgetPassword);
 
 // Protected Routes
