@@ -311,6 +311,16 @@ const forgotPassword = async (req, res) => {
 
   // Generate a password reset token
   const resetToken = tokenUtils.signPasswordResetToken({ userId: user.id });
+  const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour expiration
+
+  // store the reset token in db
+  await prisma.passwordResetToken.create({
+    data: {
+      token: resetToken,
+      userId: user.id,
+      expiresAt: expiresAt,
+    },
+  });
 
   // Construct deep link & web fallback
   const queryParams = new URLSearchParams({
@@ -329,12 +339,12 @@ const forgotPassword = async (req, res) => {
   });
 };
 
-const refreshToken = async (req, res) => {
-  res.send("refresh-token");
-};
-
 const resetPassword = async (req, res) => {
   res.send("resetPassword");
+};
+
+const refreshToken = async (req, res) => {
+  res.send("refresh-token");
 };
 
 const changePassword = async (req, res) => {
