@@ -9,6 +9,7 @@ const {
   resendVerification,
   forgotPassword,
   refreshToken,
+  resetPassword,
 } = require("../controllers/authController");
 
 // register
@@ -39,6 +40,8 @@ router.post(
   validateRequest(forgotPasswordSchema),
   forgotPassword
 );
+
+router.post("/reset-password", resetPassword);
 
 // Protected Routes
 router.post("/logout", logoutUser);

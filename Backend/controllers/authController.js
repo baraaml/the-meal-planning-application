@@ -14,7 +14,10 @@ const {
   deleteOldOTPs,
 } = require("../utils/otpUtlis");
 const passwordUtils = require("../utils/passwordUtils");
-const { sendVerificationEmail } = require("../utils/emailUtlis");
+const {
+  sendVerificationEmail,
+  sendPasswordResetEmail,
+} = require("../utils/emailUtlis");
 const tokenUtils = require("../utils/tokenUtils");
 const prisma = require("../config/prismaClient");
 const BadrequestError = require("../errors/badRequestError");
@@ -293,11 +296,45 @@ const resendVerification = async (req, res) => {
 };
 
 const forgotPassword = async (req, res) => {
-  res.send("Forget password");
+  const BASE_WEB_URL = "https://mealflow.ddns.net/passwordrecovery"; // Web fallback
+  const BASE_APP_URL = "mealflow://reset-password"; // Deep Link for the app
+
+  const { email } = req.body;
+
+  const user = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if (!user) {
+    throw new BadRequestError("User not found");
+  }
+
+  // Generate a password reset token
+  const resetToken = tokenUtils.signPasswordResetToken({ userId: user.id });
+
+  // Construct deep link & web fallback
+  const queryParams = new URLSearchParams({
+    $deep_link: "true",
+    token: resetToken,
+  }).toString();
+  const resetLink = `${BASE_WEB_URL}?${queryParams}`;
+  const appResetLink = `${BASE_APP_URL}?${queryParams}`;
+
+  // Send email with both links
+  await sendPasswordResetEmail(email, resetLink, appResetLink);
+
+  res.status(StatusCodes.OK).json({
+    success: true,
+    message: "Password reset email sent successfully",
+  });
 };
 
 const refreshToken = async (req, res) => {
   res.send("refresh-token");
+};
+
+const resetPassword = async (req, res) => {
+  res.send("resetPassword");
 };
 
 const changePassword = async (req, res) => {
@@ -313,4 +350,5 @@ module.exports = {
   resendVerification,
   forgotPassword,
   refreshToken,
+  resetPassword,
 };

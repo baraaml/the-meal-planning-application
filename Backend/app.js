@@ -3,6 +3,8 @@ require("express-async-errors");
 require("dotenv").config();
 require("./utils/cron"); // This will automatically start the cleanup job
 const { PrismaClient } = require("@prisma/client");
+const cors = require("cors");
+const path = require("path");
 
 const prisma = new PrismaClient();
 const app = express();
@@ -12,6 +14,7 @@ const userRouter = require("./routes/userRoutes");
 const notFound = require("./middlewares/notFound");
 const errorHandlerMiddleware = require("./middlewares/errorHandler");
 
+app.use(cors());
 app.use(express.json());
 app.use("/api/v1/users", authRouter);
 app.use("/api/v1/users", userRouter);
