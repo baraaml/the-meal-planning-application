@@ -21,6 +21,7 @@ model User {
   // Add this:
   verificationCodes VerificationCode[]
   refreshTokens     RefreshToken[]
+  PasswordResetToken PasswordResetToken[]
 }
 
 

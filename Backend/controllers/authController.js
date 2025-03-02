@@ -309,6 +309,11 @@ const forgotPassword = async (req, res) => {
     throw new BadRequestError("User not found");
   }
 
+  // Check if a reset token already exists
+  await prisma.passwordResetToken.deleteMany({
+    where: { userId: user.id },
+  });
+
   // Generate a password reset token
   const resetToken = tokenUtils.signPasswordResetToken({ userId: user.id });
   const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour expiration
@@ -324,7 +329,7 @@ const forgotPassword = async (req, res) => {
 
   // Construct deep link & web fallback
   const queryParams = new URLSearchParams({
-    $deep_link: "true",
+    // $deep_link: "true",
     token: resetToken,
   }).toString();
   const resetLink = `${BASE_WEB_URL}?${queryParams}`;
