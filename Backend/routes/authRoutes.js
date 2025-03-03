@@ -22,6 +22,7 @@ const {
   loginSchema,
   resendVerificationSchema,
   forgotPasswordSchema,
+  resetPasswordSchema,
 } = require("../validators/authValidator");
 
 const router = express.Router();
@@ -41,7 +42,11 @@ router.post(
   forgotPassword
 );
 
-router.post("/reset-password", resetPassword);
+router.post(
+  "/reset-password",
+  validateRequest(resetPasswordSchema),
+  resetPassword
+);
 
 // Protected Routes
 router.post("/logout", logoutUser);
