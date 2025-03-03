@@ -3,7 +3,8 @@ const {
   generateAuthToken,
   comparePassword,
 } = require("../models/userModel");
-const BadRequestError = require("../errors/badRequestError");
+const BadRequestError = require("../errors/BadRequestError");
+const CustomAPIError = require("../errors");
 const UnauthenticatedError = require("../errors/UnauthenticatedError");
 const { StatusCodes } = require("http-status-codes");
 const { registerSchema } = require("../validators/authValidator");
@@ -20,7 +21,7 @@ const {
 } = require("../utils/emailUtlis");
 const tokenUtils = require("../utils/tokenUtils");
 const prisma = require("../config/prismaClient");
-const BadrequestError = require("../errors/badRequestError");
+const BadrequestError = require("../errors/BadRequestError");
 
 // @desc register a new user
 // @route api/v1/users/register
@@ -264,7 +265,9 @@ const resendVerification = async (req, res) => {
     console.log(lastRequestTime);
 
     if (now < lastRequestTime) {
-      throw new BadRequestError("Please wait before requesting another OTP.");
+      throw new CustomAPIError.TooManyRequestsError(
+        "Please wait before requesting another OTP."
+      );
     }
   }
 
@@ -390,7 +393,7 @@ const resetPassword = async (req, res) => {
     success: true,
     message: "Password reset successfully",
   });
-}
+};
 
 const refreshToken = async (req, res) => {
   res.send("refresh-token");
