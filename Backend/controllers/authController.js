@@ -319,7 +319,7 @@ const forgotPassword = async (req, res) => {
   const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour expiration
 
   // store the reset token in db
-  await prisma.passwordResetToken.create({
+  const newToken = await prisma.passwordResetToken.create({
     data: {
       token: resetToken,
       userId: user.id,
@@ -348,8 +348,49 @@ const forgotPassword = async (req, res) => {
 };
 
 const resetPassword = async (req, res) => {
-  res.send("resetPassword");
-};
+  const { token, newPassword } = req.body;
+
+  // Verify the token
+  const decoded = tokenUtils.verify(token);
+  if (!decoded) {
+    throw new UnauthenticatedError("Invalid or expired token");
+  }
+
+  // Check if token exists in database and is valid
+  const resetTokenEntry = await prisma.passwordResetToken.findFirst({
+    where: {
+      token: token,
+      isUsed: false,
+      expiresAt: { gt: new Date() },
+      userId: decoded.userId,
+    },
+  });
+
+  if (!resetTokenEntry) {
+    throw new UnauthenticatedError("Invalid or expired token");
+  }
+
+  // Hash new password
+  const hashedPassword = await passwordUtils.hash(newPassword);
+
+  // Update password and mark token as used in a transaction
+  await prisma.$transaction(async (prisma) => {
+    await prisma.user.update({
+      where: { id: decoded.userId },
+      data: { password: hashedPassword },
+    });
+
+    await prisma.passwordResetToken.update({
+      where: { id: resetTokenEntry.id },
+      data: { used: true },
+    });
+  });
+
+  res.status(StatusCodes.OK).json({
+    success: true,
+    message: "Password reset successfully",
+  });
+}
 
 const refreshToken = async (req, res) => {
   res.send("refresh-token");
