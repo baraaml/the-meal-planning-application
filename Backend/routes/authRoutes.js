@@ -8,7 +8,7 @@ const {
   verifyEmail,
   resendVerification,
   forgotPassword,
-  refreshToken,
+  refreshAccessToken,
   resetPassword,
 } = require("../controllers/authController");
 
@@ -23,7 +23,9 @@ const {
   resendVerificationSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
+  refreshTokenSchema,
 } = require("../validators/authValidator");
+const { valid } = require("joi");
 
 const router = express.Router();
 
@@ -51,6 +53,10 @@ router.post(
 // Protected Routes
 router.post("/logout", logoutUser);
 router.patch("/change-password", changePassword);
-router.get("/refresh-token", refreshToken);
+router.get(
+  "/refresh-token",
+  validateRequest(refreshTokenSchema),
+  refreshAccessToken
+);
 
 module.exports = router;

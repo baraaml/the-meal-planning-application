@@ -23,7 +23,7 @@ const tokenUtils = require("../utils/tokenUtils");
 const prisma = require("../config/prismaClient");
 const BadrequestError = require("../errors/BadRequestError");
 
-// @desc POST register a new user
+// @desc (POST) register a new user
 // @route api/v1/users/register
 // @access Public
 const registerUserController = async (req, res) => {
@@ -39,11 +39,11 @@ const registerUserController = async (req, res) => {
     },
   });
   if (existingUser) {
-    if (existingUser.email === email.toLowerCase()) {
-      throw new CustomAPIError.ConflictError("Email already registered");
-    }
     if (existingUser.username === username.toLowerCase()) {
       throw new CustomAPIError.ConflictError("Username already registered");
+    }
+    if (existingUser.email === email.toLowerCase()) {
+      throw new CustomAPIError.ConflictError("Email already registered");
     }
   }
 
@@ -91,7 +91,7 @@ const registerUserController = async (req, res) => {
   });
 };
 
-// @desc verify the otp code and activate the account
+// @desc (POST) verify the otp code and activate the account
 // @route api/v1/users/verify-email
 // @access Public
 const verifyEmail = async (req, res) => {
@@ -161,7 +161,7 @@ const verifyEmail = async (req, res) => {
   });
 };
 
-// @desc login a user
+// @desc (POST) login a user
 // @route api/v1/users/login
 // @access Public
 const loginUser = async (req, res) => {
@@ -223,6 +223,7 @@ const logoutUser = async (req, res) => {
 };
 
 const resendVerification = async (req, res) => {
+  // getting the inputs
   const { email } = req.body;
 
   const user = await prisma.user.findUnique({
@@ -395,10 +396,44 @@ const resetPassword = async (req, res) => {
   });
 };
 
-const refreshToken = async (req, res) => {
-  res.send("refresh-token");
+const refreshAccessToken = async (req, res) => {
+  const { refreshToken } = req.body;
+
+  // Verify refresh token signature and expiration
+  let decoded = tokenUtils.verify(refreshToken);
+
+  if (!decoded) {
+    throw new CustomAPIError.UnauthenticatedError(
+      "Invalid or expired refresh token"
+    );
+  }
+
+  // Find matching refresh token in database
+  const existingToken = await prisma.refreshToken.findFirst({
+    where: {
+      token: refreshToken,
+      userId: decoded.userId,
+      expiresAt: { gt: new Date() },
+    },
+  });
+
+  if (!existingToken) {
+    throw new UnauthenticatedError("Invalid or expired refresh token");
+  }
+
+  // Generate a new access token
+  const newAccessToken = tokenUtils.signAccessToken({ userId: decoded.userId });
+
+  res.status(StatusCodes.OK).json({
+    success: true,
+    message: "New access token generated",
+    data: { accessToken: newAccessToken },
+  });
 };
 
+// @desc (POST) change the password of a user
+// @route api/v1/users/change-password
+// @access Private
 const changePassword = async (req, res) => {
   res.send("Change password");
 };
@@ -411,6 +446,6 @@ module.exports = {
   verifyEmail,
   resendVerification,
   forgotPassword,
-  refreshToken,
+  refreshAccessToken,
   resetPassword,
 };
