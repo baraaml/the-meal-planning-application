@@ -4,6 +4,7 @@ const NotFoundError = require("./not-found");
 const BadRequestError = require("./BadRequestError");
 const UnauthorizedError = require("./UnautherizedError");
 const TooManyRequestsError = require("./TooManyRequestsError");
+const ConflictError = require("./ConflictError");
 
 module.exports = {
   CustomAPIError,
@@ -12,4 +13,5 @@ module.exports = {
   BadRequestError,
   UnauthorizedError,
   TooManyRequestsError,
+  ConflictError
 };

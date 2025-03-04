@@ -23,7 +23,7 @@ const tokenUtils = require("../utils/tokenUtils");
 const prisma = require("../config/prismaClient");
 const BadrequestError = require("../errors/BadRequestError");
 
-// @desc register a new user
+// @desc POST register a new user
 // @route api/v1/users/register
 // @access Public
 const registerUserController = async (req, res) => {
@@ -40,10 +40,10 @@ const registerUserController = async (req, res) => {
   });
   if (existingUser) {
     if (existingUser.email === email.toLowerCase()) {
-      throw new BadRequestError("Email already registered");
+      throw new CustomAPIError.ConflictError("Email already registered");
     }
     if (existingUser.username === username.toLowerCase()) {
-      throw new BadRequestError("Username already registered");
+      throw new CustomAPIError.ConflictError("Username already registered");
     }
   }
 
