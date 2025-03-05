@@ -21,7 +21,6 @@ const {
 } = require("../utils/emailUtlis");
 const tokenUtils = require("../utils/tokenUtils");
 const prisma = require("../config/prismaClient");
-const BadrequestError = require("../errors/BadRequestError");
 
 // @desc (POST) register a new user
 // @route api/v1/users/register
@@ -178,7 +177,7 @@ const loginUser = async (req, res) => {
     );
   }
 
-  // Check password
+  // check password is correct
   const isPasswordCorrect = await comparePassword(password, user.password);
   if (!isPasswordCorrect) throw new UnauthenticatedError("Invalid password");
 
@@ -190,9 +189,10 @@ const loginUser = async (req, res) => {
   const refreshTokenExpiry = new Date();
   refreshTokenExpiry.setFullYear(refreshTokenExpiry.getFullYear() + 1); // 1 year expiry
 
-  // Remove existing refresh tokens before adding a new one
   await prisma.$transaction(async (prisma) => {
+    // Remove existing refresh tokens before adding a new one
     await prisma.refreshToken.deleteMany({ where: { userId: user.id } });
+
     // Store refresh token in the database
     await prisma.refreshToken.create({
       data: {
@@ -218,8 +218,35 @@ const loginUser = async (req, res) => {
   });
 };
 
+// @desc (POST) logout a user
+// @route api/v1/users/logout
+// @access Public
 const logoutUser = async (req, res) => {
-  res.send("Logout user");
+  const { refreshToken } = req.body;
+
+  // Verify refresh token signature and expiration
+  let decoded = tokenUtils.verify(refreshToken);
+
+  if (!decoded) {
+    throw new CustomAPIError.UnauthenticatedError(
+      "Invalid or expired refresh token"
+    );
+  }
+
+  // Find and deactivate token
+  const token = await prisma.refreshToken.updateMany({
+    where: { token: refreshToken },
+    data: { isActive: false },
+  });
+
+  if (!token) {
+    throw new UnauthenticatedError("No tokens are found");
+  }
+
+  return res.status(StatusCodes.OK).json({
+    success: true,
+    message: "User logged out successfully.",
+  });
 };
 
 const resendVerification = async (req, res) => {
@@ -421,6 +448,10 @@ const refreshAccessToken = async (req, res) => {
     throw new UnauthenticatedError("Invalid or expired refresh token");
   }
 
+  if (existingToken.isActive === false) {
+    throw new CustomAPIError.UnauthorizedError("Deactivated refresh token");
+  }
+
   // Generate a new access token
   const newAccessToken = tokenUtils.signAccessToken({ userId: decoded.userId });
 
@@ -428,6 +459,68 @@ const refreshAccessToken = async (req, res) => {
     success: true,
     message: "New access token generated",
     data: { accessToken: newAccessToken },
+  });
+};
+
+// @desc (POST) login a user from pop up menu of previous accounts
+// @route api/v1/users/quick-login
+// @access Public
+const quickLoginUser = async (req, res) => {
+  const { refreshToken } = req.body;
+
+  // Verify refresh token signature and expiration
+  let decoded = tokenUtils.verify(refreshToken);
+
+  if (!decoded) {
+    throw new CustomAPIError.UnauthenticatedError(
+      "Invalid or expired refresh token"
+    );
+  }
+
+  const { existingToken, user } = await prisma.$transaction(async (tx) => {
+    // Find matching refresh token and include user details
+    const token = await tx.refreshToken.findFirst({
+      where: {
+        token: refreshToken,
+        userId: decoded.userId,
+        expiresAt: { gt: new Date() },
+        isActive: false,
+      },
+      include: {
+        user: true, // Fetch the user data along with the token
+      },
+    });
+
+    if (!token || !token.user) {
+      throw new CustomAPIError.UnauthenticatedError(
+        "Invalid or expired refresh token"
+      );
+    }
+
+    // Update isActive to true
+    await tx.refreshToken.update({
+      where: { id: token.id },
+      data: { isActive: true },
+    });
+
+    return { existingToken: token, user: token.user }; // Return both token and user
+  });
+
+  // Generate a new access token
+  const newAccessToken = tokenUtils.signAccessToken({ userId: user.id });
+
+  res.status(StatusCodes.OK).json({
+    success: true,
+    message: "Login successful",
+    data: {
+      accessToken: newAccessToken,
+      refreshToken: refreshToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        isVerified: user.isVerified,
+      },
+    },
   });
 };
 
@@ -448,4 +541,5 @@ module.exports = {
   forgotPassword,
   refreshAccessToken,
   resetPassword,
+  quickLoginUser,
 };

@@ -24,7 +24,6 @@ model User {
   PasswordResetToken PasswordResetToken[]
 }
 
-
 model VerificationCode {
   id        String    @id @default(uuid())
   code      String    @db.Text
@@ -42,6 +41,7 @@ model RefreshToken {
   id        String   @id @default(uuid())
   token     String   @unique
   userId    String
+  isActive   Boolean @default(true) 
   expiresAt DateTime
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt

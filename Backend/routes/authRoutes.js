@@ -10,6 +10,7 @@ const {
   forgotPassword,
   refreshAccessToken,
   resetPassword,
+  quickLoginUser,
 } = require("../controllers/authController");
 
 // register
@@ -31,6 +32,11 @@ const router = express.Router();
 
 // Public Routes
 router.post("/login", validateRequest(loginSchema), loginUser);
+router.post(
+  "/quick-login",
+  validateRequest(refreshTokenSchema),
+  quickLoginUser
+);
 router.post("/register", validateRequest(registerSchema), registerUser);
 router.post("/verify-email", validateRequest(otpSchema), verifyEmail);
 router.post(
@@ -51,7 +57,7 @@ router.post(
 );
 
 // Protected Routes
-router.post("/logout", logoutUser);
+router.post("/logout", validateRequest(refreshTokenSchema), logoutUser);
 router.patch("/change-password", changePassword);
 router.get(
   "/refresh-token",
