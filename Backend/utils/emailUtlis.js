@@ -55,4 +55,53 @@ const sendVerificationEmail = async (email, otp) => {
   await transporter.sendMail(mailOptions);
 };
 
-module.exports = { sendVerificationEmail };
+// Function to send password reset email
+const sendPasswordResetEmail = async (email, resetLinkWeb, resetLinkApp) => {
+  const mailOptions = {
+    from: '"MealFlow Support" <bojack25333@gmail.com>',
+    to: email,
+    subject: "Reset Your Password - MealFlow",
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>Password Reset</title>
+        <style>
+          body { font-family: sans-serif; line-height: 1.6; margin: 0; padding: 20px; background-color: #f4f4f4; }
+          .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); text-align: center; }
+          h2 { color: #333; }
+          p { color: #555; }
+          .btn {
+            display: inline-block;
+            background-color: #007bff;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 1.2em;
+            margin-top: 20px;
+          }
+          .footer { margin-top: 30px; text-align: center; color: #999; font-size: 0.9em; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <h2>Password Reset</h2>
+          <p>We received a request to reset your password. Click the button below to proceed.</p>
+          <a href="${resetLinkApp}" class="btn">Reset Password</a>
+          <p>If the button does not work, <a href="${resetLinkWeb}">click here</a>.</p>
+          <p>If you did not request a password reset, please ignore this email.</p>
+          <div class="footer">
+            <p>This is an automatically generated email. Please do not reply.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `,
+  };
+
+  await transporter.sendMail(mailOptions);
+};
+
+module.exports = { sendVerificationEmail, sendPasswordResetEmail };

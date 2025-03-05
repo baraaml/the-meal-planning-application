@@ -1,6 +1,6 @@
 const crypto = require("crypto");
 const bcrypt = require("bcrypt");
-const BadrequestError = require("../errors/badRequestError");
+const BadrequestError = require("../errors/BadRequestError");
 const prisma = require("../config/prismaClient");
 
 const generateOTP = () => {

@@ -3,7 +3,8 @@ const {
   generateAuthToken,
   comparePassword,
 } = require("../models/userModel");
-const BadRequestError = require("../errors/badRequestError");
+const BadRequestError = require("../errors/BadRequestError");
+const CustomAPIError = require("../errors");
 const UnauthenticatedError = require("../errors/UnauthenticatedError");
 const { StatusCodes } = require("http-status-codes");
 const { registerSchema } = require("../validators/authValidator");
@@ -14,12 +15,14 @@ const {
   deleteOldOTPs,
 } = require("../utils/otpUtlis");
 const passwordUtils = require("../utils/passwordUtils");
-const { sendVerificationEmail } = require("../utils/emailUtlis");
+const {
+  sendVerificationEmail,
+  sendPasswordResetEmail,
+} = require("../utils/emailUtlis");
 const tokenUtils = require("../utils/tokenUtils");
 const prisma = require("../config/prismaClient");
-const BadrequestError = require("../errors/badRequestError");
 
-// @desc register a new user
+// @desc (POST) register a new user
 // @route api/v1/users/register
 // @access Public
 const registerUserController = async (req, res) => {
@@ -35,11 +38,11 @@ const registerUserController = async (req, res) => {
     },
   });
   if (existingUser) {
-    if (existingUser.email === email.toLowerCase()) {
-      throw new BadRequestError("Email already registered");
-    }
     if (existingUser.username === username.toLowerCase()) {
-      throw new BadRequestError("Username already registered");
+      throw new CustomAPIError.ConflictError("Username already registered");
+    }
+    if (existingUser.email === email.toLowerCase()) {
+      throw new CustomAPIError.ConflictError("Email already registered");
     }
   }
 
@@ -87,7 +90,7 @@ const registerUserController = async (req, res) => {
   });
 };
 
-// @desc verify the otp code and activate the account
+// @desc (POST) verify the otp code and activate the account
 // @route api/v1/users/verify-email
 // @access Public
 const verifyEmail = async (req, res) => {
@@ -157,7 +160,7 @@ const verifyEmail = async (req, res) => {
   });
 };
 
-// @desc login a user
+// @desc (POST) login a user
 // @route api/v1/users/login
 // @access Public
 const loginUser = async (req, res) => {
@@ -174,7 +177,7 @@ const loginUser = async (req, res) => {
     );
   }
 
-  // Check password
+  // check password is correct
   const isPasswordCorrect = await comparePassword(password, user.password);
   if (!isPasswordCorrect) throw new UnauthenticatedError("Invalid password");
 
@@ -186,9 +189,10 @@ const loginUser = async (req, res) => {
   const refreshTokenExpiry = new Date();
   refreshTokenExpiry.setFullYear(refreshTokenExpiry.getFullYear() + 1); // 1 year expiry
 
-  // Remove existing refresh tokens before adding a new one
   await prisma.$transaction(async (prisma) => {
+    // Remove existing refresh tokens before adding a new one
     await prisma.refreshToken.deleteMany({ where: { userId: user.id } });
+
     // Store refresh token in the database
     await prisma.refreshToken.create({
       data: {
@@ -214,11 +218,39 @@ const loginUser = async (req, res) => {
   });
 };
 
+// @desc (POST) logout a user
+// @route api/v1/users/logout
+// @access Public
 const logoutUser = async (req, res) => {
-  res.send("Logout user");
+  const { refreshToken } = req.body;
+
+  // Verify refresh token signature and expiration
+  let decoded = tokenUtils.verify(refreshToken);
+
+  if (!decoded) {
+    throw new CustomAPIError.UnauthenticatedError(
+      "Invalid or expired refresh token"
+    );
+  }
+
+  // Find and deactivate token
+  const token = await prisma.refreshToken.updateMany({
+    where: { token: refreshToken },
+    data: { isActive: false },
+  });
+
+  if (!token) {
+    throw new UnauthenticatedError("No tokens are found");
+  }
+
+  return res.status(StatusCodes.OK).json({
+    success: true,
+    message: "User logged out successfully.",
+  });
 };
 
 const resendVerification = async (req, res) => {
+  // getting the inputs
   const { email } = req.body;
 
   const user = await prisma.user.findUnique({
@@ -261,7 +293,9 @@ const resendVerification = async (req, res) => {
     console.log(lastRequestTime);
 
     if (now < lastRequestTime) {
-      throw new BadRequestError("Please wait before requesting another OTP.");
+      throw new CustomAPIError.TooManyRequestsError(
+        "Please wait before requesting another OTP."
+      );
     }
   }
 
@@ -292,14 +326,207 @@ const resendVerification = async (req, res) => {
   });
 };
 
-const forgetPassword = async (req, res) => {
-  res.send("Forget password");
+const forgotPassword = async (req, res) => {
+  const BASE_WEB_URL = "https://mealflow.ddns.net/passwordrecovery"; // Web fallback
+  const BASE_APP_URL = "mealflow://reset-password"; // Deep Link for the app
+
+  const { email } = req.body;
+
+  const user = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if (!user) {
+    throw new BadRequestError("User not found");
+  }
+
+  // Check if a reset token already exists
+  await prisma.passwordResetToken.deleteMany({
+    where: { userId: user.id },
+  });
+
+  // Generate a password reset token
+  const resetToken = tokenUtils.signPasswordResetToken({ userId: user.id });
+  const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour expiration
+
+  // store the reset token in db
+  const newToken = await prisma.passwordResetToken.create({
+    data: {
+      token: resetToken,
+      userId: user.id,
+      expiresAt: expiresAt,
+    },
+  });
+
+  // Construct deep link & web fallback
+  const queryParams = new URLSearchParams({
+    // $deep_link: "true",
+    token: resetToken,
+  }).toString();
+  const resetLink = `${BASE_WEB_URL}?${queryParams}`;
+  const appResetLink = `${BASE_APP_URL}?${queryParams}`;
+
+  // Send email with both links
+  await sendPasswordResetEmail(email, resetLink, appResetLink);
+
+  res.status(StatusCodes.OK).json({
+    success: true,
+    message: "Password reset email sent successfully",
+    data: {
+      token: resetToken,
+    },
+  });
 };
 
-const refreshToken = async (req, res) => {
-  res.send("refresh-token");
+const resetPassword = async (req, res) => {
+  const { token, newPassword } = req.body;
+
+  // Verify the token
+  const decoded = tokenUtils.verify(token);
+  if (!decoded) {
+    throw new UnauthenticatedError("Invalid or expired token");
+  }
+
+  // Check if token exists in database and is valid
+  const resetTokenEntry = await prisma.passwordResetToken.findFirst({
+    where: {
+      token: token,
+      isUsed: false,
+      expiresAt: { gt: new Date() },
+      userId: decoded.userId,
+    },
+  });
+
+  if (!resetTokenEntry) {
+    throw new UnauthenticatedError("Invalid or expired token");
+  }
+
+  // Hash new password
+  const hashedPassword = await passwordUtils.hash(newPassword);
+
+  // Update password and mark token as used in a transaction
+  await prisma.$transaction(async (prisma) => {
+    await prisma.user.update({
+      where: { id: decoded.userId },
+      data: { password: hashedPassword },
+    });
+
+    await prisma.passwordResetToken.update({
+      where: { id: resetTokenEntry.id },
+      data: { used: true },
+    });
+  });
+
+  res.status(StatusCodes.OK).json({
+    success: true,
+    message: "Password reset successfully",
+  });
 };
 
+const refreshAccessToken = async (req, res) => {
+  const { refreshToken } = req.body;
+
+  // Verify refresh token signature and expiration
+  let decoded = tokenUtils.verify(refreshToken);
+
+  if (!decoded) {
+    throw new CustomAPIError.UnauthenticatedError(
+      "Invalid or expired refresh token"
+    );
+  }
+
+  // Find matching refresh token in database
+  const existingToken = await prisma.refreshToken.findFirst({
+    where: {
+      token: refreshToken,
+      userId: decoded.userId,
+      expiresAt: { gt: new Date() },
+    },
+  });
+
+  if (!existingToken) {
+    throw new UnauthenticatedError("Invalid or expired refresh token");
+  }
+
+  if (existingToken.isActive === false) {
+    throw new CustomAPIError.UnauthorizedError("Deactivated refresh token");
+  }
+
+  // Generate a new access token
+  const newAccessToken = tokenUtils.signAccessToken({ userId: decoded.userId });
+
+  res.status(StatusCodes.OK).json({
+    success: true,
+    message: "New access token generated",
+    data: { accessToken: newAccessToken },
+  });
+};
+
+// @desc (POST) login a user from pop up menu of previous accounts
+// @route api/v1/users/quick-login
+// @access Public
+const quickLoginUser = async (req, res) => {
+  const { refreshToken } = req.body;
+
+  // Verify refresh token signature and expiration
+  let decoded = tokenUtils.verify(refreshToken);
+
+  if (!decoded) {
+    throw new CustomAPIError.UnauthenticatedError(
+      "Invalid or expired refresh token"
+    );
+  }
+
+  const { existingToken, user } = await prisma.$transaction(async (tx) => {
+    // Find matching refresh token and include user details
+    const token = await tx.refreshToken.findFirst({
+      where: {
+        token: refreshToken,
+        userId: decoded.userId,
+        expiresAt: { gt: new Date() },
+        isActive: false,
+      },
+      include: {
+        user: true, // Fetch the user data along with the token
+      },
+    });
+
+    if (!token || !token.user) {
+      throw new CustomAPIError.UnauthenticatedError(
+        "Invalid or expired refresh token"
+      );
+    }
+
+    // Update isActive to true
+    await tx.refreshToken.update({
+      where: { id: token.id },
+      data: { isActive: true },
+    });
+
+    return { existingToken: token, user: token.user }; // Return both token and user
+  });
+
+  // Generate a new access token
+  const newAccessToken = tokenUtils.signAccessToken({ userId: user.id });
+
+  res.status(StatusCodes.OK).json({
+    success: true,
+    message: "Login successful",
+    data: {
+      accessToken: newAccessToken,
+      refreshToken: refreshToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        isVerified: user.isVerified,
+      },
+    },
+  });
+};
+
+// @desc (POST) change the password of a user
+// @route api/v1/users/change-password
+// @access Private
 const changePassword = async (req, res) => {
   res.send("Change password");
 };
@@ -311,6 +538,8 @@ module.exports = {
   changePassword,
   verifyEmail,
   resendVerification,
-  forgetPassword,
-  refreshToken,
+  forgotPassword,
+  refreshAccessToken,
+  resetPassword,
+  quickLoginUser,
 };
