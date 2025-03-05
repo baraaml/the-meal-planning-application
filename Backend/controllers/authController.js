@@ -3,7 +3,8 @@ const {
   generateAuthToken,
   comparePassword,
 } = require("../models/userModel");
-const BadRequestError = require("../errors/badRequestError");
+const BadRequestError = require("../errors/BadRequestError");
+const CustomAPIError = require("../errors");
 const UnauthenticatedError = require("../errors/UnauthenticatedError");
 const { StatusCodes } = require("http-status-codes");
 const { registerSchema } = require("../validators/authValidator");
@@ -14,11 +15,14 @@ const {
   deleteOldOTPs,
 } = require("../utils/otpUtlis");
 const passwordUtils = require("../utils/passwordUtils");
-const { sendVerificationEmail } = require("../utils/emailUtlis");
+const {
+  sendVerificationEmail,
+  sendPasswordResetEmail,
+} = require("../utils/emailUtlis");
 const tokenUtils = require("../utils/tokenUtils");
 const prisma = require("../config/prismaClient");
 
-// @desc register a new user
+// @desc (POST) register a new user
 // @route api/v1/users/register
 // @access Public
 const registerUserController = async (req, res) => {
@@ -34,11 +38,11 @@ const registerUserController = async (req, res) => {
     },
   });
   if (existingUser) {
-    if (existingUser.email === email.toLowerCase()) {
-      throw new BadRequestError("Email already registered");
-    }
     if (existingUser.username === username.toLowerCase()) {
-      throw new BadRequestError("Username already registered");
+      throw new CustomAPIError.ConflictError("Username already registered");
+    }
+    if (existingUser.email === email.toLowerCase()) {
+      throw new CustomAPIError.ConflictError("Email already registered");
     }
   }
 
@@ -86,7 +90,7 @@ const registerUserController = async (req, res) => {
   });
 };
 
-// @desc verify the otp code and activate the account
+// @desc (POST) verify the otp code and activate the account
 // @route api/v1/users/verify-email
 // @access Public
 const verifyEmail = async (req, res) => {
@@ -156,7 +160,7 @@ const verifyEmail = async (req, res) => {
   });
 };
 
-// @desc login a user
+// @desc (POST) login a user
 // @route api/v1/users/login
 // @access Public
 const loginUser = async (req, res) => {
@@ -173,7 +177,7 @@ const loginUser = async (req, res) => {
     );
   }
 
-  // Check password
+  // check password is correct
   const isPasswordCorrect = await comparePassword(password, user.password);
   if (!isPasswordCorrect) throw new UnauthenticatedError("Invalid password");
 
@@ -185,9 +189,10 @@ const loginUser = async (req, res) => {
   const refreshTokenExpiry = new Date();
   refreshTokenExpiry.setFullYear(refreshTokenExpiry.getFullYear() + 1); // 1 year expiry
 
-  // Remove existing refresh tokens before adding a new one
   await prisma.$transaction(async (prisma) => {
+    // Remove existing refresh tokens before adding a new one
     await prisma.refreshToken.deleteMany({ where: { userId: user.id } });
+
     // Store refresh token in the database
     await prisma.refreshToken.create({
       data: {
@@ -206,50 +211,322 @@ const loginUser = async (req, res) => {
       refreshToken: refreshToken,
       user: {
         id: user.id,
-        eamil: user.email,
+        email: user.email,
         isVerified: user.isVerified,
       },
     },
   });
 };
 
-// @desc get all users
-// @route api/v1/users
+// @desc (POST) logout a user
+// @route api/v1/users/logout
 // @access Public
-const getAllUsers = async (req, res) => {
-  const users = await prisma.user.findMany();
-  res.status(StatusCodes.OK).json(users);
-};
-
-// @desc get a single user
-// @route api/v1/users/:id
-// @access Public
-const getSingleUser = async (req, res) => {
-  const { id } = req.params;
-
-  const user = await prisma.user.findUnique({ where: { id: Number(id) } });
-
-  if (!user) throw new BadRequestError("User not found");
-
-  res.status(StatusCodes.OK).json(user);
-};
-
 const logoutUser = async (req, res) => {
-  res.send("Logout user");
+  const { refreshToken } = req.body;
+
+  // Verify refresh token signature and expiration
+  let decoded = tokenUtils.verify(refreshToken);
+
+  if (!decoded) {
+    throw new CustomAPIError.UnauthenticatedError(
+      "Invalid or expired refresh token"
+    );
+  }
+
+  // Find and deactivate token
+  const token = await prisma.refreshToken.updateMany({
+    where: { token: refreshToken },
+    data: { isActive: false },
+  });
+
+  if (!token) {
+    throw new UnauthenticatedError("No tokens are found");
+  }
+
+  return res.status(StatusCodes.OK).json({
+    success: true,
+    message: "User logged out successfully.",
+  });
 };
 
 const resendVerification = async (req, res) => {
-  res.send("Resend verification otp");
+  // getting the inputs
+  const { email } = req.body;
+
+  const user = await prisma.user.findUnique({
+    where: {
+      email: email,
+    },
+  });
+
+  // Ensure the user exists in the database
+  if (!user) {
+    throw new BadRequestError("User not found");
+  }
+
+  // Ensure the user is not already verified
+  if (user.isVerified === true) {
+    throw new BadRequestError(
+      "User is already verified, Please go to login page"
+    );
+  }
+
+  // getting the last otp if exists
+  const lastOtp = await prisma.verificationCode.findFirst({
+    where: {
+      userId: user.id,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  console.log(lastOtp);
+
+  // Check rate limiting (only allow resending once per minute)
+  if (lastOtp) {
+    const now = new Date();
+    const lastRequestTime = new Date(lastOtp.createdAt);
+    lastRequestTime.setMinutes(lastRequestTime.getMinutes() + 1);
+
+    console.log(now);
+    console.log(lastRequestTime);
+
+    if (now < lastRequestTime) {
+      throw new CustomAPIError.TooManyRequestsError(
+        "Please wait before requesting another OTP."
+      );
+    }
+  }
+
+  // generate and hash new OTP
+  const otp = generateOTP();
+  const hashedOTP = await hashOTP(otp);
+  const expirationTime = new Date();
+  expirationTime.setMinutes(expirationTime.getMinutes() + 15);
+
+  // store hashed otp and delete old ones
+  await prisma.$transaction(async (prisma) => {
+    await prisma.verificationCode.deleteMany({ where: { userId: user.id } });
+    await prisma.verificationCode.create({
+      data: {
+        code: hashedOTP,
+        expiresAt: expirationTime,
+        userId: user.id,
+      },
+    });
+  });
+
+  // send the OTP to the user email
+  await sendVerificationEmail(email, otp);
+
+  res.status(StatusCodes.OK).json({
+    success: true,
+    message: "A new verification code has been sent to your email.",
+  });
 };
 
-const forgetPassword = async (req, res) => {
-  res.send("Forget password");
+const forgotPassword = async (req, res) => {
+  const BASE_WEB_URL = "https://mealflow.ddns.net/passwordrecovery"; // Web fallback
+  const BASE_APP_URL = "mealflow://reset-password"; // Deep Link for the app
+
+  const { email } = req.body;
+
+  const user = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if (!user) {
+    throw new BadRequestError("User not found");
+  }
+
+  // Check if a reset token already exists
+  await prisma.passwordResetToken.deleteMany({
+    where: { userId: user.id },
+  });
+
+  // Generate a password reset token
+  const resetToken = tokenUtils.signPasswordResetToken({ userId: user.id });
+  const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour expiration
+
+  // store the reset token in db
+  const newToken = await prisma.passwordResetToken.create({
+    data: {
+      token: resetToken,
+      userId: user.id,
+      expiresAt: expiresAt,
+    },
+  });
+
+  // Construct deep link & web fallback
+  const queryParams = new URLSearchParams({
+    // $deep_link: "true",
+    token: resetToken,
+  }).toString();
+  const resetLink = `${BASE_WEB_URL}?${queryParams}`;
+  const appResetLink = `${BASE_APP_URL}?${queryParams}`;
+
+  // Send email with both links
+  await sendPasswordResetEmail(email, resetLink, appResetLink);
+
+  res.status(StatusCodes.OK).json({
+    success: true,
+    message: "Password reset email sent successfully",
+    data: {
+      token: resetToken,
+    },
+  });
 };
 
-const refreshToken = async (req, res) => {
-  res.send("refresh-token");
+const resetPassword = async (req, res) => {
+  const { token, newPassword } = req.body;
+
+  // Verify the token
+  const decoded = tokenUtils.verify(token);
+  if (!decoded) {
+    throw new UnauthenticatedError("Invalid or expired token");
+  }
+
+  // Check if token exists in database and is valid
+  const resetTokenEntry = await prisma.passwordResetToken.findFirst({
+    where: {
+      token: token,
+      isUsed: false,
+      expiresAt: { gt: new Date() },
+      userId: decoded.userId,
+    },
+  });
+
+  if (!resetTokenEntry) {
+    throw new UnauthenticatedError("Invalid or expired token");
+  }
+
+  // Hash new password
+  const hashedPassword = await passwordUtils.hash(newPassword);
+
+  // Update password and mark token as used in a transaction
+  await prisma.$transaction(async (prisma) => {
+    await prisma.user.update({
+      where: { id: decoded.userId },
+      data: { password: hashedPassword },
+    });
+
+    await prisma.passwordResetToken.update({
+      where: { id: resetTokenEntry.id },
+      data: { used: true },
+    });
+  });
+
+  res.status(StatusCodes.OK).json({
+    success: true,
+    message: "Password reset successfully",
+  });
 };
 
+const refreshAccessToken = async (req, res) => {
+  const { refreshToken } = req.body;
+
+  // Verify refresh token signature and expiration
+  let decoded = tokenUtils.verify(refreshToken);
+
+  if (!decoded) {
+    throw new CustomAPIError.UnauthenticatedError(
+      "Invalid or expired refresh token"
+    );
+  }
+
+  // Find matching refresh token in database
+  const existingToken = await prisma.refreshToken.findFirst({
+    where: {
+      token: refreshToken,
+      userId: decoded.userId,
+      expiresAt: { gt: new Date() },
+    },
+  });
+
+  if (!existingToken) {
+    throw new UnauthenticatedError("Invalid or expired refresh token");
+  }
+
+  if (existingToken.isActive === false) {
+    throw new CustomAPIError.UnauthorizedError("Deactivated refresh token");
+  }
+
+  // Generate a new access token
+  const newAccessToken = tokenUtils.signAccessToken({ userId: decoded.userId });
+
+  res.status(StatusCodes.OK).json({
+    success: true,
+    message: "New access token generated",
+    data: { accessToken: newAccessToken },
+  });
+};
+
+// @desc (POST) login a user from pop up menu of previous accounts
+// @route api/v1/users/quick-login
+// @access Public
+const quickLoginUser = async (req, res) => {
+  const { refreshToken } = req.body;
+
+  // Verify refresh token signature and expiration
+  let decoded = tokenUtils.verify(refreshToken);
+
+  if (!decoded) {
+    throw new CustomAPIError.UnauthenticatedError(
+      "Invalid or expired refresh token"
+    );
+  }
+
+  const { existingToken, user } = await prisma.$transaction(async (tx) => {
+    // Find matching refresh token and include user details
+    const token = await tx.refreshToken.findFirst({
+      where: {
+        token: refreshToken,
+        userId: decoded.userId,
+        expiresAt: { gt: new Date() },
+        isActive: false,
+      },
+      include: {
+        user: true, // Fetch the user data along with the token
+      },
+    });
+
+    if (!token || !token.user) {
+      throw new CustomAPIError.UnauthenticatedError(
+        "Invalid or expired refresh token"
+      );
+    }
+
+    // Update isActive to true
+    await tx.refreshToken.update({
+      where: { id: token.id },
+      data: { isActive: true },
+    });
+
+    return { existingToken: token, user: token.user }; // Return both token and user
+  });
+
+  // Generate a new access token
+  const newAccessToken = tokenUtils.signAccessToken({ userId: user.id });
+
+  res.status(StatusCodes.OK).json({
+    success: true,
+    message: "Login successful",
+    data: {
+      accessToken: newAccessToken,
+      refreshToken: refreshToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        isVerified: user.isVerified,
+      },
+    },
+  });
+};
+
+// @desc (POST) change the password of a user
+// @route api/v1/users/change-password
+// @access Private
 const changePassword = async (req, res) => {
   res.send("Change password");
 };
@@ -257,12 +534,12 @@ const changePassword = async (req, res) => {
 module.exports = {
   registerUser: registerUserController, // Renamed to avoid conflict with imported function
   loginUser,
-  getAllUsers,
-  getSingleUser,
   logoutUser,
   changePassword,
   verifyEmail,
   resendVerification,
-  forgetPassword,
-  refreshToken,
+  forgotPassword,
+  refreshAccessToken,
+  resetPassword,
+  quickLoginUser,
 };
