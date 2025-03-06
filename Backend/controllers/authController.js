@@ -7,7 +7,10 @@ const BadRequestError = require("../errors/BadRequestError");
 const CustomAPIError = require("../errors");
 const UnauthenticatedError = require("../errors/UnauthenticatedError");
 const { StatusCodes } = require("http-status-codes");
-const { registerSchema } = require("../validators/authValidator");
+const {
+  registerSchema,
+  refreshTokenSchema,
+} = require("../validators/authValidator");
 const {
   generateOTP,
   hashOTP,
@@ -233,7 +236,16 @@ const logoutUser = async (req, res) => {
     );
   }
 
-  // Find and deactivate token
+  // Find the refresh token first
+  const tokenExists = await prisma.refreshToken.findFirst({
+    where: { token: refreshToken },
+  });
+
+  if (!tokenExists) {
+    throw new UnauthenticatedError("No tokens are found");
+  }
+
+  // deactivate token
   const token = await prisma.refreshToken.updateMany({
     where: { token: refreshToken },
     data: { isActive: false },
@@ -379,7 +391,7 @@ const forgotPassword = async (req, res) => {
 };
 
 const resetPassword = async (req, res) => {
-  const { token, newPassword } = req.body;
+  const { token, password } = req.body;
 
   // Verify the token
   const decoded = tokenUtils.verify(token);
@@ -402,9 +414,9 @@ const resetPassword = async (req, res) => {
   }
 
   // Hash new password
-  const hashedPassword = await passwordUtils.hash(newPassword);
+  const hashedPassword = await passwordUtils.hash(password);
 
-  // Update password and mark token as used in a transaction
+  // Update password and mark token as used
   await prisma.$transaction(async (prisma) => {
     await prisma.user.update({
       where: { id: decoded.userId },
@@ -413,7 +425,7 @@ const resetPassword = async (req, res) => {
 
     await prisma.passwordResetToken.update({
       where: { id: resetTokenEntry.id },
-      data: { used: true },
+      data: { isUsed: true },
     });
   });
 

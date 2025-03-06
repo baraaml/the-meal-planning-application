@@ -70,6 +70,9 @@ const forgotPasswordSchema = Joi.object({
 
 const resetPasswordSchema = Joi.object({
   password: passwordSchema,
+  token: Joi.string().required().messages({
+    "string.empty": "Refresh token is required.",
+  }),
 });
 
 const refreshTokenSchema = Joi.object({
