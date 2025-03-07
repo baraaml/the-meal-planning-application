@@ -7,11 +7,7 @@ const BadRequestError = require("../errors/BadRequestError");
 const CustomAPIError = require("../errors");
 const UnauthenticatedError = require("../errors/UnauthenticatedError");
 const { StatusCodes } = require("http-status-codes");
-const {
-  generateOTP,
-  hashOTP,
-  verifyHashedOTP,
-} = require("../utils/otpUtlis");
+const { generateOTP, hashOTP, verifyHashedOTP } = require("../utils/otpUtlis");
 const passwordUtils = require("../utils/passwordUtils");
 const {
   sendVerificationEmail,
@@ -21,7 +17,7 @@ const tokenUtils = require("../utils/tokenUtils");
 const prisma = require("../config/prismaClient");
 
 // @desc (POST) register a new user
-// @route api/v1/users/register
+// @route api/v1/auth/register
 // @access Public
 const registerUserController = async (req, res) => {
   const { username, email, password } = req.body;
@@ -89,7 +85,7 @@ const registerUserController = async (req, res) => {
 };
 
 // @desc (POST) verify the otp code and activate the account
-// @route api/v1/users/verify-email
+// @route api/v1/auth/verify-email
 // @access Public
 const verifyEmail = async (req, res) => {
   const { otp, email } = req.body;
@@ -159,7 +155,7 @@ const verifyEmail = async (req, res) => {
 };
 
 // @desc (POST) login a user
-// @route api/v1/users/login
+// @route api/v1/auth/login
 // @access Public
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
@@ -217,7 +213,7 @@ const loginUser = async (req, res) => {
 };
 
 // @desc (POST) logout a user
-// @route api/v1/users/logout
+// @route api/v1/auth/logout
 // @access Public
 const logoutUser = async (req, res) => {
   const { refreshToken } = req.body;
@@ -256,6 +252,9 @@ const logoutUser = async (req, res) => {
   });
 };
 
+// @desc (POST) resend verification code otp
+// @route api/v1/auth/resend-verification
+// @access Public
 const resendVerification = async (req, res) => {
   // getting the inputs
   const { email } = req.body;
@@ -333,6 +332,9 @@ const resendVerification = async (req, res) => {
   });
 };
 
+// @desc (POST) send link to reset the password
+// @route api/v1/auth/forgot-password
+// @access Public
 const forgotPassword = async (req, res) => {
   const BASE_WEB_URL = "https://mealflow.ddns.net/passwordrecovery"; // Web fallback
   const BASE_APP_URL = "mealflow://reset-password"; // Deep Link for the app
@@ -385,6 +387,9 @@ const forgotPassword = async (req, res) => {
   });
 };
 
+// @desc (POST) update a new password instead of the fogotten old one
+// @route api/v1/auth/reset-password
+// @access Private
 const resetPassword = async (req, res) => {
   const { token, password } = req.body;
 
@@ -430,6 +435,9 @@ const resetPassword = async (req, res) => {
   });
 };
 
+// @desc (GET) generate new access token
+// @route api/v1/auth/refresh-token
+// @access Public
 const refreshAccessToken = async (req, res) => {
   const { refreshToken } = req.body;
 
@@ -470,7 +478,7 @@ const refreshAccessToken = async (req, res) => {
 };
 
 // @desc (POST) login a user from pop up menu of previous accounts
-// @route api/v1/users/quick-login
+// @route api/v1/auth/quick-login
 // @access Public
 const quickLoginUser = async (req, res) => {
   const { refreshToken } = req.body;
@@ -532,7 +540,7 @@ const quickLoginUser = async (req, res) => {
 };
 
 // @desc (POST) change the password of a user
-// @route api/v1/users/change-password
+// @route api/v1/auth/change-password
 // @access Private
 const changePassword = async (req, res) => {
   res.send("Change password");
