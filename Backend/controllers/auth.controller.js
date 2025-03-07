@@ -8,14 +8,9 @@ const CustomAPIError = require("../errors");
 const UnauthenticatedError = require("../errors/UnauthenticatedError");
 const { StatusCodes } = require("http-status-codes");
 const {
-  registerSchema,
-  refreshTokenSchema,
-} = require("../validators/authValidator");
-const {
   generateOTP,
   hashOTP,
   verifyHashedOTP,
-  deleteOldOTPs,
 } = require("../utils/otpUtlis");
 const passwordUtils = require("../utils/passwordUtils");
 const {

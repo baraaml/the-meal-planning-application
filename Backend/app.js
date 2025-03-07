@@ -11,6 +11,7 @@ const app = express();
 
 const authRouter = require("./routes/auth.routes");
 const userRouter = require("./routes/user.routes");
+const communityRouter = require("./routes/community.routes");
 const notFound = require("./middlewares/notFound");
 const errorHandlerMiddleware = require("./middlewares/errorHandler");
 
@@ -18,6 +19,7 @@ app.use(cors());
 app.use(express.json());
 app.use("/api/v1/users", authRouter);
 app.use("/api/v1/users", userRouter);
+app.use("/api/v1/community", communityRouter);
 
 app.get("/", (req, res) => {
   res.send("Hello ma man");
