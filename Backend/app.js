@@ -9,8 +9,8 @@ const path = require("path");
 const prisma = new PrismaClient();
 const app = express();
 
-const authRouter = require("./routes/authRoutes");
-const userRouter = require("./routes/userRoutes");
+const authRouter = require("./routes/auth.routes");
+const userRouter = require("./routes/user.routes");
 const notFound = require("./middlewares/notFound");
 const errorHandlerMiddleware = require("./middlewares/errorHandler");
 

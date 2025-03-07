@@ -11,7 +11,7 @@ const {
   refreshAccessToken,
   resetPassword,
   quickLoginUser,
-} = require("../controllers/authController");
+} = require("../controllers/auth.controller");
 
 // register
 const validateRequest = require("../middlewares/validate");
