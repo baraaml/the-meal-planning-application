@@ -28,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -45,7 +46,6 @@ import com.example.mealflow.R
 import com.example.mealflow.random.OrDivider
 import com.example.mealflow.utils.Validator
 import com.example.mealflow.viewModel.LoginViewModel
-
 
 // ----------------------- Login Page ---------------------------
 @OptIn(ExperimentalMaterial3Api::class)
@@ -153,6 +153,19 @@ fun LoginPage(navController: NavController,viewModel: LoginViewModel = viewModel
                     .padding(start = 24.dp, end = 24.dp, top = 5.dp),
                 color = Color.Red,
                 fontSize = 12.sp
+            )
+        }
+        // ----------------------- Forget Password Button ---------------------------
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(top = 20.dp), horizontalArrangement = Arrangement.End) {
+            Text(text = stringResource(id = R.string.ForgotPassword),
+                Modifier
+                    .clickable { navController.navigate("Forget Password Page") }
+                    .padding(end = 25.dp),
+                fontWeight = FontWeight.Bold,
+                color = Color.Red
             )
         }
         //-----------------------------------------------------------------------------------------------------

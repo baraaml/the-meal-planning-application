@@ -36,38 +36,6 @@ data class User(
     val isVerified: Boolean
 )
 
-//// دالة تسجيل المستخدم بدون إرجاع قيمة
-//fun  verifyEmail(context: Context, otp: String, email: String, navController: NavController) = runBlocking {
-//    val client = HttpClient(CIO) {
-//        install(ContentNegotiation) {
-//            json(Json { ignoreUnknownKeys = true })
-//        }
-//    }
-//
-//    val url = "https://mealflow.ddns.net/api/v1/users/verify-email"
-//
-//    try {
-//        val response: HttpResponse = client.post(url) {
-//            contentType(ContentType.Application.Json)
-//            setBody(OtpRequest(otp, email))
-//        }
-//        val responseBody = Json.decodeFromString<OtpResponse>(response.bodyAsText())
-//
-//        if (responseBody.success) {
-//            println("Registration successful!")
-//            navController.navigate("Test Page")
-//        } else {
-//            Toast.makeText(context, responseBody.message, Toast.LENGTH_LONG).show()
-//            Log.e("API", "خطأ في جلب البيانات: ${responseBody.message}")
-//        }
-//    } catch (e: Exception) {
-//        Toast.makeText(context, "Registration failed: ${e.message}", Toast.LENGTH_LONG).show()
-//        Log.e("API", "خطأ في جلب البيانات: ${e.message}")
-//        println("otp : ${otp} i: ${email}")
-//    } finally {
-//        client.close()
-//    }
-//}
 fun verifyEmail(context: Context, otp: String, email: String, navController: NavController) = runBlocking {
     val client = HttpClient(CIO) {
         install(ContentNegotiation) {

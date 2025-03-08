@@ -193,12 +193,7 @@ fun RegisterPage(navController: NavController,viewModel: RegisterViewModel)
                 fontSize = 12.sp
             )
         }
-        // Text ------------------ Username Rules -----------------------
-//        Text(
-//            text = stringResource(id = R.string.UsernameRules),
-//            modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 5.dp),
-//            fontSize = 12.sp
-//        )
+
         // Text ------------------ Re_password -----------------------
 //        Text(
 //            text = stringResource(id = R.string.PasswordRules),

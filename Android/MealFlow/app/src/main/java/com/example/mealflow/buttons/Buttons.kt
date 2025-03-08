@@ -29,7 +29,7 @@ import androidx.compose.ui.unit.sp
 //-----------------------------------------
 //Button
 @Composable
-fun BackButton(onClick: () -> Unit, modifier: Modifier) {
+fun BackButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
     IconButton(
         onClick = onClick,
         modifier = Modifier

@@ -19,13 +19,17 @@
     <string name="DoNot_Account">Don\'t have an account?</string>
     <string name="Login">Login</string>
     <string name="Skip">Skip</string>
+    <string name="ForgetPassword">forget my password ?</string>
     // -------------- Otp Page -------------------
     <string name="HeaderOtp">We sent you a verification code!</string>
     <string name="check_email">check out your email inbox</string>
     <string name="Verification">Verification</string>
     // Register Page
-    <string name="UsernameRules">"•Username must be at least 3 characters long.\n•Username must start with a letter and can only contain letters, numbers, and underscores."</string>
-    <string name="PasswordRules">"•Password must be at least 8 characters long.\n•Password cannot be longer than 64 characters\n•Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (!@#$%^&amp;*)."</string>
+    // -------------- Forget Password Page -------------------
+    <string name="ForgetPasswordHeader">Forget Password</string>
+    <string name="ResetPassword">Reset your password</string>
+    <string name="ForgottenPassword">Forgotten Password</string>
+    <string name="Submit">Submit</string>
 
 
 </resources>
