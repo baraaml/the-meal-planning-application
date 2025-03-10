@@ -5,7 +5,7 @@ DB_NAME=mealflow
 DB_HOST=localhost
 DB_PORT=5432
 
-.PHONY: db-setup-linux db-drop-linux db-setup-windows db-drop-windows db-migrate git-login git-pull git-push git-connect git-init git-create-branch
+.PHONY: db-setup-linux db-drop-linux db-setup-windows db-drop-windows db-migrate git-login git-pull git-push git-connect git-init git-create-branch git-pull-dev
 
 # Setup Database and User (Linux)
 db-setup-linux:
@@ -90,6 +90,18 @@ git-pull:
 		echo "No remote branch found (main or master)"; \
 	fi
 	@echo "Pull completed!"
+
+# GitHub Pull Latest Changes for dev Branch
+git-pull-dev:
+	@echo "Pulling latest changes for the dev branch..."
+	@if git branch -r | grep -q "origin/dev"; then \
+		git pull --rebase origin dev; \
+	else \
+		echo "No remote branch found (dev)"; \
+	fi
+	@echo "Pull completed!"
+
+
 
 # GitHub Push Changes (handles non-existent remote branch)
 git-push:
