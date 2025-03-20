@@ -52,133 +52,173 @@ import com.example.mealflow.viewModel.ForgetPasswordViewModel
 import com.example.mealflow.viewModel.LoginViewModel
 
 
-// ----------------------- Login Page ---------------------------
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ResetPasswordPage(navController: NavController, token: String?,viewModel: ForgetPasswordViewModel = viewModel())
-{
+fun ResetPasswordPage(navController: NavController, token: String?, viewModel: ForgetPasswordViewModel = viewModel()) {
     Log.d("ResetPasswordPage", "Received token: $token")
-    // 🔥 تخزين `token` في الـ ViewModel عند تشغيل الصفحة
+
+    // Store the token
     LaunchedEffect(token) {
         token?.let { viewModel.updateToken(it) }
     }
-    // ----------------------- Variables ---------------------------
+
     val password by viewModel.password.observeAsState("")
     val passwordVisible by viewModel.passwordVisible.observeAsState(false)
-    val passwordError = Validator.validatePassword(password)
-    var isMatchPassword by remember { mutableStateOf(false) }
-    var isFocusedPassword by remember { mutableStateOf(false) }
     val repassword by viewModel.repassword.observeAsState("")
-    val token by viewModel.token.observeAsState("")
+    val tokenValue by viewModel.token.observeAsState("")
+    val isLoading by viewModel.isLoading.observeAsState(false)
+    val errorMessage by viewModel.errorMessage.observeAsState("")
 
+    val passwordError = Validator.validatePassword(password)
+    var isFocusedPassword by remember { mutableStateOf(false) }
 
+    // Determine if passwords match for validation
+    val passwordsMatch = password == repassword && password.isNotEmpty()
 
-    Box{
-        Column {
-            // ----------------------- Skip Button ---------------------------
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(top = 20.dp), horizontalArrangement = Arrangement.Start) {
-                BackButton(onClick = { /*TODO*/ })
-            }
-            // ----------------------- Join Text -----------------------------
+    // Function to validate all inputs before API call
+    val isFormValid = password.isNotEmpty() && passwordError == null && passwordsMatch
+
+    Column {
+        // ----------------------- Back Button ---------------------------
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(top = 20.dp), horizontalArrangement = Arrangement.Start) {
+            BackButton(onClick = {
+                navController.popBackStack()
+            })
+        }
+
+        Text(
+            text = stringResource(id = R.string.ForgottenPassword),
+            Modifier.padding(start = 20.dp, top = 80.dp, end = 20.dp),
+            fontSize = 25.sp,
+            fontWeight = FontWeight.Bold
+        )
+
+        //  ------------------ Password -----------------------
+        OutlinedTextField(
+            value = password,
+            onValueChange = { viewModel.updatePassword(it) },
+            label = { Text(stringResource(id = R.string.EnterPassword)) },
+            trailingIcon = {
+                Icon(
+                    painter = painterResource(
+                        id = if (passwordVisible) {
+                            R.drawable.eye_view_icon
+                        } else {
+                            R.drawable.eye_closed_icon
+                        }
+                    ),
+                    contentDescription = null,
+                    tint = Color.Gray,
+                    modifier = Modifier
+                        .size(28.dp)
+                        .clickable { viewModel.togglePasswordVisibility() }
+                )
+            },
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = if (passwordError != null) Color.Red else Color.Blue,
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 20.dp, top = 20.dp, end = 20.dp)
+                .onFocusChanged { isFocusedPassword = it.isFocused },
+            singleLine = true,
+            textStyle = TextStyle(color = Color.Black),
+            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Password)
+        )
+
+        // Password Error Message
+        if (isFocusedPassword && passwordError != null) {
             Text(
-                text = stringResource(id = R.string.ForgottenPassword),
-                Modifier.padding(start = 20.dp, top = 80.dp, end = 20.dp),
-                fontSize = 25.sp,
-                fontWeight = FontWeight.Bold
-            )
-            // Input field ------------------ Password -----------------------
-            OutlinedTextField(
-                value = password,
-                onValueChange = { viewModel.updatePassword(it) },
-                label = { Text(stringResource(id = R.string.EnterPassword)) },
-                trailingIcon = {
-                    Icon(
-                        painter = painterResource(
-                            id = if (passwordVisible) {
-                                R.drawable.eye_view_icon
-                            } else {
-                                R.drawable.eye_closed_icon
-                            }
-                        ),
-                        contentDescription = null,
-                        tint = Color.Gray,
-                        modifier = Modifier
-                            .size(28.dp)
-                            .clickable { viewModel.togglePasswordVisibility() }
-                    )
-                },
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = if (passwordError != null) Color.Red else Color.Blue,  // لون الحدود عند التركيز
-                ),
+                text = passwordError,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 20.dp, top = 20.dp, end = 20.dp)
-                    .onFocusChanged { isFocusedPassword = it.isFocused },
-                singleLine = true,
-                textStyle = TextStyle(color = Color.Black),
-                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Password)
+                    .padding(start = 24.dp, end = 24.dp, top = 5.dp),
+                color = Color.Red,
+                fontSize = 12.sp
             )
-            // Text ------------------ Password Error -----------------------
-            if (isFocusedPassword && passwordError != null)
-            {
-                Text(
-                    text = passwordError,
-                    modifier = Modifier
-                        .padding(start = 24.dp, end = 24.dp, top = 5.dp),
-                    color = Color.Red,
-                    fontSize = 12.sp
-                )
-            }
-            // Text ------------------ Re_password -----------------------
-//            Text(
-//                text = stringResource(id = R.string.PasswordRules),
-//                modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 5.dp),
-//                fontSize = 12.sp
-//            )
-            //Input field ------------------ Re_password -----------------------
-                    OutlinedTextField(
-                        value = repassword,
-                        onValueChange = { viewModel.updateRepassword(it) },
-                        label = { Text("Re-Enter your password") },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(start = 20.dp, top = 20.dp, end = 20.dp),
-                        singleLine = true,
-                        textStyle = TextStyle(color = Color.Black),
-                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                        keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Password)
-                    )
+        }
 
-            // Text ------------------ Password Error -----------------------
-            if (password != repassword)
-            {
-                Text(
-                    text = "Passwords do not match",
+        // Re-enter Password Field
+        OutlinedTextField(
+            value = repassword,
+            onValueChange = { viewModel.updateRepassword(it) },
+            label = { Text("Re-Enter your password") },
+            trailingIcon = {
+                Icon(
+                    painter = painterResource(
+                        id = if (passwordVisible) {
+                            R.drawable.eye_view_icon
+                        } else {
+                            R.drawable.eye_closed_icon
+                        }
+                    ),
+                    contentDescription = null,
+                    tint = Color.Gray,
                     modifier = Modifier
-                        .padding(start = 24.dp, end = 24.dp, top = 5.dp),
-                    color = Color.Red,
-                    fontSize = 12.sp
+                        .size(28.dp)
+                        .clickable { viewModel.togglePasswordVisibility() }
                 )
-            }
-            //-----------------------------------------------------------------------------------------------------
-            //-----------------------------------------------------------------------------------------------------
-            // Button ------------------ Log in -------------------------------------------------------------------
-            Button(
-                onClick = {
-                    //ResetPasswordApi(token,password,navController,viewModel)
-                    ResetPasswordApi(token ?: "", password, navController, viewModel)
-                },
-                Modifier
-                    .padding(start = 20.dp, end = 20.dp, top = 100.dp)
-                    .align(alignment = Alignment.CenterHorizontally)
-                    .fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
-            ) {
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 20.dp, top = 20.dp, end = 20.dp),
+            singleLine = true,
+            textStyle = TextStyle(color = Color.Black),
+            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Password)
+        )
+
+        // Password match error
+        if (repassword.isNotEmpty() && password != repassword) {
+            Text(
+                text = "Passwords do not match",
+                modifier = Modifier
+                    .padding(start = 24.dp, end = 24.dp, top = 5.dp),
+                color = Color.Red,
+                fontSize = 12.sp
+            )
+        }
+
+        // API error message display
+        if (errorMessage.isNotEmpty()) {
+            Text(
+                text = errorMessage,
+                modifier = Modifier
+                    .padding(start = 24.dp, end = 24.dp, top = 10.dp),
+                color = Color.Red,
+                fontSize = 14.sp
+            )
+        }
+
+        // Submit Button with loading state
+        Button(
+            onClick = {
+                if (isFormValid) {
+                    // Use the stored token value
+                    ResetPasswordApi(tokenValue ?: "", password, navController, viewModel)
+                } else {
+                    viewModel.setErrorMessage("Please fix the validation errors before submitting")
+                }
+            },
+            modifier = Modifier
+                .padding(start = 20.dp, end = 20.dp, top = 100.dp)
+                .align(alignment = Alignment.CenterHorizontally)
+                .fillMaxWidth(),
+            shape = RoundedCornerShape(8.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
+            enabled = isFormValid && !isLoading
+        ) {
+            if (isLoading) {
+                // Show loading indicator
+                androidx.compose.material3.CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    color = Color.White,
+                    strokeWidth = 2.dp
+                )
+            } else {
                 Text(
                     text = stringResource(id = R.string.Submit),
                     color = Color.White
@@ -186,4 +226,5 @@ fun ResetPasswordPage(navController: NavController, token: String?,viewModel: Fo
             }
         }
     }
-}
+}// the password now is reset
+// after this the user should be redirected to the home page

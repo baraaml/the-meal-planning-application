@@ -9,7 +9,7 @@ import androidx.compose.ui.text.style.TextAlign.Companion.Center
 import androidx.navigation.NavHostController
 
 @Composable
-fun CommunityPage() {
+fun CommunityPage(navController: NavHostController) {
     Box(modifier = Modifier.fillMaxSize()){
         Text(text = "Community", textAlign = Center)
     }

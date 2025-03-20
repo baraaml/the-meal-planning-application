@@ -31,8 +31,13 @@ class ForgetPasswordViewModel : ViewModel() {
     private val _showErrorPopup = MutableLiveData(false)
     val showErrorPopup: LiveData<Boolean> get() = _showErrorPopup
 
-    private val _errorMessage = MutableLiveData<String?>()
-    val errorMessage: LiveData<String?> get() = _errorMessage
+    // Loading state
+    private val _isLoading = MutableLiveData(false)
+    val isLoading: LiveData<Boolean> = _isLoading
+
+    // Error message - combined the two declarations
+    private val _errorMessage = MutableLiveData<String>()
+    val errorMessage: LiveData<String> get() = _errorMessage
 
     fun updateToken(newToken: String) {
         _token.value = newToken
@@ -83,5 +88,13 @@ class ForgetPasswordViewModel : ViewModel() {
 
     fun dismissErrorPopup() {
         _showErrorPopup.value = false
+    }
+
+    fun setLoading(loading: Boolean) {
+        _isLoading.value = loading
+    }
+
+    fun setErrorMessage(message: String) {
+        _errorMessage.value = message
     }
 }

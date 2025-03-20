@@ -27,36 +27,53 @@ data class ResetPasswordResponse(val success: Boolean, val error: String, val me
 data class ResetData(
     val token: String,
 )
-
 fun ResetPasswordApi(token: String, password: String, navController: NavController, viewModel: ForgetPasswordViewModel) {
+    // Set loading state
+    viewModel.setLoading(true)
+    viewModel.setErrorMessage("") // Clear any previous errors
+
     CoroutineScope(Dispatchers.IO).launch {
         try {
-            Log.d("API", "📩 إرسال الطلب: token=$token")
-            Log.d("API", "📩 إرسال الطلب: password=$password")
-            
+            Log.d("API", "📩 Sending request: token=$token")
+            // Don't log the actual password in production
+            Log.d("API", "📩 Sending request with password")
+
             val response: HttpResponse = ApiClient.client.post(ApiClient.Endpoints.RESET_PASSWORD) {
                 contentType(ContentType.Application.Json)
                 setBody(ResetPasswordRequest(token, password))
             }
 
-            if (response.status.isSuccess()) {
-                val responseBody = response.body<ResetPasswordResponse>()
+            withContext(Dispatchers.Main) {
+                viewModel.setLoading(false)
 
-                withContext(Dispatchers.Main) {
+                if (response.status.isSuccess()) {
+                    val responseBody = response.body<ResetPasswordResponse>()
+
                     if (responseBody.success) {
-                        Log.d("API", "✅ تسجيل دخول ناجح، الانتقال إلى الصفحة التالية")
-                        navController.navigate("Test Page")
+                        Log.d("API", "Password reset successful ✅")
+                        // Navigate to the home screen
+                        // Use the actual route name from your Navigation Graph
+                        navController.navigate("Home Page") {
+                            // Clear the back stack so user can't go back to reset page
+                            popUpTo(0) { inclusive = true }
+                        }
+
                     } else {
-                        Log.e("API", "❌ فشل تسجيل الدخول: ${responseBody.message}")
+                        Log.e("API", "Reset failed ❌\n${responseBody.message}")
+                        viewModel.setErrorMessage(responseBody.message)
                     }
+                } else {
+                    val errorText = response.bodyAsText()
+                    Log.e("API", "Server error ⚠️\n${response.status}\n $errorText")
+                    viewModel.setErrorMessage("Server error. Please try again later.")
                 }
-            } else {
-                val errorText = response.bodyAsText()
-                Log.e("API", "⚠️ خطأ من السيرفر (${response.status}): $errorText")
             }
         } catch (e: Exception) {
-            Log.e("API", "❌ استثناء أثناء تنفيذ الطلب: ${e.localizedMessage}")
+            withContext(Dispatchers.Main) {
+                viewModel.setLoading(false)
+                Log.e("API", "Exception occurred ❌\n${e.localizedMessage}")
+                viewModel.setErrorMessage("Connection error. Please check your internet connection.")
+            }
         }
-        // No need to close the client as it's shared
     }
 }

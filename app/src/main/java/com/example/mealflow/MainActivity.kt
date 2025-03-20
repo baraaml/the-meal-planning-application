@@ -1,51 +1,98 @@
 package com.example.mealflow
 
+import android.annotation.SuppressLint
+import android.app.Application
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Menu
+import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.ShoppingCart
+import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
-import com.example.mealflow.data.model.Meal
-import com.example.mealflow.ui.navigation.Screen
+import com.example.mealflow.data.repository.MealRepository
+import com.example.mealflow.ui.screens.CommunityPage
 import com.example.mealflow.ui.screens.ForgetPasswordPage
+import com.example.mealflow.ui.screens.GroceriesPage
 import com.example.mealflow.ui.screens.HomePage
 import com.example.mealflow.ui.screens.LoginPage
 import com.example.mealflow.ui.screens.MealDetailScreen
 import com.example.mealflow.ui.screens.OtpPage
+import com.example.mealflow.ui.screens.PlannerPage
 import com.example.mealflow.ui.screens.RegisterPage
 import com.example.mealflow.ui.screens.ResetPasswordPage
+import com.example.mealflow.ui.screens.SearchPage
 import com.example.mealflow.ui.screens.StartPage
 import com.example.mealflow.ui.screens.sampleMeals
 import com.example.mealflow.ui.theme.MealFlowTheme
+import com.example.mealflow.viewModel.MealViewModel
+import com.example.mealflow.viewModel.MealViewModelFactory
 import com.example.mealflow.viewModel.RegisterViewModel
 
+// Keep this data class from the old code
+data class BottomNavigationItem(
+    val title: String,
+    val selectedIcon: ImageVector,
+    val nonSelectedIcon: ImageVector,
+    val hasNews: Boolean,
+    val badgeCount: Int? = null,
+    val route: String // Added route property for navigation
+)
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        // Set the uncaught exception handler from the old code
+        Thread.setDefaultUncaughtExceptionHandler { _, exception ->
+            exception.printStackTrace()
+            // We're letting the app continue without crashing
+        }
+
         setContent {
             MealFlowTheme {
                 val navController = rememberNavController()
 
-                // 🔥 التعامل مع Deep Link عند تشغيل التطبيق
+                // Deep Link handling
                 LaunchedEffect(intent?.data) {
                     intent?.data?.getQueryParameter("token")?.let { token ->
                         Log.d("MainActivity", "🔹 Token received: $token")
@@ -53,82 +100,234 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                AppNavHost(navController)
+                // Use a MealViewModel like in the old code
+                val context = LocalContext.current
+                val viewModel = viewModel<MealViewModel>(
+                    factory = MealViewModelFactory(context.applicationContext as Application)
+                )
+
+                AppNavHost(navController, viewModel)
             }
         }
     }
 }
 
 //----------------------------------------------------------------------------
-// Function to move between pages
+// Function to move between pages with bottom navigation
 @Composable
-fun AppNavHost(navController: NavHostController) {
+fun AppNavHost(navController: NavHostController, mealViewModel: MealViewModel) {
     val registerViewModel: RegisterViewModel = viewModel()
-    NavHost(navController = navController, startDestination = "Start Page") {
-        composable("Start Page") {
-            StartPage(navController)
-        }
-        composable("Home Page") {
-            HomePage(
-                meals = sampleMeals,
-                onMealClick = { meal ->
-                    // Pass the mealId as a parameter in the navigation route
-                    navController.navigate("meal_detail/${meal.mealId}")
+    val context = LocalContext.current
+
+    // Define the main navigation items (from old code)
+    val navigationItems = listOf(
+        BottomNavigationItem(
+            title = "Home",
+            selectedIcon = Icons.Filled.Home,
+            nonSelectedIcon = Icons.Outlined.Home,
+            hasNews = false,
+            route = "Home Page"
+        ),
+        BottomNavigationItem(
+            title = "Search",
+            selectedIcon = Icons.Filled.Search,
+            nonSelectedIcon = Icons.Outlined.Search,
+            hasNews = false,
+            route = "Search Page"
+        ),
+        BottomNavigationItem(
+            title = "Planner",
+            selectedIcon = Icons.Filled.Menu,
+            nonSelectedIcon = Icons.Outlined.Menu,
+            hasNews = false,
+            route = "Planner Page"
+        ),
+        BottomNavigationItem(
+            title = "Groceries",
+            selectedIcon = Icons.Filled.ShoppingCart,
+            nonSelectedIcon = Icons.Outlined.ShoppingCart,
+            hasNews = false,
+            route = "Groceries Page"
+        ),
+        BottomNavigationItem(
+            title = "Community",
+            selectedIcon = Icons.Filled.Person,
+            nonSelectedIcon = Icons.Outlined.Person,
+            hasNews = false,
+            route = "Community Page"
+        )
+    )
+
+    // Define the screens that should show the bottom navigation
+    val mainScreens = setOf(
+        "Home Page",
+        "Search Page",
+        "Planner Page",
+        "Groceries Page",
+        "Community Page",
+        "meal_detail" // We'll handle this specially for the hierarchy
+    )
+
+    // Get current destination to determine whether to show bottom nav
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+    val shouldShowBottomBar = currentRoute?.let { route ->
+        mainScreens.any { route.startsWith(it) }
+    } ?: false
+
+    // Track selected index for bottom nav
+    var selectedItemIndex by rememberSaveable {
+        mutableStateOf(0)
+    }
+
+    Scaffold(
+        bottomBar = {
+            if (shouldShowBottomBar) {
+                NavigationBar {
+                    navigationItems.forEachIndexed { index, item ->
+                        NavigationBarItem(
+                            selected = selectedItemIndex == index,
+                            onClick = {
+                                try {
+                                    selectedItemIndex = index
+                                    // Navigate to the route defined in the navigation item
+                                    navController.navigate(item.route) {
+                                        // Pop up to the start destination of the graph to
+                                        // avoid building up a large stack of destinations
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = true
+                                        }
+                                        // Avoid multiple copies of the same destination when
+                                        // reselecting the same item
+                                        launchSingleTop = true
+                                        // Restore state when reselecting a previously selected item
+                                        restoreState = true
+                                    }
+                                } catch (e: Exception) {
+                                    Log.e("Navigation", "Error navigating to screen", e)
+                                    // Optional: Show a toast message to the user
+                                    Toast.makeText(
+                                        context,
+                                        "Navigation error: ${e.message}",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            },
+                            label = { Text(text = item.title) },
+                            alwaysShowLabel = false,
+                            icon = {
+                                BadgedBox(
+                                    badge = {
+                                        // Add badge logic here if needed
+                                    }
+                                ) {
+                                    Icon(
+                                        imageVector = if (index == selectedItemIndex) {
+                                            item.selectedIcon
+                                        } else item.nonSelectedIcon,
+                                        contentDescription = item.title
+                                    )
+                                }
+                            }
+                        )
+                    }
                 }
-            )
-        }
-        composable(
-            route = "meal_detail/{mealId}",
-            arguments = listOf(navArgument("mealId") { type = NavType.StringType })
-        ) { backStackEntry ->
-            // Extract the mealId from the route
-            val mealId = backStackEntry.arguments?.getString("mealId")
-
-            // Find the meal by ID
-            val meal = sampleMeals.find { it.mealId == mealId }
-
-            // If meal is found, show the detail screen
-            if (meal != null) {
-                MealDetailScreen(
-                    meal = meal,
-                    onNavigateBack = { navController.popBackStack() }
-                )
-            } else {
-                // Handle case where meal is not found
-                Text(
-                    "Meal not found",
-                    modifier = Modifier.padding(16.dp),
-                    style = MaterialTheme.typography.headlineMedium
-                )
             }
         }
-        composable("Register Page") {
-            RegisterPage(navController,registerViewModel)
-        }
-        composable("Login Page") {
-            LoginPage(navController)
-        }
-        composable("Otp Page") {
-            OtpPage(navController,registerViewModel)
-        }
-        composable("Forget Password Page") {
-            ForgetPasswordPage(navController)
-        }
-        // 🔹 صفحة إعادة تعيين كلمة المرور مع دعم الـ Deep Link
-        composable(
-            route = "Reset Password Page?token={token}",
-            arguments = listOf(navArgument("token") { nullable = true }),
-            deepLinks = listOf(navDeepLink { uriPattern = "https://iiacbca.r.bh.d.sendibt3.com/tr/cl?token={token}" })
-        ) { backStackEntry ->
-            val token = backStackEntry.arguments?.getString("token")
-            ResetPasswordPage(navController, token)
+    ) { innerPadding ->
+        NavHost(
+            navController = navController,
+            startDestination = "Start Page",
+            modifier = Modifier.padding(innerPadding)
+        ) {
+            // Auth screens (no bottom nav)
+            composable("Start Page") {
+                StartPage(navController)
+            }
+            composable("Login Page") {
+                LoginPage(navController)
+            }
+            composable("Register Page") {
+                RegisterPage(navController, registerViewModel)
+            }
+            composable("Otp Page") {
+                OtpPage(navController, registerViewModel)
+            }
+            composable("Forget Password Page") {
+                ForgetPasswordPage(navController)
+            }
+            composable(
+                route = "Reset Password Page?token={token}",
+                arguments = listOf(navArgument("token") { nullable = true }),
+                deepLinks = listOf(navDeepLink { uriPattern = "https://iiacbca.r.bh.d.sendibt3.com/tr/cl?token={token}" })
+            ) { backStackEntry ->
+                val token = backStackEntry.arguments?.getString("token")
+                ResetPasswordPage(navController, token)
+            }
+
+            // Main screens (with bottom nav)
+            composable("Home Page") {
+                HomePage(
+                    meals = sampleMeals,
+                    onMealClick = { meal ->
+                        navController.navigate("meal_detail/${meal.mealId}")
+                    }
+                )
+            }
+            composable("Search Page") {
+                SearchPage(
+                    meals = sampleMeals,
+                    onMealClick = { meal ->
+                        navController.navigate("meal_detail/${meal.mealId}") // this should be the route
+                    }
+                )
+            }
+            composable("Planner Page") {
+                PlannerPage(navController)
+            }
+            composable("Groceries Page") {
+                GroceriesPage(navController)
+            }
+            composable("Community Page") {
+                CommunityPage(navController)
+            }
+            composable(
+                route = "meal_detail/{mealId}",
+                arguments = listOf(navArgument("mealId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val mealId = backStackEntry.arguments?.getString("mealId")
+                val meal = sampleMeals.find { it.mealId == mealId }
+
+                if (meal != null) {
+                    MealDetailScreen(
+                        meal = meal,
+                        onNavigateBack = { navController.popBackStack() }
+                    )
+                } else {
+                    Text(
+                        "Meal not found",
+                        modifier = Modifier.padding(16.dp),
+                        style = MaterialTheme.typography.headlineMedium
+                    )
+                }
+            }
         }
     }
 }
 
+@SuppressLint("ViewModelConstructorInComposable")
 @Preview(showBackground = true)
 @Composable
 fun MyApp() {
     val navController = rememberNavController()
-    AppNavHost(navController = navController)
+    val context = LocalContext.current
+
+    // Create a mock repository for preview
+    val mockRepository = MealRepository(context)
+
+    val mealViewModel = MealViewModel(
+        Application(),
+        repository = mockRepository
+    )
+    AppNavHost(navController = navController, mealViewModel = mealViewModel)
 }

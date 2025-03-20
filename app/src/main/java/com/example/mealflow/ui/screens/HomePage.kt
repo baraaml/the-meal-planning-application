@@ -222,6 +222,7 @@ fun MealRowImproved(
         }
     }
 }
+
 val sampleMeals = listOf(
     createSampleMeal(
         "1",

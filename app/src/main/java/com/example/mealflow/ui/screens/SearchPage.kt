@@ -55,12 +55,19 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
+import com.example.mealflow.data.model.Meal
 import com.example.mealflow.ui.components.MealItem
 import com.example.mealflow.viewModel.MealViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
-fun SearchPage(viewModel: MealViewModel, onMealClick: (Any) -> Unit) {
+fun SearchPage(
+    viewModel: MealViewModel,
+    onMealClick: (Any) -> Unit,
+    navController: NavHostController,
+    meals: List<Meal>
+) {
     val meals by viewModel.meals.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()

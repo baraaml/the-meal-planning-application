@@ -12,6 +12,7 @@ import com.example.mealflow.ui.screens.MealDetailScreen
 import com.example.mealflow.ui.screens.SearchPage
 import com.example.mealflow.ui.screens.HomePage
 import com.example.mealflow.ui.screens.PlannerPage
+import com.example.mealflow.ui.screens.sampleMeals
 import com.example.mealflow.viewModel.MealViewModel
 
 @SuppressLint("StateFlowValueCalledInComposition")
@@ -40,20 +41,22 @@ fun AppNavigation(
                 onMealClick = { meal ->
                     navController.currentBackStackEntry?.savedStateHandle?.set("meal", meal)
                     navController.navigate(Screen.MealDetailScreen.route)
-                }
+                },
+                navController = navController,
+                meals = sampleMeals
             )
         }
 
         composable(Screen.PlannerScreen.route) {
-            PlannerPage()
+            PlannerPage(navController)
         }
 
         composable(Screen.CommunityScreen.route) {
-            CommunityPage()
+            CommunityPage(navController)
         }
 
         composable(Screen.GroceriesScreen.route) {
-            GroceriesPage()
+            GroceriesPage(navController)
         }
 
         composable(Screen.MealDetailScreen.route) {

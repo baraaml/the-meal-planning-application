@@ -44,7 +44,7 @@ fun forgetPasswordApi(email: String, navController: NavController, viewModel: Fo
                 withContext(Dispatchers.Main) {
                     if (responseBody.success) {
                         Log.d("API", "✅ تسجيل دخول ناجح، الانتقال إلى الصفحة التالية")
-                        navController.navigate("Test Page")
+                        navController.navigate("Reset Password Page")
                     } else {
                         Log.e("API", "❌ فشل تسجيل الدخول: ${responseBody.message}")
                     }
