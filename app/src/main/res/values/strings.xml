@@ -1,0 +1,35 @@
+<resources>
+    <string name="app_name">Meal Flow</string>
+    <string name="join">Join our community</string>
+    <string name="REmail">Continue with email</string>
+    <string name="ForgotPassword"> Forgot password ?</string>
+    <string name="Register"> Register</string>
+    <string name="NotAccount">Don’t have an account ? </string>
+    <string name="VerifyAccount">Verfiy your account </string>
+    <string name="Cancel">Cancel</string>
+    <string name="Verify">Verfiy</string>
+    // -------------- Start Page -----------------
+    <string name="Get_Started">Get Started</string>
+    <string name="Header">Meal Planning,\nMade Simple</string>
+    <string name="Already_member">Already a member?</string>
+    // -------------- Login Page -----------------
+    <string name="Welcome_back">Welcome back!</string>
+    <string name="EnterEmail">"Enter your Email"</string>
+    <string name="EnterPassword">"Enter your Password"</string>
+    <string name="DoNot_Account">Don\'t have an account?</string>
+    <string name="Login">Login</string>
+    <string name="Skip">Skip</string>
+    <string name="ForgetPassword">forget my password ?</string>
+    // -------------- Otp Page -------------------
+    <string name="HeaderOtp">We sent you a verification code!</string>
+    <string name="check_email">Check you email!</string>
+    <string name="Verification">Verify</string>
+    // Register Page
+    // -------------- Forget Password Page -------------------
+    <string name="ForgetPasswordHeader">Forget Password</string>
+    <string name="ResetPassword">Reset your password</string>
+    <string name="ForgottenPassword">Forgotten Password</string>
+    <string name="Submit">Submit</string>
+
+
+</resources>
