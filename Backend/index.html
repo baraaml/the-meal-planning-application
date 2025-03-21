@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MealFlow Marketplace</title>
+  <style>
+    /* Global Styles */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f7f7f7;
+    }
+    header {
+      background-color: #4CAF50;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+    nav {
+      background-color: #333;
+    }
+    nav ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    nav li {
+      margin: 0;
+    }
+    nav li a {
+      display: block;
+      padding: 14px 20px;
+      color: #fff;
+      text-decoration: none;
+    }
+    nav li a:hover {
+      background-color: #111;
+    }
+    .container {
+      padding: 20px;
+    }
+    .section {
+      display: none;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .active {
+      display: block;
+    }
+    button {
+      background-color: #4CAF50;
+      border: none;
+      color: white;
+      padding: 10px 15px;
+      margin: 5px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1em;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    /* Chef Profile Section */
+    .profile-header {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .profile-header img {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #4CAF50;
+    }
+    .badges {
+      margin-top: 10px;
+    }
+    .badge {
+      display: inline-block;
+      background: #ffd700;
+      color: #333;
+      padding: 5px 10px;
+      border-radius: 12px;
+      margin-right: 5px;
+      font-size: 0.9em;
+    }
+    .past-meals, .reviews {
+      margin-top: 20px;
+    }
+    .past-meals ul, .reviews ul {
+      list-style: none;
+      padding: 0;
+    }
+    .past-meals li, .reviews li {
+      background: #f1f1f1;
+      margin: 5px 0;
+      padding: 8px;
+      border-radius: 4px;
+    }
+    /* Stories Section */
+    .stories-container {
+      display: flex;
+      overflow-x: auto;
+      gap: 10px;
+      padding: 10px 0;
+    }
+    .story {
+      flex: 0 0 auto;
+      width: 120px;
+      height: 180px;
+      background-color: #eee;
+      border-radius: 8px;
+      position: relative;
+      text-align: center;
+      padding-top: 10px;
+    }
+    .story img {
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+    .story p {
+      margin: 5px 0;
+      font-size: 0.9em;
+    }
+    /* Leaderboard Section */
+    .leaderboard-list {
+      list-style: none;
+      padding: 0;
+    }
+    .leaderboard-item {
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      background: #fafafa;
+      margin: 5px 0;
+      border-radius: 4px;
+    }
+    .leaderboard-item img {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      margin-right: 15px;
+      border: 2px solid #4CAF50;
+      object-fit: cover;
+    }
+    /* Chat Section */
+    .chat-box {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      height: 300px;
+      overflow-y: auto;
+      padding: 10px;
+      background-color: #fff;
+      margin-bottom: 10px;
+    }
+    .chat-message {
+      margin: 5px 0;
+      padding: 5px 10px;
+      border-radius: 4px;
+      background: #f1f1f1;
+    }
+    .chat-input {
+      display: flex;
+    }
+    .chat-input input {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      margin-right: 5px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>MealFlow Marketplace</h1>
+    <p>Discover, order, and connect with your favorite chefs</p>
+  </header>
+
+  <nav>
+    <ul>
+      <li><a href="#" onclick="showSection('home')">Home</a></li>
+      <li><a href="#" onclick="showSection('meal-plans')">Meal Plans</a></li>
+      <li><a href="#" onclick="showSection('marketplace')">Marketplace</a></li>
+      <li><a href="#" onclick="showSection('chef-profile')">Chef Profile</a></li>
+      <li><a href="#" onclick="showSection('stories')">Stories</a></li>
+      <li><a href="#" onclick="showSection('leaderboard')">Leaderboard</a></li>
+      <li><a href="#" onclick="showSection('chat')">Chat</a></li>
+      <li><a href="#" onclick="showSection('community')">Community</a></li>
+      <li><a href="#" onclick="showSection('profile')">My Profile</a></li>
+    </ul>
+  </nav>
+
+  <div class="container">
+    <!-- Home Section -->
+    <div id="home" class="section active">
+      <h2>Welcome to MealFlow</h2>
+      <p>Your one-stop destination for meal planning, chef-led marketplace experiences, and community recipes.</p>
+      <button onclick="showSection('marketplace')">Explore Marketplace</button>
+      <button onclick="showSection('chef-profile')">View Chef Profiles</button>
+    </div>
+
+    <!-- Meal Plans Section -->
+    <div id="meal-plans" class="section">
+      <h2>Meal Plans</h2>
+      <p>Plan your week with personalized recipes and nutritional insights tailored just for you.</p>
+      <button onclick="showSection('home')">Back to Home</button>
+    </div>
+
+    <!-- Marketplace Section -->
+    <div id="marketplace" class="section">
+      <h2>Marketplace</h2>
+      <p>Buy and sell delicious meals directly with chefs. Discover exclusive offers and chef specials.</p>
+      <button onclick="showSection('chef-profile')">View Chef Profiles</button>
+      <button onclick="showSection('home')">Back to Home</button>
+    </div>
+
+    <!-- Chef Profile Section -->
+    <div id="chef-profile" class="section">
+      <h2>Chef Profile: Chef Maria</h2>
+      <div class="profile-header">
+        <img src="https://via.placeholder.com/100" alt="Chef Maria" />
+        <div>
+          <h3>Chef Maria</h3>
+          <p>Expert in Mediterranean cuisine & healthy meal plans</p>
+          <p><strong>Rating:</strong> 4.8 | <strong>Response Time:</strong> 2h</p>
+          <button>Follow</button>
+        </div>
+      </div>
+      <div class="badges">
+        <span class="badge">Top Seller</span>
+        <span class="badge">Highly Rated</span>
+        <span class="badge">Most Loved Cuisine</span>
+      </div>
+      <div class="past-meals">
+        <h4>Past Meals</h4>
+        <ul>
+          <li>Grilled Chicken Salad</li>
+          <li>Quinoa Stuffed Peppers</li>
+          <li>Fresh Hummus & Veggies</li>
+        </ul>
+      </div>
+      <div class="reviews">
+        <h4>Customer Reviews</h4>
+        <ul>
+          <li>"Amazing flavors and very healthy!" – Alice</li>
+          <li>"Fast response and delicious meals." – Bob</li>
+          <li>"Her recipes have become a staple in our home." – Carol</li>
+        </ul>
+      </div>
+      <button onclick="showSection('home')">Back to Home</button>
+    </div>
+
+    <!-- Stories Section -->
+    <div id="stories" class="section">
+      <h2>Chef Stories</h2>
+      <p>See what your favorite chefs are cooking up today. Stories auto-delete after 24 hours.</p>
+      <div class="stories-container">
+        <div class="story">
+          <img src="https://via.placeholder.com/120x120" alt="Story 1">
+          <p>Fresh Pasta</p>
+        </div>
+        <div class="story">
+          <img src="https://via.placeholder.com/120x120" alt="Story 2">
+          <p>Vegan Bowl</p>
+        </div>
+        <div class="story">
+          <img src="https://via.placeholder.com/120x120" alt="Story 3">
+          <p>Smoothie Time</p>
+        </div>
+        <!-- Add more story blocks as needed -->
+      </div>
+      <button onclick="showSection('home')">Back to Home</button>
+    </div>
+
+    <!-- Leaderboard Section -->
+    <div id="leaderboard" class="section">
+      <h2>Top Trending Chefs</h2>
+      <ul class="leaderboard-list">
+        <li class="leaderboard-item">
+          <img src="https://via.placeholder.com/50" alt="Chef 1">
+          <div>
+            <strong>Chef Alex</strong><br>
+            Rating: 4.9 | Followers: 1200
+          </div>
+        </li>
+        <li class="leaderboard-item">
+          <img src="https://via.placeholder.com/50" alt="Chef 2">
+          <div>
+            <strong>Chef Nina</strong><br>
+            Rating: 4.8 | Followers: 1100
+          </div>
+        </li>
+        <li class="leaderboard-item">
+          <img src="https://via.placeholder.com/50" alt="Chef 3">
+          <div>
+            <strong>Chef Roberto</strong><br>
+            Rating: 4.7 | Followers: 980
+          </div>
+        </li>
+        <!-- More leaderboard items -->
+      </ul>
+      <button onclick="showSection('home')">Back to Home</button>
+    </div>
+
+    <!-- Chat Section -->
+    <div id="chat" class="section">
+      <h2>Direct Chat with Chefs</h2>
+      <p>Have questions or want to order directly? Use our built-in chat!</p>
+      <div class="chat-box" id="chatBox">
+        <!-- Example chat messages -->
+        <div class="chat-message"><strong>Chef Maria:</strong> Hi there! How can I help you today?</div>
+        <div class="chat-message"><strong>You:</strong> I love your Mediterranean salad. Is it available for dinner?</div>
+      </div>
+      <div class="chat-input">
+        <input type="text" id="chatInput" placeholder="Type your message..." />
+        <button onclick="sendMessage()">Send</button>
+      </div>
+      <button onclick="showSection('home')">Back to Home</button>
+    </div>
+
+    <!-- Community Section -->
+    <div id="community" class="section">
+      <h2>Community</h2>
+      <p>Share recipes, reviews, and cooking stories. Connect with fellow food enthusiasts and join challenges!</p>
+      <button onclick="showSection('home')">Back to Home</button>
+    </div>
+
+    <!-- My Profile Section -->
+    <div id="profile" class="section">
+      <h2>My Profile</h2>
+      <p>Manage your account, view orders, and customize your meal preferences.</p>
+      <button onclick="showSection('home')">Back to Home</button>
+    </div>
+  </div>
+
+  <script>
+    function showSection(sectionId) {
+      const sections = document.querySelectorAll('.section');
+      sections.forEach(section => section.classList.remove('active'));
+      document.getElementById(sectionId).classList.add('active');
+    }
+    
+    // Simple chat simulation
+    function sendMessage() {
+      const chatInput = document.getElementById('chatInput');
+      const chatBox = document.getElementById('chatBox');
+      if (chatInput.value.trim() !== '') {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'chat-message';
+        messageDiv.innerHTML = `<strong>You:</strong> ${chatInput.value}`;
+        chatBox.appendChild(messageDiv);
+        chatInput.value = '';
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }
+    }
+  </script>
+</body>
+</html>
