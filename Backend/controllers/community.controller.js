@@ -1,23 +1,51 @@
 const { StatusCodes } = require("http-status-codes");
+const multer = require("multer");
+const path = require("path");
+const CustomAPIError = require("../errors");
+const prisma = require("../config/prismaClient");
+
+// Configure multer storage (Save locally in 'uploads' folder)
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "uploads/"); // Store in 'uploads' folder
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  },
+});
+
+const upload = multer({ storage });
 
 const createCommunity = async (req, res) => {
-  const { name, description, image, recipeCreationPermission, categories = [] } = req.body;
+  const { name, description, image, recipeCreationPermission } = req.body;
+
+  const { categories = "[]" } = req.body; // Default to an empty array string
+  const parsedCategories =
+    typeof categories === "string" ? JSON.parse(categories) : categories;
 
   if (categories.length > 0) {
     // Fetch categories by name
     const existingCategories = await prisma.category.findMany({
-      where: { name: { in: categories } },
+      where: { name: { in: parsedCategories } },
       select: { id: true, name: true },
     });
 
     // Create a map of valid category names to their IDs
-    const categoryMap = new Map(existingCategories.map(({ name, id }) => [name, id]));
+    const categoryMap = new Map(
+      existingCategories.map(({ name, id }) => [name, id])
+    );
 
     // Identify invalid category names
-    const invalidCategories = categories.filter((catName) => !categoryMap.has(catName));
+    const invalidCategories = parsedCategories.filter(
+      (catName) => !categoryMap.has(catName)
+    );
 
     if (invalidCategories.length > 0) {
-      throw new BadrequestError("Some categories do not exist.", { invalidCategories });
+      throw new CustomAPIError.BadRequestError(
+        "Some categories do not exist.",
+        { invalidCategories }
+      );
     }
 
     // Convert valid category names to their IDs
@@ -62,7 +90,7 @@ const createCommunity = async (req, res) => {
   });
 };
 
-
 module.exports = {
+  upload,
   createCommunity,
 };
