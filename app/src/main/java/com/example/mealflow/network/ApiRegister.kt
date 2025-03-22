@@ -44,7 +44,7 @@ fun registerUser(
                 Json.decodeFromString<RegisterResponse>(responseBodyText).message
             } catch (e: Exception) {
                 Regex("\"message\"\\s*:\\s*\"(.*?)\"").find(responseBodyText)?.groupValues?.get(1)
-                    ?: "حدث خطأ غير معروف"
+                    ?: "unexpected error happened"
             }
 
             Log.d("RegisterUser", "Response Status: ${response.status}")
@@ -52,7 +52,7 @@ fun registerUser(
 
             withContext(Dispatchers.Main) {
                 if (response.status == HttpStatusCode.OK) {
-                    Log.d("RegisterUser", "✅ تسجيل ناجح: التنقل إلى OtpPage")
+                    Log.d("RegisterUser", "move to OtpPage")
                     navController.navigate("OtpPage") {
                         popUpTo("register") { inclusive = true }
                         launchSingleTop = true
@@ -60,21 +60,21 @@ fun registerUser(
                 }
                 else if(message == "User account created successfully. Please check your email for the verification code.")
                 {
-                    Log.d("RegisterUser", "✅ تسجيل ناجح: التنقل إلى OtpPage")
+                    Log.d("RegisterUser", "move to OtpPage")
                     navController.navigate("Otp Page") {
                         popUpTo("Register Page") { inclusive = true }
                         launchSingleTop = true
                     }
                 }
                 else {
-                    Log.e("RegisterUser", "❌ تسجيل فشل: $message")
+                    Log.e("RegisterUser", "an error happened ❌ $message")
                     onError(message)
                 }
             }
         } catch (e: Exception) {
             withContext(Dispatchers.Main) {
-                val errorMessage = "حدث خطأ أثناء التسجيل: ${e.message}"
-                Log.e("RegisterUser", "❌ خطأ استثنائي: $errorMessage", e)
+                val errorMessage = "an error happened ❌ ${e.message}"
+                Log.e("RegisterUser", "exceptional error ❌ $errorMessage", e)
                 onError(errorMessage)
                 Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
             }

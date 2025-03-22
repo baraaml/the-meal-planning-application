@@ -12,8 +12,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -31,6 +33,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -43,15 +47,12 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.mealflow.R
 import com.example.mealflow.random.OrDivider
-import com.example.mealflow.ui.navigation.Screen
 import com.example.mealflow.utils.Validator
 import com.example.mealflow.viewModel.LoginViewModel
 
-// ----------------------- Login Page ---------------------------
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginPage(navController: NavController, viewModel: LoginViewModel = viewModel()) {
-    // ----------------------- Variables ---------------------------
     val email by viewModel.email.observeAsState("")
     val password by viewModel.password.observeAsState("")
     val passwordVisible by viewModel.passwordVisible.observeAsState(false)
@@ -60,33 +61,32 @@ fun LoginPage(navController: NavController, viewModel: LoginViewModel = viewMode
     var isFocusedEmail by remember { mutableStateOf(false) }
     var isFocusedPassword by remember { mutableStateOf(false) }
 
-    // Observe navigation to home screen
-    val navigateToHome by viewModel.navigateToHome.observeAsState(false)
+     val isLoading by viewModel.isLoading.observeAsState(false)
 
-    // Navigate to home screen when navigateToHome is true
-    if (navigateToHome) {
-        LaunchedEffect(key1 = true) {
-            navController.navigate("Home Page") {  // Changed from "Home Screen" to "Home Page" to match your existing code
-                // Optional: pop up to the start destination to clear the back stack
-                popUpTo(navController.graph.startDestinationId) {
-                    saveState = true
+    val loginMessage by viewModel.loginMessage.observeAsState("")
+
+    val navigateToHome by viewModel.navigateToHome.observeAsState(false)
+    LaunchedEffect(navigateToHome) {
+        if (navigateToHome) {
+            navController.navigate("Home Page") {
+                // Pop up to the start destination to clear the back stack
+                popUpTo("Start Page") {
+                    inclusive = true
                 }
-                // Avoid multiple copies of the same destination when navigating back
+                // Avoid multiple copies of the same destination
                 launchSingleTop = true
-                // Restore state when navigating back
-                restoreState = true
             }
             viewModel.onHomeNavigationComplete()
         }
     }
 
     Column {
-        // ----------------------- Skip Button ---------------------------
         Row(
             Modifier
                 .fillMaxWidth()
                 .padding(top = 20.dp), horizontalArrangement = Arrangement.End) {
-            Text(text = stringResource(id = R.string.Skip),
+            Text(
+                text = stringResource(id = R.string.Skip),
                 Modifier
                     .clickable {
                         navController.navigate("Home Page") {
@@ -100,23 +100,27 @@ fun LoginPage(navController: NavController, viewModel: LoginViewModel = viewMode
                     .padding(20.dp),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.Gray
+                fontFamily = FontFamily(Font(R.font.sfmed)),
+                color = MaterialTheme.colorScheme.tertiary
             )
         }
-        // ----------------------- Join Text -----------------------------
-        Text(
+
+         Text(
             text = stringResource(id = R.string.Welcome_back),
             Modifier.padding(start = 20.dp, top = 40.dp ,end = 20.dp),
             fontSize = 25.sp,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            fontFamily = FontFamily(Font(R.font.sf_pro_rounded_heavy))
         )
-        // ----------------------- InputFields ---------------------------
-        // ---------------------------------------------------------------
-        // Input field ------------------ Email -----------------------
+
         OutlinedTextField(
             value = email,
             onValueChange = { viewModel.updateEmail(it) },
-            label = { Text(stringResource(id = R.string.EnterEmail)) },
+            label = {
+                Text(
+                    stringResource(id = R.string.EnterEmail),
+                    fontFamily = FontFamily(Font(R.font.sflightit))
+                ) },
             singleLine = true,
             textStyle = TextStyle(color = Color.Black),
             colors = OutlinedTextFieldDefaults.colors(
@@ -127,8 +131,7 @@ fun LoginPage(navController: NavController, viewModel: LoginViewModel = viewMode
                 .padding(start = 20.dp, top = 20.dp, end = 20.dp)
                 .onFocusChanged { isFocusedEmail = it.isFocused }
         )
-        // Text ------------------ Email Error -----------------------
-        if (isFocusedEmail && emailError != null)
+         if (isFocusedEmail && emailError != null)
         {
             Text(
                 text = emailError,
@@ -138,11 +141,14 @@ fun LoginPage(navController: NavController, viewModel: LoginViewModel = viewMode
                 fontSize = 12.sp
             )
         }
-        // Input field ------------------ Password -----------------------
-        OutlinedTextField(
+         OutlinedTextField(
             value = password,
             onValueChange = { viewModel.updatePassword(it) },
-            label = { Text(stringResource(id = R.string.EnterPassword)) },
+            label = {
+                Text(
+                    stringResource(id = R.string.EnterPassword),
+                    fontFamily = FontFamily(Font(R.font.sflightit))
+                ) },
             trailingIcon = {
                 Icon(
                     painter = painterResource(
@@ -171,7 +177,6 @@ fun LoginPage(navController: NavController, viewModel: LoginViewModel = viewMode
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Password)
         )
-        // Text ------------------ Password Error -----------------------
         if (isFocusedPassword && passwordError != null)
         {
             Text(
@@ -182,61 +187,94 @@ fun LoginPage(navController: NavController, viewModel: LoginViewModel = viewMode
                 fontSize = 12.sp
             )
         }
-        // ----------------------- Forget Password Button ---------------------------
+
+        if (loginMessage.isNotEmpty()) {
+            Text(
+                text = loginMessage,
+                modifier = Modifier
+                    .padding(start = 24.dp, end = 24.dp, top = 5.dp),
+                color = Color.Red,
+                fontSize = 14.sp
+            )
+        }
+
         Row(
             Modifier
                 .fillMaxWidth()
-                .padding(top = 20.dp), horizontalArrangement = Arrangement.End) {
-            Text(text = stringResource(id = R.string.ForgotPassword),
+                .padding(top = 10.dp), horizontalArrangement = Arrangement.End) {
+            Text(
+                text = stringResource(id = R.string.ForgotPassword),
                 Modifier
                     .clickable { navController.navigate("Forget Password Page") }
                     .padding(end = 25.dp),
                 fontWeight = FontWeight.Bold,
-                color = Color.Red
+                fontFamily = FontFamily(Font(R.font.sflight)),
+                color = MaterialTheme.colorScheme.error
             )
         }
-        //-----------------------------------------------------------------------------------------------------
-        //-----------------------------------------------------------------------------------------------------
-        // Button ------------------ Log in -------------------------------------------------------------------
-        Button(onClick = {
-            viewModel.loginButton(email, password, navController)
-        },
+
+        Button(
+            onClick = {
+                viewModel.setLoginMessage("") // Clear any previous error message
+                viewModel.loginButton(email, password, navController)
+            },
             Modifier
-                .padding(20.dp)
+                .padding(15.dp)
                 .align(alignment = Alignment.CenterHorizontally)
                 .fillMaxWidth(),
             shape = RoundedCornerShape(8.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+            ),
+            enabled = !isLoading
         ) {
-            Text(
-                text = stringResource(id = R.string.Login),
-                color = Color.White
-            )
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    strokeWidth = 2.dp
+                )
+            } else {
+                Text(
+                    text = stringResource(id = R.string.Login),
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    fontFamily = FontFamily(Font(R.font.sfmed))
+                )
+            }
         }
-        // ----------------------- Button to go to the Register page -----------------------
+
         Row(
             modifier = Modifier.align(Alignment.CenterHorizontally)
         ) {
-            Text(text = stringResource(id = R.string.DoNot_Account))
-            Text(text = stringResource(id = R.string.Register),
+            Text(
+                text = stringResource(id = R.string.DoNot_Account),
+                fontFamily = FontFamily(Font(R.font.sflightit)),
+                modifier = Modifier.padding(end = 5.dp)
+            )
+            Text(
+                text = stringResource(id = R.string.Register),
                 Modifier
                     .clickable(onClick = {navController.navigate("Register Page")}
                     ),
-                color = Color.Blue
+                color = MaterialTheme.colorScheme.tertiary,
+                fontFamily = FontFamily(Font(R.font.sfmed))
             )
         }
-        // ----------------------- Line with text in the middle ---------------------------
+
         OrDivider("OR")
-        // ----------------------- Button to sign in with google ---------------------------
-        Button(
+
+         Button(
             onClick = { /*TODO*/ } ,
             Modifier
                 .padding(start = 20.dp, end = 20.dp, bottom = 20.dp)
                 .align(alignment = Alignment.CenterHorizontally)
                 .fillMaxWidth(),
             shape = RoundedCornerShape(8.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
-
+             colors = ButtonDefaults.buttonColors(
+                 containerColor = MaterialTheme.colorScheme.primary,
+                 disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+             )
         ) {
             Icon(painter = painterResource(
                 id = R.drawable.google_icon_icons_com_62736),
@@ -247,7 +285,8 @@ fun LoginPage(navController: NavController, viewModel: LoginViewModel = viewMode
                     .padding(end = 10.dp))
             Text(
                 text = "Sign up using Google",
-                color = Color.White
+                color = Color.White,
+                fontFamily = FontFamily(Font(R.font.sfmed))
             )
         }
     }

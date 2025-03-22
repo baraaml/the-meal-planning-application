@@ -7,13 +7,10 @@ import com.example.mealflow.data.repository.MealRepository
 import com.example.mealflow.network.ApiMeal
 
 class MealViewModelFactory(private val application: Application) : ViewModelProvider.Factory {
-    @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(MealViewModel::class.java)) {
-            // Create ApiMeal instance first
-            val apiMeal = ApiMeal()
-            // Then pass it to the repository
-            val repository = MealRepository(apiMeal)
+            val repository = MealRepository(application)
+            @Suppress("UNCHECKED_CAST")
             return MealViewModel(application, repository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")

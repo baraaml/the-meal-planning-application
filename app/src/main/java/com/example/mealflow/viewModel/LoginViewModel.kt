@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.example.mealflow.network.loginApi
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 
 class LoginViewModel : ViewModel() {
     private var _email = MutableLiveData("")
@@ -29,6 +30,17 @@ class LoginViewModel : ViewModel() {
     private val _navigateToHome = MutableLiveData<Boolean>()
     val navigateToHome: LiveData<Boolean> get() = _navigateToHome
 
+    // Add loading state
+    private val _isLoading = MutableLiveData(false)
+    val isLoading: LiveData<Boolean> get() = _isLoading
+
+    // This will be set to true when login is successful to trigger data fetching
+    private val _loginSuccessful = MutableLiveData<Boolean>()
+    val loginSuccessful: LiveData<Boolean> get() = _loginSuccessful
+
+    private val _loginMessage = MutableLiveData<String>()
+    val loginMessage: LiveData<String> get() = _loginMessage
+
     fun updateEmail(newEmail: String) {
         _email.value = newEmail
     }
@@ -42,13 +54,19 @@ class LoginViewModel : ViewModel() {
     }
 
     fun loginButton(email: String, password: String, navController: NavController) {
+        // Set loading state to true before API call
+        _isLoading.value = true
+
         viewModelScope.launch {
-            loginApi(email, password, navController, this@LoginViewModel)
+            try {
+                loginApi(email, password, navController, this@LoginViewModel)
+            } catch (e: Exception) {
+                // If there's an exception, set error message and reset loading state
+                _loginMessage.value = "Login failed: ${e.message}"
+                _isLoading.value = false
+            }
         }
     }
-
-    private val _loginMessage = MutableLiveData<String>()
-    val loginMessage: LiveData<String> get() = _loginMessage
 
     fun setLoginMessage(message: String) {
         _loginMessage.value = message
@@ -56,11 +74,29 @@ class LoginViewModel : ViewModel() {
 
     // Add a function to navigate to home screen
     fun navigateToHomeScreen() {
-        _navigateToHome.value = true
+        // First mark login as successful to trigger data fetching
+        _loginSuccessful.postValue(true)  // Use postValue for background thread safety
+
+        // Add a small delay to ensure data fetching starts before navigation
+        viewModelScope.launch {
+            delay(300) // Small delay to let data fetching start
+            _navigateToHome.postValue(true)
+            _isLoading.postValue(false)
+        }
     }
 
     // Add a function to reset navigation flag after navigation completes
     fun onHomeNavigationComplete() {
         _navigateToHome.value = false
+    }
+
+    // Reset the login successful flag (useful for logout)
+    fun resetLoginState() {
+        _loginSuccessful.value = false
+    }
+
+    // Set loading state
+    fun setLoading(isLoading: Boolean) {
+        _isLoading.value = isLoading
     }
 }

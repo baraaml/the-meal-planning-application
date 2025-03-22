@@ -17,6 +17,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -32,9 +33,8 @@ fun BackButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
         onClick = onClick,
         modifier = Modifier
             .padding(20.dp)
-            .size(56.dp)
-            .background(Color(0xFF000000), CircleShape)
-            .border(1.dp, Color.Black, CircleShape)
+            .size(50.dp)
+            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.5f) , CircleShape)
     ) {
         Icon(
             imageVector = Icons.AutoMirrored.Filled.ArrowBack,

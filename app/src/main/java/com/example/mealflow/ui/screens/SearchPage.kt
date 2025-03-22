@@ -1,355 +1,200 @@
 package com.example.mealflow.ui.screens
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onKeyEvent
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
+import androidx.navigation.NavController
 import com.example.mealflow.data.model.Meal
 import com.example.mealflow.ui.components.MealItem
 import com.example.mealflow.viewModel.MealViewModel
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Refresh
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 fun SearchPage(
-    viewModel: MealViewModel,
-    onMealClick: (Any) -> Unit,
-    navController: NavHostController,
-    meals: List<Meal>
+    meals: List<Meal>,
+    onMealClick: (Meal) -> Unit,
+    viewModel: MealViewModel? = null,
+    navController: NavController
 ) {
-    val meals by viewModel.meals.collectAsState()
-    val errorMessage by viewModel.errorMessage.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
+    val scope = rememberCoroutineScope()
     var searchQuery by remember { mutableStateOf("") }
+    var searchJob by remember { mutableStateOf<Job?>(null) }
 
-    // Focus management
-    val focusManager = LocalFocusManager.current
-    var isSearchFocused by remember { mutableStateOf(false) }
+    // Collect states from viewModel if available
+    val isLoading by viewModel?.isLoading?.collectAsState() ?: remember { mutableStateOf(false) }
+    val errorMessage by viewModel?.errorMessage?.collectAsState() ?: remember { mutableStateOf<String?>(null) }
 
-    // Remember search history
-    val context = LocalContext.current
-    val searchHistory = remember { mutableStateListOf<String>() }
-    var showHistory by remember { mutableStateOf(false) }
+    // Local state for search active tracking
+    var isSearchActive by remember { mutableStateOf(false) }
 
-    // Load search history from ViewModel if available
-    LaunchedEffect(Unit) {
-        // Ideally, this would come from ViewModel
-        // For now, we'll use a dummy history for demonstration
-        if (searchHistory.isEmpty()) {
-            // This is temporary - should come from persistent storage via ViewModel
-            searchHistory.addAll(listOf("Pasta", "Chicken", "Salad"))
-        }
-    }
-
-    // Filter options
-    val filterOptions = listOf("All", "Breakfast", "Lunch", "Dinner", "Dessert", "Vegetarian", "Vegan", "Gluten-Free")
-    var selectedFilter by remember { mutableStateOf("All") }
-
-    // Filter meals based on search query and selected filter
-    val filteredMeals = remember(searchQuery, meals, selectedFilter) {
-        meals.filter { meal ->
-            val matchesSearch = searchQuery.isEmpty() ||
-                    meal.name.contains(searchQuery, ignoreCase = true) ||
-                    meal.description.contains(searchQuery, ignoreCase = true) ||
-                    meal.tags.any { it.contains(searchQuery, ignoreCase = true) }
-
-            val matchesFilter = selectedFilter == "All" ||
-                    meal.tags.any { it.equals(selectedFilter, ignoreCase = true) }
-
-            matchesSearch && matchesFilter
-        }
-    }
-
-    // Submit search function
-    fun submitSearch() {
-        if (searchQuery.isNotEmpty()) {
-            // Add to history if not already there
-            if (!searchHistory.contains(searchQuery)) {
-                searchHistory.add(0, searchQuery) // Add to beginning
-                // Keep only the most recent 5 searches
-                if (searchHistory.size > 5) {
-                    searchHistory.removeAt(searchHistory.size - 1)
-                }
-            } else {
-                // Move to top if already exists
-                searchHistory.remove(searchQuery)
-                searchHistory.add(0, searchQuery)
-            }
-
-            // In a real app, you'd save this to persistent storage via ViewModel
-            // viewModel.saveSearchHistory(searchHistory)
-
-            // Hide keyboard and history after submission
-            focusManager.clearFocus()
+    // Execute search with proper debounce
+    fun executeSearch(query: String) {
+        searchJob?.cancel()
+        searchJob = scope.launch {
+            delay(500) // Wait for user to finish typing
+            isSearchActive = query.isNotEmpty()
+            viewModel?.searchMeals(query)
         }
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        // Search bar with icons
-        OutlinedTextField(
-            value = searchQuery,
-            onValueChange = {
-                searchQuery = it
-                // Only show history if field is focused and not empty
-                showHistory = isSearchFocused && it.isNotEmpty() && searchHistory.isNotEmpty()
-            },
+        // Search header and bar
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
-                .onFocusChanged { focusState ->
-                    isSearchFocused = focusState.isFocused
-                    showHistory = focusState.isFocused && searchQuery.isNotEmpty() && searchHistory.isNotEmpty()
-                }
-                .onKeyEvent { keyEvent ->
-                    if (keyEvent.key == Key.Enter) {
-                        submitSearch()
-                        true
-                    } else {
-                        false
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Search bar - takes most of the space
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { newQuery ->
+                    searchQuery = newQuery
+                    executeSearch(newQuery)
+                },
+                modifier = Modifier
+                    .weight(1f),
+                label = { Text("Search meals") },
+                leadingIcon = {
+                    Icon(Icons.Default.Search, contentDescription = "Search")
+                },
+                trailingIcon = {
+                    if (searchQuery.isNotEmpty()) {
+                        IconButton(onClick = {
+                            searchQuery = ""
+                            executeSearch("")
+                        }) {
+                            Icon(Icons.Default.Clear, contentDescription = "Clear search")
+                        }
                     }
                 },
-            placeholder = { Text("Search for meals...") },
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(
-                imeAction = ImeAction.Search,
-                keyboardType = KeyboardType.Text
-            ),
-            keyboardActions = KeyboardActions(
-                onSearch = {
-                    submitSearch()
-                }
-            ),
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = "Search"
-                )
-            },
-            trailingIcon = {
-                if (searchQuery.isNotEmpty()) {
-                    IconButton(onClick = {
-                        searchQuery = ""
-                        showHistory = isSearchFocused && searchHistory.isNotEmpty()
-                    }) {
-                        Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = "Clear search"
-                        )
-                    }
-                }
-            }
-        )
+                singleLine = true
+            )
 
-        // Filter options
-        LazyRow(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(filterOptions) { filter ->
-                FilterChip(
-                    selected = selectedFilter == filter,
-                    onClick = {
-                        selectedFilter = filter
-                        // Apply filter immediately
-                        if (searchQuery.isNotEmpty()) {
-                            submitSearch()
-                        }
-                    },
-                    label = { Text(filter) },
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = MaterialTheme.colorScheme.primary,
-                        selectedLabelColor = MaterialTheme.colorScheme.onPrimary
+            // Refresh button
+            if (viewModel != null) {
+                IconButton(
+                    onClick = { viewModel.refreshMeals() },
+                    modifier = Modifier.padding(start = 8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Refresh,
+                        contentDescription = "Refresh"
                     )
-                )
+                }
             }
         }
 
-        // Search history dropdown
-        if (showHistory && searchHistory.isNotEmpty()) {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-            ) {
-                Column(modifier = Modifier.padding(8.dp)) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("Recent Searches", style = MaterialTheme.typography.titleSmall)
-                        IconButton(onClick = {
-                            searchHistory.clear()
-                            showHistory = false
-                            // In a real app, clear from persistent storage too:
-                            // viewModel.clearSearchHistory()
-                        }) {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = "Clear History",
-                                tint = MaterialTheme.colorScheme.error
-                            )
-                        }
+        // Content area
+        Box(modifier = Modifier.fillMaxSize()) {
+            // Loading indicator for full page loading
+            if (isLoading && meals.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        CircularProgressIndicator()
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text("Loading meals...")
                     }
+                }
+            }
+            // No results message
+            else if (meals.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.padding(32.dp)
+                    ) {
+                        Text(
+                            text = if (isSearchActive) {
+                                "No meals found matching \"$searchQuery\""
+                            } else {
+                                "No meals available. Try refreshing!"
+                            },
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.bodyLarge
+                        )
 
-                    Divider()
+                        Spacer(modifier = Modifier.height(16.dp))
 
-                    // Show last 5 searches
-                    searchHistory.take(5).forEach { search ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    searchQuery = search
-                                    showHistory = false
-                                    submitSearch() // Apply the search immediately when clicked
-                                }
-                                .padding(8.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    imageVector = Icons.Default.History,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(search)
-                            }
-                            IconButton(
-                                onClick = {
-                                    searchHistory.remove(search)
-                                    // If history becomes empty, hide dropdown
-                                    if (searchHistory.isEmpty()) {
-                                        showHistory = false
-                                    }
-                                    // In a real app, remove from persistent storage too:
-                                    // viewModel.removeSearchHistoryItem(search)
-                                },
-                                modifier = Modifier.size(24.dp)
+                        if (viewModel != null) {
+                            Button(
+                                onClick = { viewModel.refreshMeals() }
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.Close,
-                                    contentDescription = "Remove",
-                                    modifier = Modifier.size(16.dp)
+                                    Icons.Default.Refresh,
+                                    contentDescription = "Refresh",
+                                    modifier = Modifier.size(20.dp)
                                 )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Refresh")
                             }
                         }
                     }
                 }
             }
-        }
-
-        // Show loading indicator, error message, or meal grid
-        when {
-            isLoading -> {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
-                }
-            }
-            filteredMeals.isEmpty() && errorMessage == null -> {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = "No meals found",
-                            style = MaterialTheme.typography.titleMedium,
-                            textAlign = TextAlign.Center
-                        )
-                        if (searchQuery.isNotEmpty() || selectedFilter != "All") {
-                            Text(
-                                text = "Try changing your search or filters",
-                                style = MaterialTheme.typography.bodyMedium,
-                                textAlign = TextAlign.Center
-                            )
-                        }
-                    }
-                }
-            }
-            errorMessage != null -> {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(errorMessage ?: "Something went wrong", color = MaterialTheme.colorScheme.error)
-                }
-            }
-            else -> {
+            // Meals grid - when we have data
+            else {
                 LazyVerticalGrid(
-                    columns = GridCells.Fixed(2), // 2 columns grid
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    columns = GridCells.Fixed(2),
+                    contentPadding = PaddingValues(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier.fillMaxSize()
                 ) {
-                    items(filteredMeals.size) { index ->
-                        val meal = filteredMeals[index]
+                    items(meals) { meal ->
                         MealItem(
                             meal = meal,
-                            onClick = {
-                                // Save search when user clicks a meal
-                                submitSearch()
-                                onMealClick(meal)
-                            }
+                            onClick = { onMealClick(meal) }
                         )
                     }
+                }
+
+                // Show a small loading indicator for search refreshes
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(16.dp)
+                            .size(24.dp),
+                        strokeWidth = 2.dp
+                    )
+                }
+            }
+
+            // Error snack bar if there's an error message
+            if (!errorMessage.isNullOrBlank()) {
+                Snackbar(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(16.dp),
+                    action = {
+                        TextButton(onClick = { viewModel?.refreshMeals() }) {
+                            Text("Retry")
+                        }
+                    }
+                ) {
+                    Text(errorMessage ?: "Unknown error occurred")
                 }
             }
         }
     }
 }
-

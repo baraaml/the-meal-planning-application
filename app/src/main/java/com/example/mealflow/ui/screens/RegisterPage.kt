@@ -14,6 +14,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -33,6 +34,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -82,7 +85,7 @@ fun RegisterPage(navController: NavController, viewModel: RegisterViewModel)
 
             // Fixed the Skip button navigation
             Text(
-                text = "Skip",
+                text = stringResource(id = R.string.Skip),
                 Modifier
                     .clickable {
                         navController.navigate("Home Page") {
@@ -96,7 +99,8 @@ fun RegisterPage(navController: NavController, viewModel: RegisterViewModel)
                     .padding(20.dp),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.Gray
+                fontFamily = FontFamily(Font(R.font.sfmed)),
+                color = MaterialTheme.colorScheme.tertiary
             )
         }
         // ----------------------- Join Text -----------------------------
@@ -104,7 +108,8 @@ fun RegisterPage(navController: NavController, viewModel: RegisterViewModel)
             text = stringResource(id = R.string.join),
             Modifier.padding(start = 20.dp, top = 40.dp ,end = 20.dp),
             fontSize = 25.sp,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            fontFamily = FontFamily(Font(R.font.sf_pro_rounded_heavy))
         )
         // ----------------------- InputFields ---------------------------
         // ---------------------------------------------------------------
@@ -112,7 +117,11 @@ fun RegisterPage(navController: NavController, viewModel: RegisterViewModel)
         OutlinedTextField(
             value = username,
             onValueChange = { viewModel.updateUsername(it) },
-            label = { Text("Enter username") },
+            label = {
+                Text(
+                    text = "Enter username",
+                    fontFamily = FontFamily(Font(R.font.sflightit))
+                ) },
             singleLine = true,
             textStyle = TextStyle(color = Color.Black),
             colors = OutlinedTextFieldDefaults.colors(
@@ -121,7 +130,8 @@ fun RegisterPage(navController: NavController, viewModel: RegisterViewModel)
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(start = 20.dp, top = 20.dp, end = 20.dp)
-                .onFocusChanged { isFocusedUsername = it.isFocused }
+                .onFocusChanged { isFocusedUsername = it.isFocused },
+
         )
         // Text ------------------ Username Error -----------------------
         if (isFocusedUsername && usernameError != null)
@@ -139,7 +149,11 @@ fun RegisterPage(navController: NavController, viewModel: RegisterViewModel)
         OutlinedTextField(
             value = email,
             onValueChange = { viewModel.updateEmail(it) },
-            label = { Text("Add an Email") },
+            label = {
+                Text(
+                    text = "Add an Email",
+                    fontFamily = FontFamily(Font(R.font.sflightit))
+                ) },
             singleLine = true,
             textStyle = TextStyle(color = Color.Black),
             colors = OutlinedTextFieldDefaults.colors(
@@ -165,7 +179,11 @@ fun RegisterPage(navController: NavController, viewModel: RegisterViewModel)
         OutlinedTextField(
             value = password,
             onValueChange = { viewModel.updatePassword(it) },
-            label = { Text("Enter your password") },
+            label = {
+                Text(
+                    "Enter your password",
+                    fontFamily = FontFamily(Font(R.font.sflightit))
+                ) },
             trailingIcon = {
                 Icon(
                     painter = painterResource(
@@ -220,23 +238,35 @@ fun RegisterPage(navController: NavController, viewModel: RegisterViewModel)
                 .align(alignment = Alignment.CenterHorizontally)
                 .fillMaxWidth(),
             shape = RoundedCornerShape(8.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+            )
         ) {
             Text(
                 text = "Sign up",
-                color = Color.White
+                color = Color.White,
+                fontFamily = FontFamily(Font(R.font.sfmed))
             )
         }
         //----------------------- Button to go to the login page -----------------------
         Row(
             modifier = Modifier.align(Alignment.CenterHorizontally)
         ) {
-            Text(text = "You already have an account? ")
+            Text(
+                text = "You already have an account?",
+                modifier = Modifier.padding(end = 5.dp),
+                fontFamily = FontFamily(Font(R.font.sflightit))
+            )
             Text(text = "Login",
                 Modifier
-                    .clickable(onClick = {navController.navigate("Login Page")}
+                    .clickable(
+                        onClick = {
+                            navController.navigate("Login Page")
+                        }
                     ),
-                color = Color.Blue
+                color = Color.Blue,
+                fontFamily = FontFamily(Font(R.font.sfmed))
             )
         }
         // ----------------------- Line with text in the middle ---------------------------
@@ -249,8 +279,10 @@ fun RegisterPage(navController: NavController, viewModel: RegisterViewModel)
                 .align(alignment = Alignment.CenterHorizontally)
                 .fillMaxWidth(),
             shape = RoundedCornerShape(8.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
-
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+            )
         ) {
             Icon(
                 painter = painterResource(
@@ -264,7 +296,8 @@ fun RegisterPage(navController: NavController, viewModel: RegisterViewModel)
             )
             Text(
                 text = "Sign up using Google",
-                color = Color.White
+                color = Color.White,
+                fontFamily = FontFamily(Font(R.font.sfmed))
             )
         }
         ErrorPopupRegister(viewModel = viewModel)

@@ -18,36 +18,46 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Snackbar
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.example.mealflow.data.model.Ingredient
-import com.example.mealflow.data.model.Interactions
 import com.example.mealflow.data.model.Meal
-import com.example.mealflow.data.model.User
+import com.example.mealflow.viewModel.MealViewModel
 import java.util.Calendar
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 
 @Composable
 fun HomePage(
     meals: List<Meal>,
-    userName: String = "User", // Add userName parameter with default value
-    onMealClick: (Meal) -> Unit
+    userName: String = "User",
+    onMealClick: (Meal) -> Unit,
+    viewModel: MealViewModel? = null // Added viewModel parameter
 ) {
     // Get current hour to determine greeting
     val calendar = Calendar.getInstance()
@@ -59,87 +69,162 @@ fun HomePage(
         else -> "Good Evening"
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp)
-            .verticalScroll(rememberScrollState())
-    ) {
-        // Improved greeting header with user name
-        Row(
+    // Observe view model states if available
+    val isLoading by viewModel?.isLoading?.collectAsState(false) ?: remember { mutableStateOf(false) }
+    val errorMessage by viewModel?.errorMessage?.collectAsState(null) ?: remember { mutableStateOf<String?>(null) }
+
+    // State to track whether an error was already shown
+    var errorShown by remember { mutableStateOf(false) }
+
+    // Lifecycle observer to refresh data when screen becomes active
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                // Refresh data when screen becomes active
+                viewModel?.fetchRecommendedMeals()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 16.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .fillMaxSize()
+                .padding(horizontal = 16.dp)
+                .verticalScroll(rememberScrollState())
         ) {
-            Column(
-                modifier = Modifier.weight(1f)
+            // Improved greeting header with user name
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "$greeting,",
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = userName,
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = "$greeting,",
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = userName,
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+
+                // Add refresh button
+                if (viewModel != null) {
+                    IconButton(onClick = { viewModel.refreshMeals() }) {
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = "Refresh",
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
             }
 
-//             You could add a user avatar or notification icon here
-//             IconButton(onClick = { /* Handle profile click */ }) {
-//                 Icon(
-//                     imageVector = Icons.Default.AccountCircle,
-//                     contentDescription = "Profile",
-//                     modifier = Modifier.size(40.dp)
-//                 )
-//             }
+            // Loading indicator for initial load
+            if (isLoading && meals.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            } else {
+                // Section 1: Planned
+                SectionHeader("Planned")
+                if (meals.isNotEmpty()) {
+                    MealRowImproved(meals = meals.take(minOf(5, meals.size)), onMealClick = onMealClick)
+                } else {
+                    EmptyStateMessage("No planned meals available")
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Section 2: Recommended
+                SectionHeader("Recommended")
+                if (meals.isNotEmpty()) {
+                    MealRowImproved(meals = meals.take(minOf(5, meals.size)), onMealClick = onMealClick)
+                } else {
+                    EmptyStateMessage("No recommendations available")
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Section 3: Community's Popular
+                SectionHeader("Community's Popular")
+                if (meals.isNotEmpty()) {
+                    MealRowImproved(meals = meals.take(minOf(5, meals.size)), onMealClick = onMealClick)
+                } else {
+                    EmptyStateMessage("No popular meals available")
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Section 4: You May Like
+                SectionHeader("You May Like")
+                if (meals.isNotEmpty()) {
+                    MealRowImproved(meals = meals.take(minOf(5, meals.size)), onMealClick = onMealClick)
+                } else {
+                    EmptyStateMessage("No suggestions available")
+                }
+            }
+
+            // Add bottom space for better scrolling experience
+            Spacer(modifier = Modifier.height(16.dp))
         }
 
-        // Section 1: Planned
-        SectionHeader("Planned")
-        if (meals.isNotEmpty()) {
-            MealRowImproved(meals = meals.take(5), onMealClick = onMealClick)
-        } else {
-            EmptyStateMessage("No planned meals available")
+        // Show error message as a snackbar at the bottom
+        if (!errorMessage.isNullOrBlank() && !errorShown) {
+            Snackbar(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(16.dp),
+                action = {
+                    TextButton(onClick = { errorShown = true }) {
+                        Text("Dismiss")
+                    }
+                }
+            ) {
+                Text(errorMessage ?: "Unknown error occurred")
+            }
+
+            // Mark error as shown after a delay
+            LaunchedEffect(errorMessage) {
+                kotlinx.coroutines.delay(5000)
+                errorShown = true
+            }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Section 2: Recommended
-        SectionHeader("Recommended")
-        if (meals.isNotEmpty()) {
-            MealRowImproved(meals = meals.take(5), onMealClick = onMealClick)
-        } else {
-            EmptyStateMessage("No recommendations available")
+        // Overlay loading indicator for refresh operations
+        if (isLoading && meals.isNotEmpty()) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(16.dp)
+            ) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    strokeWidth = 2.dp
+                )
+            }
         }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Section 3: Community's Popular
-        SectionHeader("Community's Popular")
-        if (meals.isNotEmpty()) {
-            MealRowImproved(meals = meals.take(5), onMealClick = onMealClick)
-        } else {
-            EmptyStateMessage("No popular meals available")
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Section 4: You May Like
-        SectionHeader("You May Like")
-        if (meals.isNotEmpty()) {
-            MealRowImproved(meals = meals.take(5), onMealClick = onMealClick)
-        } else {
-            EmptyStateMessage("No suggestions available")
-        }
-
-        // Add bottom space for better scrolling experience
-        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
@@ -223,43 +308,6 @@ fun MealRowImproved(
     }
 }
 
-val sampleMeals = listOf(
-    createSampleMeal(
-        "1",
-        "Spaghetti Carbonara",
-        "A classic Italian pasta dish with eggs, cheese, and bacon.",
-        "https://example.com/spaghetti.jpg",
-        listOf("Italian", "Pasta")
-    ),
-    createSampleMeal(
-        "2",
-        "Chicken Tikka Masala",
-        "Grilled chicken in a spicy curry sauce.",
-        "https://example.com/chicken-tikka.jpg",
-        listOf("Indian", "Spicy")
-    ),
-    createSampleMeal(
-        "3",
-        "Avocado Toast",
-        "Simple and healthy breakfast with avocado on toast.",
-        "https://example.com/avocado-toast.jpg",
-        listOf("Breakfast", "Vegetarian")
-    ),
-    createSampleMeal(
-        "4",
-        "Beef Stir Fry",
-        "Quick and delicious stir-fried beef with vegetables.",
-        "https://example.com/beef-stir-fry.jpg",
-        listOf("Asian", "Quick")
-    ),
-    createSampleMeal(
-        "5",
-        "Chocolate Cake",
-        "Rich and moist chocolate cake for dessert lovers.",
-        "https://example.com/chocolate-cake.jpg",
-        listOf("Dessert", "Sweet")
-    )
-)
 @Composable
 fun HomeMealCard(
     meal: Meal,
@@ -274,14 +322,14 @@ fun HomeMealCard(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
-        onClick = onClick  // This is correct but doesn't properly activate the click behavior
+        onClick = onClick
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             // Image takes about 60% of card height
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(130.dp)
+                    .height(120.dp)
             ) {
                 // Properly load the meal image with AsyncImage
                 AsyncImage(
@@ -337,53 +385,4 @@ fun HomeMealCard(
             }
         }
     }
-}
-// -------------Preview--------------
-
-@Preview(showBackground = true)
-@Composable
-fun HomePagePreview() {
-    HomePage(
-        meals = sampleMeals,
-        userName = "Baraa",
-        onMealClick = { /* Preview doesn't need click handler */ }
-    )
-}
-
-/**
- * Helper function to create sample meals for preview
- */
-private fun createSampleMeal(
-    id: String,
-    name: String,
-    description: String,
-    imageUrl: String,
-    tags: List<String>
-): Meal {
-    return Meal(
-        mealId = id,
-        name = name,
-        description = description,
-        imageUrl = imageUrl,
-        tags = tags,
-        ingredients = listOf(
-            Ingredient("Ingredient 1", 1.0, "cup"),
-            Ingredient("Ingredient 2", 2.0, "tbsp")
-        ),
-        instructions = listOf("Step 1: Do something", "Step 2: Do something else"),
-        cookware = listOf("Pan", "Pot"),
-        preparationTime = 15,
-        cookingTime = 30,
-        servings = 4,
-        caloriesPerServing = 350,
-        rating = 4.5,
-        reviewsCount = 12,
-        createdBy = User("user1", "JohnDoe"),
-        isFavorited = false,
-        isSaved = false,
-        notes = emptyList(),
-        interactions = Interactions(100, 50, 2, 10),
-        createdAt = "2025-01-01T12:00:00Z",
-        updatedAt = "2025-01-01T12:00:00Z"
-    )
 }

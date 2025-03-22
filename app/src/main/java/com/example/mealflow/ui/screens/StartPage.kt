@@ -17,7 +17,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.googlefonts.GoogleFont
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -26,6 +29,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.mealflow.R
 import com.example.mealflow.buttons.DynamicButton
 import com.example.mealflow.ui.theme.MealFlowTheme
+
 
 // ----------------------- Register Page ---------------------------
 @Composable
@@ -39,6 +43,7 @@ fun StartPage(navController: NavController) {
                 .align(Alignment.CenterStart),
             fontSize = 25.sp,
             fontWeight = FontWeight.Bold,
+            fontFamily = FontFamily(Font(R.font.sf_pro_rounded_heavy))
         )
         Column(
             modifier = Modifier.align(alignment = Alignment.BottomCenter)
@@ -55,7 +60,8 @@ fun StartPage(navController: NavController) {
             ) {
                 Text(
                     text = stringResource(id = R.string.Get_Started),
-                    color = Color.White
+                    color = Color.White,
+                    fontFamily = FontFamily(Font(R.font.sfpro))
                 )
             }
             // Row ------------------ Login -----------------------
@@ -65,12 +71,17 @@ fun StartPage(navController: NavController) {
                     .padding(bottom = 100.dp)
             ) {
                 // ----------------------- Text -----------------------------
-                Text(text = stringResource(id = R.string.Already_member))
+                Text(
+                    text = stringResource(id = R.string.Already_member),
+                    fontFamily = FontFamily(Font(R.font.sflightit)),
+                    modifier = Modifier.padding(end = 5.dp)
+                )
                 // ----------------------- Login (Clickable Text) -----------------------------
                 Text(
                     text = "Login",
                     modifier = Modifier.clickable { navController.navigate("Login Page") },
-                    color = Color.Blue
+                    color = Color.Blue,
+                    fontFamily = FontFamily(Font(R.font.sfmedit))
                 )
             }
         }

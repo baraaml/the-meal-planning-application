@@ -16,3 +16,11 @@ val Black = Color(0xFF000000)
 val White = Color(0xFFFFFFFF)
 val Red = Color(0xFFFF0000)
 val Blue = Color(0xFF0000FF)
+
+
+
+val PrimaryGreen = Color(0xFF74A34C)
+val DarkGreen = Color(0xFF4C5C47)
+val SoftWhite = Color(0xFFF8F8F8)
+val LightGray = Color(0xFFEAEAEA)
+val DarkGray = Color(0xFF333333)

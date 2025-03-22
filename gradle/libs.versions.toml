@@ -28,12 +28,14 @@ runtimeLivedata = "1.7.8"
 composeVersion = "1.7.8"
 #lifecycleVersion = "2.6.2"
 navigation = "2.8.9"
+uiTextGoogleFonts = "1.7.8"
 
 
 
 
 [libraries]
 androidx-core-ktx-v1101 = { module = "androidx.core:core-ktx", version.ref = "coreKtxVersion" }
+androidx-ui-text-google-fonts = { module = "androidx.compose.ui:ui-text-google-fonts", version.ref = "uiTextGoogleFonts" }
 compose-compiler = { module = "androidx.compose.compiler:compiler", version.ref = "composeCompiler" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
