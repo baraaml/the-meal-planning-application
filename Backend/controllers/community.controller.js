@@ -111,6 +111,77 @@ const createCommunity = async (req, res) => {
   });
 };
 
+/**
+ * Gets a single community by ID
+ * @route GET /api/v1/community/:id
+ * @access Private
+ */
+const getSingleCommunity = async (req, res) => {
+  const { id } = req.params;
+
+  const community = await prisma.community.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      name: true,
+      description: true,
+      image: true,
+      privacy: true,
+      recipeCreationPermission: true,
+      createdAt: true,
+      updatedAt: true,
+      categories: {
+        select: {
+          category: {
+            select: {
+              id: true,
+              name: true
+            }
+          }
+        }
+      },
+      members: {
+        select: {
+          id: true,
+          role: true,
+          joinedAt: true,
+          user: {
+            select: {
+              id: true,
+              name: true,
+              username: true
+            }
+          }
+        }
+      },
+      owner: {
+        select: {
+          id: true,
+          name: true,
+          username: true
+        }
+      }
+    }
+  });
+
+  if (!community) {
+    throw new CustomAPIError.NotFoundError(`No community found with id: ${id}`);
+  }
+
+  // Transform categories array
+  const formattedCommunity = {
+    ...community,
+    categories: community.categories.map(({category}) => category)
+  };
+
+  res.status(StatusCodes.OK).json({
+    success: true,
+    community: formattedCommunity
+  });
+};
+
+
 module.exports = {
   createCommunity,
+  getSingleCommunity,
 };

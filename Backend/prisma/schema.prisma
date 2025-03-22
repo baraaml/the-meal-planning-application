@@ -105,7 +105,7 @@ model Community {
 
 model CommunityMember {
   id          String     @id @default(uuid())
-  community   Community  @relation(fields: [communityId], references: [id])
+  community   Community  @relation(fields: [communityId], references: [id], onDelete: Cascade)
   communityId String
   user        User       @relation(fields: [userId], references: [id])
   userId      String
@@ -285,5 +285,5 @@ model CommunityCategory {
   category    Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   categoryId  String
 
-  @@id([communityId, categoryId])
+  @@id([communityId, categoryId]) // Composite primary key
 }
