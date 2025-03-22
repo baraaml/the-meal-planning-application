@@ -1,6 +1,7 @@
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
+const cloudinary = require("../config/cloudinary"); // Import Cloudinary config
 
 // Ensure uploads directory exists
 const uploadDir = "uploads";
@@ -41,10 +42,11 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 }, // Limit file size to 5MB
 });
 
-// Middleware to handle file uploads
+// Middleware to handle file uploads and Cloudinary upload
 const uploadMiddleware = (req, res, next) => {
   console.log("⭐ Starting file upload");
-  upload.single("image")(req, res, (err) => {
+  
+  upload.single("image")(req, res, async (err) => {
     if (err instanceof multer.MulterError) {
       console.error("⭐ Multer error:", err);
       if (err.code === "LIMIT_FILE_SIZE") {
@@ -65,18 +67,37 @@ const uploadMiddleware = (req, res, next) => {
       });
     }
 
-    // If file was uploaded successfully
-    if (req.file) {
-      console.log("⭐ File uploaded:", req.file);
-      // Convert Windows path to URL format and store relative path
-      const relativePath = req.file.path.replace(/\\/g, "/");
-      req.body.image = `/${relativePath}`;
-    } else {
+    // If no file was uploaded
+    if (!req.file) {
       console.log("⭐ No file uploaded");
       req.body.image = null;
+      return next();
     }
 
-    next();
+    console.log("⭐ File uploaded locally:", req.file.path);
+
+    try {
+      // Upload file to Cloudinary
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: "community_images",
+      });
+
+      // Delete the local file after successful upload
+      fs.unlinkSync(req.file.path);
+      console.log("⭐ Local file deleted:", req.file.path);
+
+      // Store Cloudinary URL in req.body.image
+      req.body.image = result.secure_url;
+      console.log("⭐ Cloudinary URL:", req.body.image);
+
+      next();
+    } catch (cloudinaryError) {
+      console.error("⭐ Cloudinary upload error:", cloudinaryError);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to upload image to Cloudinary",
+      });
+    }
   });
 };
 
