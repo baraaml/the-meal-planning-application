@@ -2,6 +2,7 @@ const express = require("express");
 const {
   createCommunity,
   getSingleCommunity,
+  getAllCommunities,
 } = require("../controllers/community.controller");
 const { authenticateUser } = require("../middlewares/authentication");
 const { createCommunitySchema } = require("../validators/communityValidator");
@@ -21,5 +22,5 @@ router.post(
 );
 
 router.get("/:id", authenticateUser, getSingleCommunity);
-
+router.get("/", authenticateUser, getAllCommunities);
 module.exports = router;

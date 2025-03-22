@@ -135,10 +135,10 @@ const getSingleCommunity = async (req, res) => {
           category: {
             select: {
               id: true,
-              name: true
-            }
-          }
-        }
+              name: true,
+            },
+          },
+        },
       },
       members: {
         select: {
@@ -149,19 +149,19 @@ const getSingleCommunity = async (req, res) => {
             select: {
               id: true,
               name: true,
-              username: true
-            }
-          }
-        }
+              username: true,
+            },
+          },
+        },
       },
       owner: {
         select: {
           id: true,
           name: true,
-          username: true
-        }
-      }
-    }
+          username: true,
+        },
+      },
+    },
   });
 
   if (!community) {
@@ -171,17 +171,69 @@ const getSingleCommunity = async (req, res) => {
   // Transform categories array
   const formattedCommunity = {
     ...community,
-    categories: community.categories.map(({category}) => category)
+    categories: community.categories.map(({ category }) => category),
   };
 
   res.status(StatusCodes.OK).json({
     success: true,
-    community: formattedCommunity
+    community: formattedCommunity,
   });
 };
 
+const getAllCommunities = async (req, res) => {
+  const communities = await prisma.community.findMany({
+    select: {
+      id: true,
+      name: true,
+      description: true,
+      image: true,
+      privacy: true,
+      recipeCreationPermission: true,
+      createdAt: true,
+      updatedAt: true,
+      categories: {
+        select: {
+          category: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+      },
+      members: {
+        select: {
+          id: true,
+          role: true,
+          joinedAt: true,
+          user: {
+            select: {
+              id: true,
+              name: true,
+              username: true,
+            },
+          },
+        },
+      },
+      owner: {
+        select: {
+          id: true,
+          name: true,
+          username: true,
+        },
+      },
+    },
+  });
+
+  res.status(StatusCodes.OK).json({
+    success: true,
+    count: communities.length,
+    communities,
+  });
+};
 
 module.exports = {
   createCommunity,
   getSingleCommunity,
+  getAllCommunities,
 };
