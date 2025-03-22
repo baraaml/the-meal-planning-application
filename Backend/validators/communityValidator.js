@@ -13,7 +13,11 @@ const createCommunitySchema = Joi.object({
   privacy: Joi.string()
     .valid(...privacyEnum)
     .default("PUBLIC"),
-  categories: Joi.array().items(Joi.string()).optional(),
+
+  // Allow categories to be an array or a string (which will be parsed)
+  categories: Joi.alternatives()
+    .try(Joi.array().items(Joi.string()), Joi.string())
+    .optional(),
 }).unknown(true); // Allow unknown fields to support file upload fields
 
 module.exports = {
