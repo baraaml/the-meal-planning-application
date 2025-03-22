@@ -1,15 +1,18 @@
 const express = require("express");
 const { createCommunity } = require("../controllers/community.controller");
-const upload = require("../utils/uploads");
 const { authenticateUser } = require("../middlewares/authentication");
 const { createCommunitySchema } = require("../validators/communityValidator");
 const validateRequest = require("../middlewares/validate");
+const parseFormData = require("../middlewares/parseFormData");
+const uploadMiddleware = require("../middlewares/uploadImage.middleware");
+
 const router = express.Router();
 
 router.post(
   "/",
   authenticateUser,
-  upload.single("image"),
+  uploadMiddleware, // Handles file upload and validation
+  parseFormData,
   validateRequest(createCommunitySchema),
   createCommunity
 );

@@ -1,96 +1,116 @@
 const { StatusCodes } = require("http-status-codes");
-const multer = require("multer");
-const path = require("path");
 const CustomAPIError = require("../errors");
 const prisma = require("../config/prismaClient");
 
-// Configure multer storage (Save locally in 'uploads' folder)
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads/"); // Store in 'uploads' folder
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
-  },
-});
-
-const upload = multer({ storage });
-
+/**
+ * Creates a new community
+ * @route POST /api/v1/community
+ * @access Private
+ */
 const createCommunity = async (req, res) => {
-  const { name, description, image, recipeCreationPermission } = req.body;
+  const { name, description, image, recipeCreationPermission, privacy } =
+    req.body;
+  const { userId } = req.user;
 
-  const { categories = "[]" } = req.body; // Default to an empty array string
+  // Check if community with same name already exists
+  const existingCommunity = await prisma.community.findFirst({
+    where: { name },
+  });
+
+  if (existingCommunity) {
+    throw new CustomAPIError.ConflictError(
+      "A community with this name already exists"
+    );
+  }
+
+  // Parse categories from request body
+  const { categories = "[]" } = req.body;
   const parsedCategories =
     typeof categories === "string" ? JSON.parse(categories) : categories;
 
-  if (categories.length > 0) {
+  // Base community data
+  const communityData = {
+    name,
+    description,
+    image,
+    privacy: privacy || "PUBLIC",
+    recipeCreationPermission: recipeCreationPermission || "ANY_MEMBER",
+    ownerId: userId,
+    // Create owner as ADMIN member
+    members: {
+      create: {
+        userId,
+        role: "ADMIN",
+      },
+    },
+  };
+
+  if (parsedCategories.length > 0) {
     // Fetch categories by name
     const existingCategories = await prisma.category.findMany({
       where: { name: { in: parsedCategories } },
       select: { id: true, name: true },
     });
+    console.log("existingCategories");
+    console.log(existingCategories);
 
-    // Create a map of valid category names to their IDs
-    const categoryMap = new Map(
-      existingCategories.map(({ name, id }) => [name, id])
-    );
-
-    // Identify invalid category names
+    // Check for invalid categories
+    const foundCategoryNames = existingCategories.map((cat) => cat.name);
     const invalidCategories = parsedCategories.filter(
-      (catName) => !categoryMap.has(catName)
+      (name) => !foundCategoryNames.includes(name)
     );
 
     if (invalidCategories.length > 0) {
       throw new CustomAPIError.BadRequestError(
-        "Some categories do not exist.",
-        { invalidCategories }
+        `Categories not found: ${invalidCategories.join(", ")}`
       );
     }
 
-    // Convert valid category names to their IDs
-    const categoryIds = existingCategories.map(({ id }) => id);
-
-    // Atomic transaction to ensure consistency
-    const newCommunity = await prisma.$transaction(async (tx) => {
-      return tx.community.create({
-        data: {
-          name,
-          description,
-          image,
-          recipeCreationPermission,
-          categories: {
-            connect: categoryIds.map((id) => ({ id })),
-          },
+    // Add categories to community data using the many-to-many relation
+    communityData.categories = {
+      create: existingCategories.map((category) => ({
+        category: {
+          connect: { id: category.id },
         },
-      });
-    });
-
-    return res.status(StatusCodes.CREATED).json({
-      success: true,
-      message: "New community has been created.",
-      community: newCommunity,
-    });
+      })),
+    };
   }
 
-  // If no categories are provided, just create the community
+  console.log("⭐ Final community data:", communityData);
+
+  // Create the community with its categories and member
   const newCommunity = await prisma.community.create({
-    data: {
-      name,
-      description,
-      image,
-      recipeCreationPermission,
+    data: communityData,
+    include: {
+      categories: {
+        include: {
+          category: true,
+        },
+      },
+      members: true,
+      owner: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      },
     },
   });
 
+  // Transform the response to include category names directly
+  const formattedCommunity = {
+    ...newCommunity,
+    categories: newCommunity.categories.map((cc) => cc.category),
+  };
+
   res.status(StatusCodes.CREATED).json({
     success: true,
-    message: "New community has been created.",
-    community: newCommunity,
+    message: "Community created successfully",
+    community: formattedCommunity,
   });
 };
 
 module.exports = {
-  upload,
   createCommunity,
 };

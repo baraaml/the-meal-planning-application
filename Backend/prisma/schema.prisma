@@ -83,7 +83,6 @@ enum RecipeCreationPermission {
 model Community {
   id          String           @id @default(uuid())
   name        String           @unique @db.VarChar(100)
-  slug        String           @unique @db.VarChar(120)
   description String?
   owner       User             @relation("CommunityOwner", fields: [ownerId], references: [id])
   ownerId     String
@@ -101,7 +100,6 @@ model Community {
   flairs      PostFlair[]
   categories  CommunityCategory[]
   
-  @@index([slug])
   @@index([ownerId])
 }
 
@@ -282,10 +280,10 @@ model Category {
 }
 
 model CommunityCategory {
-  community   Community @relation(fields: [communityId], references: [id])
+  community   Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
   communityId String
-  category    Category  @relation(fields: [categoryId], references: [id])
+  category    Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   categoryId  String
 
-  @@id([communityId, categoryId]) // Composite primary key
+  @@id([communityId, categoryId])
 }
