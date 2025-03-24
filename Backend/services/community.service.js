@@ -1,5 +1,5 @@
 const CustomAPIError = require("../errors");
-const communityRepository = require("../repositories/communityRepository");
+const communityRepository = require("../repositories/community.repository");
 
 /**
  * Service layer for community-related business logic
