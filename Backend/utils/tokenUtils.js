@@ -6,7 +6,7 @@ class TokenUtils {
       throw new Error("JWT_SECRET is required but not set");
     }
     this.secret = secret;
-    this.accessTokenLifetime = accessTokenLifetime || "15m"; // Default to 15 minutes
+    this.accessTokenLifetime = accessTokenLifetime; // Default to 15 minutes
     this.refreshTokenLifetime = refreshTokenLifetime || "1y"; // Default to 1 year
     this.passwordResetTokenLifetime = passwordResetTokenLifetime || "1h"; // Default to 1 hour
   }

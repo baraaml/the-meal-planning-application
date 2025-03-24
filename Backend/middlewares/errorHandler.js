@@ -51,16 +51,11 @@ const errorHandlerMiddleware = (err, req, res, next) => {
     customError.statusCode = StatusCodes.NOT_FOUND;
   }
 
-  // // Log error (only in development)
-  // if (process.env.NODE_ENV === "development") {
-  //   console.error(`[Error] ${customError.msg}`);
-  //   if (err.stack) console.error(err.stack);
-  // }
-
-  // Construct response
+  // ✅ Include additional data from CustomAPIError (e.g., invalid categories)
   const response = {
     success: false,
     message: customError.msg,
+    ...(err.data && { data: err.data }), // Include `err.data` only if it exists
   };
 
   // Include stack trace only in development

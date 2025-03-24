@@ -27,6 +27,8 @@ const authenticateUser = async (req, res, next) => {
   } catch (error) {
     throw new UnauthenticatedError("Authentication invalid");
   }
+
+  console.log("⭐ Authenticated user:", req.user);
 };
 
 const authorizeRoles = (...roles) => {

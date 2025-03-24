@@ -8,19 +8,29 @@ datasource db {
 }
 
 model User {
-  id                String              @id @default(uuid())
-  name              String?             @db.VarChar(50)
-  username          String              @unique @db.VarChar(50)
-  email             String              @unique @db.VarChar(255)
-  password          String              @db.Text
-  isVerified        Boolean             @default(false)
-  verifiedAt        DateTime?
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @default(now()) @updatedAt
+  id                 String               @id @default(uuid())
+  name               String?              @db.VarChar(50)
+  username           String               @unique @db.VarChar(50)
+  email              String               @unique @db.VarChar(255)
+  password           String               @db.Text
+  isVerified         Boolean              @default(false)
+  verifiedAt         DateTime?
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @default(now()) @updatedAt
 
-  verificationCodes VerificationCode[]
-  refreshTokens     RefreshToken[]
+  verificationCodes  VerificationCode[]
+  refreshTokens      RefreshToken[]
   PasswordResetToken PasswordResetToken[]
+
+  // Back-relations for explicit relations:
+  communitiesOwned   Community[]          @relation("CommunityOwner")
+  communityMemberships CommunityMember[]
+  posts              Post[]
+  comments           Comment[]
+  votes              Vote[]
+  reportsMade        ReportedContent[]    @relation("Reporter")
+  reportsReceived    ReportedContent[]    @relation("ReportedUser")
+  resolvedReports    ReportedContent[]    @relation("Resolver")
 }
 
 model VerificationCode {
@@ -33,14 +43,14 @@ model VerificationCode {
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   @@index([userId])
-  @@unique([userId, code]) // Optional: prevents duplicate codes per user if desired
+  @@unique([userId, code])
 }
 
 model RefreshToken {
   id        String   @id @default(uuid())
   token     String   @unique
   userId    String
-  isActive   Boolean @default(true) 
+  isActive  Boolean  @default(true)
   expiresAt DateTime
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
@@ -52,10 +62,228 @@ model PasswordResetToken {
   id        String   @id @default(uuid())
   token     String   @unique
   userId    String
-  isUsed      Boolean  @default(false)
+  isUsed    Boolean  @default(false)
   createdAt DateTime @default(now())
   expiresAt DateTime
 
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+enum CommunityPrivacy {
+  PUBLIC
+  PRIVATE
+  RESTRICTED
+}
+
+enum RecipeCreationPermission {
+  ANY_MEMBER
+  ADMIN_ONLY
+}
+
+model Community {
+  id          String           @id @default(uuid())
+  name        String           @unique @db.VarChar(100)
+  description String?
+  owner       User             @relation("CommunityOwner", fields: [ownerId], references: [id])
+  ownerId     String
+  image       String?
+  privacy     CommunityPrivacy @default(PUBLIC)
+  recipeCreationPermission RecipeCreationPermission @default(ANY_MEMBER)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @default(now()) @updatedAt
+
+  members     CommunityMember[]
+  posts       Post[]
+  rules       CommunityRule[] 
+  events      CommunityEvent[]
+  invitations CommunityInvitation[]
+  flairs      PostFlair[]
+  categories  CommunityCategory[]
+  
+  @@index([ownerId])
+}
+
+model CommunityMember {
+  id          String     @id @default(uuid())
+  community   Community  @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  communityId String
+  user        User       @relation(fields: [userId], references: [id])
+  userId      String
+  role        Role       @default(MEMBER)
+  joinedAt    DateTime   @default(now())
+  leftAt      DateTime?
+  isPending   Boolean    @default(false) // For private community approvals
+  
+  @@unique([communityId, userId])
+}
+
+enum Role {
+  MEMBER
+  MODERATOR
+  ADMIN
+}
+
+model Post {
+  id           String         @id @default(uuid())
+  title        String         @db.VarChar(200)
+  content      String
+  author       User           @relation(fields: [authorId], references: [id])
+  authorId     String
+  community    Community      @relation(fields: [communityId], references: [id])
+  communityId  String
+  comments     Comment[]
+  votes        Vote[]
+  flairs       PostFlair[]
+  viewCount    Int            @default(0)
+  isLocked     Boolean        @default(false)
+  allowComments Boolean       @default(true)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @default(now()) @updatedAt
+
+  // Back-relation for ReportedContent linked to a Post
+  reports      ReportedContent[] @relation("PostReport")
+
+  @@index([communityId])
+  @@index([authorId])
+}
+
+model Comment {
+  id          String     @id @default(uuid())
+  content     String
+  post        Post       @relation(fields: [postId], references: [id])
+  postId      String
+  author      User       @relation(fields: [authorId], references: [id])
+  authorId    String
+  parentId    String?    // For nested comments
+  votes       Vote[]
+  isDeleted   Boolean    @default(false)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @default(now()) @updatedAt
+
+  // Back-relation for ReportedContent linked to a Comment
+  reports     ReportedContent[] @relation("CommentReport")
+
+  @@index([postId])
+  @@index([authorId])
+}
+
+model Vote {
+  id         String     @id @default(uuid())
+  type       VoteType
+  user       User       @relation(fields: [userId], references: [id])
+  userId     String
+  post       Post?      @relation(fields: [postId], references: [id])
+  postId     String?
+  comment    Comment?   @relation(fields: [commentId], references: [id])
+  commentId  String?
+  createdAt  DateTime   @default(now())
+  
+  @@unique([userId, postId, commentId])
+}
+
+enum VoteType {
+  UPVOTE
+  DOWNVOTE
+}
+
+model PostFlair {
+  id          String     @id @default(uuid())
+  name        String     @db.VarChar(30)
+  color       String     @db.Char(7)
+  community   Community  @relation(fields: [communityId], references: [id])
+  communityId String
+  posts       Post[]
+}
+
+model ReportedContent {
+  id             String       @id @default(uuid())
+
+  reporter       User         @relation("Reporter", fields: [reporterId], references: [id])
+  reporterId     String
+
+  post           Post?        @relation("PostReport", fields: [postId], references: [id])
+  postId         String?
+
+  comment        Comment?     @relation("CommentReport", fields: [commentId], references: [id])
+  commentId      String?
+
+  reportedUser   User?        @relation("ReportedUser", fields: [reportedUserId], references: [id])
+  reportedUserId String?
+
+  reason         String
+  status         ReportStatus @default(PENDING)
+
+  resolvedBy     User?        @relation("Resolver", fields: [resolvedById], references: [id])
+  resolvedById   String?
+
+  resolution     String?
+
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @default(now()) @updatedAt
+}
+
+enum ReportStatus {
+  PENDING
+  RESOLVED
+  DISMISSED
+}
+
+model CommunityInvitation {
+  id          String     @id @default(uuid())
+  community   Community  @relation(fields: [communityId], references: [id])
+  communityId String
+  email       String     @db.VarChar(255)
+  token       String     @unique
+  expiresAt   DateTime
+  status      InvitationStatus @default(PENDING)
+  createdAt   DateTime   @default(now())
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+}
+
+model CommunityRule {
+  id          String     @id @default(uuid())
+  community   Community  @relation(fields: [communityId], references: [id])
+  communityId String
+  title       String     @db.VarChar(100)
+  description String
+  order       Int
+  createdAt   DateTime   @default(now())
+}
+
+model CommunityEvent {
+  id          String     @id @default(uuid())
+  community   Community  @relation(fields: [communityId], references: [id])
+  communityId String
+  title       String     @db.VarChar(100)
+  description String
+  startDate   DateTime
+  endDate     DateTime?
+  location    String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @default(now()) @updatedAt
+}
+
+model Category {
+  id        String    @id @default(uuid())
+  name      String    @db.VarChar(100)
+  parent    Category? @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  parentId  String?
+  children  Category[] @relation("CategoryHierarchy")
+
+  // Link to communities
+  communities CommunityCategory[]
+}
+
+model CommunityCategory {
+  community   Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  communityId String
+  category    Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  categoryId  String
+
+  @@id([communityId, categoryId]) // Composite primary key
+}

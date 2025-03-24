@@ -9,6 +9,7 @@ const path = require("path");
 const prisma = new PrismaClient();
 const app = express();
 
+const uploadRouter = require("./routes/upload.routes");
 const authRouter = require("./routes/auth.routes");
 const userRouter = require("./routes/user.routes");
 const communityRouter = require("./routes/community.routes");
@@ -21,6 +22,7 @@ app.use(express.json());
 app.use("/api/v1/users", authRouter);
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/community", communityRouter);
+app.use("/api/v1/upload", uploadRouter);
 app.use("/api/v1/meal", mealRouter);
 
 app.get("/", (req, res) => {
