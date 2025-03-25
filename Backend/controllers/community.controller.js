@@ -1,5 +1,6 @@
 const { StatusCodes } = require("http-status-codes");
 const communityService = require("../services/community.service");
+const CustomAPIError = require("../errors");
 
 /**
  * Creates a new community
@@ -52,8 +53,49 @@ const getAllCommunities = async (req, res) => {
   });
 };
 
+/**
+ * Joins a user (as a member) to a community
+ * @route POST /api/v1/community/:id/members
+ * @acess Private
+ */
+const joinCommunity = async (req, res) => {
+  // Get the user id from the auth layer
+  const { userId } = req.user;
+  const { id } = req.params;
+
+  console.log(`Community id: ${id}`);
+  const community = await communityService.getCommunityById(id);
+
+  console.log(community);
+  const addedMember = await communityService.joinCommunity(id, userId);
+
+  res.status(StatusCodes.CREATED).json({
+    message: "Successfully joined the community.",
+    community: addedMember,
+  });
+};
+
+/**
+ * Gets all members of a community
+ * @route GET /api/v1/communiy/:id/members
+ * @access Private
+ */
+const getAllMembers = async (req, res) => {
+  const { id } = req.params;
+
+  const members = await communityService.getAllMembers(id);
+
+  res.status(StatusCodes.OK).json({
+    success: true,
+    count: members.length,
+    members: members,
+  });
+};
+
 module.exports = {
   createCommunity,
   getSingleCommunity,
   getAllCommunities,
+  joinCommunity,
+  getAllMembers,
 };

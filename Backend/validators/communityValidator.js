@@ -20,6 +20,11 @@ const createCommunitySchema = Joi.object({
     .optional(),
 }).unknown(true); // Allow unknown fields to support file upload fields
 
+const getAllMembersSchema = Joi.object({
+  id: Joi.string().required(),
+});
+
 module.exports = {
   createCommunitySchema,
+  getAllMembersSchema,
 };

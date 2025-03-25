@@ -164,6 +164,49 @@ class CommunityRepository {
       },
     });
   }
+
+  /**
+   * Check if a user is a member of a community
+   * @param {string} communityId - The ID of the community
+   * @param {string} userId - The ID of the user
+   */
+  async isMember(communityId, userId) {
+    const membership = await prisma.communityMember.findFirst({
+      where: {
+        communityId: communityId,
+        userId: userId,
+      },
+    });
+  }
+
+/**
+ * Gets all the members of a specific community by ID
+ * @param {string} communityId - The ID of the community
+ * @returns {Promise<Array>} - An array of community members
+ */
+async getAllMembers(communityId) {
+  const members = await prisma.communityMember.findMany({
+    where: { communityId },
+  });
+  return members;
+}
+
+  /**
+   * Add a user to community
+   * @param {string} communityId - The ID of the community
+   * @param {string} userId - The ID of the user
+   * @param {string} role - The role of the user(Admin, Member)
+   * @returns {Promise<object>}
+   */
+  async addMember(communityId, userId, role) {
+    return prisma.communityMember.create({
+      data: {
+        communityId: communityId,
+        userId: userId,
+        role: role,
+      },
+    });
+  }
 }
 
 module.exports = new CommunityRepository();

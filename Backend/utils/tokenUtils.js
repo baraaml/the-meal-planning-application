@@ -1,7 +1,12 @@
 const jwt = require("jsonwebtoken");
 
 class TokenUtils {
-  constructor(secret, accessTokenLifetime, refreshTokenLifetime, passwordResetTokenLifetime) {
+  constructor(
+    secret,
+    accessTokenLifetime,
+    refreshTokenLifetime,
+    passwordResetTokenLifetime
+  ) {
     if (!secret) {
       throw new Error("JWT_SECRET is required but not set");
     }

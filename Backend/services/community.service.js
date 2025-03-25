@@ -129,6 +129,51 @@ class CommunityService {
   }
 
   /**
+   * Join a community
+   * @param {string} communityId - Community ID
+   * @param {string} userId - User ID
+   * @returns {Promise<Object>} Updated community
+   */
+  async joinCommunity(communityId, userId) {
+    /*
+    - Check if community exists
+    - Check if user is already a member
+    - Check if community is private and user is not a member
+    - Add user to community
+    - Return updated community
+    */
+    const community = await communityRepository.findById(communityId);
+    if (!community) {
+      throw new CustomAPIError.NotFoundError(
+        `Community with id ${communityId} not found`
+      );
+    }
+
+    const isMember = await communityRepository.isMember(communityId, userId);
+    if (isMember) {
+      throw new CustomAPIError.ConflictError(
+        "User is already a member of this community."
+      );
+    }
+
+    const addedMember = await communityRepository.addMember(
+      communityId,
+      userId,
+      "MEMBER"
+    );
+
+    return (addedMember);
+  }
+
+  /**
+   * Gets all the members of a community
+    * @param {string} communityId - Community ID
+   */
+  async getAllMembers (id) {
+    return await communityRepository.getAllMembers(id);
+  }
+
+  /**
    * Format community data for response
    * @param {Object} community - Raw community data
    * @returns {Object} Formatted community data
