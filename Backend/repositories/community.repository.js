@@ -184,6 +184,7 @@ class CommunityRepository {
         userId: userId,
       },
     });
+    return membership;
   }
 
   /**
