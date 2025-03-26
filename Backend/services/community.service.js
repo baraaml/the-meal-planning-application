@@ -169,7 +169,7 @@ class CommunityService {
 
     return addedMember;
   }
-    /**
+  /**
    * Leaves a community
    * @param {string} communityId - Community ID
    * @param {string} userId - User ID

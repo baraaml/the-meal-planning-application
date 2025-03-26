@@ -47,7 +47,10 @@ class CommunityRepository {
           },
         },
         members: {
-          include: {
+          select: {
+            role: true,
+            joinedAt: true,
+            isPending: true,
             user: {
               select: {
                 id: true,
@@ -97,9 +100,9 @@ class CommunityRepository {
         },
         members: {
           select: {
-            id: true,
             role: true,
             joinedAt: true,
+            isPending: true,
             user: {
               select: {
                 id: true,
