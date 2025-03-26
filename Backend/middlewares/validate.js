@@ -1,7 +1,7 @@
 const { StatusCodes } = require("http-status-codes");
 
-const validateRequest = (schema) => (req, res, next) => {
-  const { error } = schema.validate(req.body, { abortEarly: false });
+const validateRequest = (schema, property = "body") => (req, res, next) => {
+  const { error } = schema.validate(req[property], { abortEarly: false });
 
   if (error) {
     const errorDetails = {};

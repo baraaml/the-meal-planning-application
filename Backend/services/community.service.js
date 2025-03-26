@@ -1,3 +1,8 @@
+/**
+ * @fileoverview Community controller for handling HTTP requests
+ * @module controllers/community
+ */
+
 const CustomAPIError = require("../errors");
 const communityRepository = require("../repositories/community.repository");
 
@@ -126,6 +131,66 @@ class CommunityService {
     return communities.map((community) =>
       this.formatCommunityResponse(community)
     );
+  }
+
+  /**
+   * Join a community
+   * @param {string} communityId - Community ID
+   * @param {string} userId - User ID
+   * @returns {Promise<Object>} Updated community
+   */
+  async joinCommunity(communityId, userId) {
+    /*
+    - Check if community exists
+    - Check if user is already a member
+    - Check if community is private and user is not a member
+    - Add user to community
+    - Return updated community
+    */
+    const community = await communityRepository.findById(communityId);
+    if (!community) {
+      throw new CustomAPIError.NotFoundError(
+        `Community with id ${communityId} not found`
+      );
+    }
+
+    const isMember = await communityRepository.isMember(communityId, userId);
+    if (isMember) {
+      throw new CustomAPIError.ConflictError(
+        "User is already a member of this community."
+      );
+    }
+
+    const addedMember = await communityRepository.addMember(
+      communityId,
+      userId,
+      "MEMBER"
+    );
+
+    return addedMember;
+  }
+    /**
+   * Leaves a community
+   * @param {string} communityId - Community ID
+   * @param {string} userId - User ID
+   * @returns {Promise<Object>} Updated community
+   */
+  async leaveCommunity(communityId, userId) {
+    /**
+     * check for communiy Id and userId first
+     * check if user is already a member or not
+     * ckeck if the user is the only admin
+     *  if there are other users make make the one who joined after him an admin
+     *  If there are no other members, delete the community.
+     * If they are not the only one admin, just remove him.
+     */
+  }
+  /**
+   * Gets all the members of a community
+   * @param {string} communityId - Community ID
+   */
+  async getAllMembers(id) {
+    return await communityRepository.getAllMembers(id);
   }
 
   /**
