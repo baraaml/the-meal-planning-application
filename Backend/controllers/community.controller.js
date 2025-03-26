@@ -76,6 +76,29 @@ const joinCommunity = async (req, res) => {
 };
 
 /**
+ * Leaves a user (as a member) from a community
+ * @route DELETE /api/v1/community/:id/leave
+ * @acess Private
+ */
+const leaveCommunity = async (req, res) => {
+  // Get the user id from the auth layer
+  const { userId } = req.user;
+
+  const { id } = req.params;
+
+  console.log(`Community id: ${id}`);
+  const community = await communityService.leaveCommunity(id);
+
+  console.log(community);
+  const addedMember = await communityService.joinCommunity(id, userId);
+
+  res.status(StatusCodes.CREATED).json({
+    message: "Successfully joined the community.",
+    community: addedMember,
+  });
+};
+
+/**
  * Gets all members of a community
  * @route GET /api/v1/communiy/:id/members
  * @access Private
@@ -98,4 +121,5 @@ module.exports = {
   getAllCommunities,
   joinCommunity,
   getAllMembers,
+  leaveCommunity,
 };

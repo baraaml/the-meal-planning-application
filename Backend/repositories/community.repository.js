@@ -1,3 +1,8 @@
+/**
+ * @fileoverview Community repository for handling database queries
+ * @module repositories/community
+ */
+
 const prisma = require("../config/prismaClient");
 
 /**
@@ -142,7 +147,6 @@ class CommunityRepository {
         },
         members: {
           select: {
-            id: true,
             role: true,
             joinedAt: true,
             user: {
@@ -179,17 +183,17 @@ class CommunityRepository {
     });
   }
 
-/**
- * Gets all the members of a specific community by ID
- * @param {string} communityId - The ID of the community
- * @returns {Promise<Array>} - An array of community members
- */
-async getAllMembers(communityId) {
-  const members = await prisma.communityMember.findMany({
-    where: { communityId },
-  });
-  return members;
-}
+  /**
+   * Gets all the members of a specific community by ID
+   * @param {string} communityId - The ID of the community
+   * @returns {Promise<Array>} - An array of community members
+   */
+  async getAllMembers(communityId) {
+    const members = await prisma.communityMember.findMany({
+      where: { communityId },
+    });
+    return members;
+  }
 
   /**
    * Add a user to community

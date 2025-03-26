@@ -1,3 +1,8 @@
+/**
+ * @fileoverview Community controller for handling HTTP requests
+ * @module controllers/community
+ */
+
 const CustomAPIError = require("../errors");
 const communityRepository = require("../repositories/community.repository");
 
@@ -162,14 +167,29 @@ class CommunityService {
       "MEMBER"
     );
 
-    return (addedMember);
+    return addedMember;
   }
-
+    /**
+   * Leaves a community
+   * @param {string} communityId - Community ID
+   * @param {string} userId - User ID
+   * @returns {Promise<Object>} Updated community
+   */
+  async leaveCommunity(communityId, userId) {
+    /**
+     * check for communiy Id and userId first
+     * check if user is already a member or not
+     * ckeck if the user is the only admin
+     *  if there are other users make make the one who joined after him an admin
+     *  If there are no other members, delete the community.
+     * If they are not the only one admin, just remove him.
+     */
+  }
   /**
    * Gets all the members of a community
-    * @param {string} communityId - Community ID
+   * @param {string} communityId - Community ID
    */
-  async getAllMembers (id) {
+  async getAllMembers(id) {
     return await communityRepository.getAllMembers(id);
   }
 

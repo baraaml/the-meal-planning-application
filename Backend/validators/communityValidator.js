@@ -24,7 +24,12 @@ const getAllMembersSchema = Joi.object({
   id: Joi.string().required(),
 });
 
+const leaveCommunitySchema = Joi.object({
+  id: Joi.string().required(),
+});
+
 module.exports = {
   createCommunitySchema,
   getAllMembersSchema,
+  leaveCommunitySchema,
 };

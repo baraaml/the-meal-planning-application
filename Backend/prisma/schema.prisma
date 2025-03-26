@@ -104,7 +104,6 @@ model Community {
 }
 
 model CommunityMember {
-  id          String     @id @default(uuid())
   community   Community  @relation(fields: [communityId], references: [id], onDelete: Cascade)
   communityId String
   user        User       @relation(fields: [userId], references: [id])
@@ -112,10 +111,11 @@ model CommunityMember {
   role        Role       @default(MEMBER)
   joinedAt    DateTime   @default(now())
   leftAt      DateTime?
-  isPending   Boolean    @default(false) // For private community approvals
-  
-  @@unique([communityId, userId])
+  isPending   Boolean    @default(false)
+
+  @@id([communityId, userId])  // Composite primary key
 }
+
 
 enum Role {
   MEMBER

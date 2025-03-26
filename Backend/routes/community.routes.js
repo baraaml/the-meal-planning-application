@@ -5,11 +5,13 @@ const {
   getAllCommunities,
   joinCommunity,
   getAllMembers,
+  leaveCommunity,
 } = require("../controllers/community.controller");
 const { authenticateUser } = require("../middlewares/authentication");
 const {
   createCommunitySchema,
   getAllMembersSchema,
+  leaveCommunitySchema,
 } = require("../validators/communityValidator");
 const validateRequest = require("../middlewares/validate");
 const parseFormData = require("../middlewares/parseFormData");
@@ -37,6 +39,13 @@ router.get(
   authenticateUser,
   validateRequest(getAllMembersSchema, "params"),
   getAllMembers
+);
+
+router.delete(
+  "/:id/leave",
+  authenticateUser,
+  validateRequest(leaveCommunitySchema, "params"),
+  leaveCommunity
 );
 
 module.exports = router;
