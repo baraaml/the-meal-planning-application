@@ -1,0 +1,76 @@
+mealflow@valutoria:~/mealflow$ git fetch origin
+mealflow@valutoria:~/mealflow$ git merge origin/Backend/create-community-endpoint
+Auto-merging Backend/app.js
+CONFLICT (content): Merge conflict in Backend/app.js
+Automatic merge failed; fix conflicts and then commit the result.
+mealflow@valutoria:~/mealflow$ git add Backend/app.js
+mealflow@valutoria:~/mealflow$ git commit -m "Resolved merge conflict in Backend/app.js"
+[My-edits a0d0307] Resolved merge conflict in Backend/app.js
+ Committer: mealflow <mealflow@valutoria.com>
+Your name and email address were configured automatically based
+on your username and hostname. Please check that they are accurate.
+You can suppress this message by setting them explicitly. Run the
+following command and follow the instructions in your editor to edit
+your configuration file:
+
+    git config --global --edit
+
+After doing this, you may fix the identity used for this commit with:
+
+    git commit --amend --reset-author
+
+mealflow@valutoria:~/mealflow$ git add prompt.py
+fatal: pathspec 'prompt.py' did not match any files
+mealflow@valutoria:~/mealflow$ git add Backend/prompt.py
+mealflow@valutoria:~/mealflow$ 
+mealflow@valutoria:~/mealflow$ git add Backend/chat.txt
+mealflow@valutoria:~/mealflow$ git status
+On branch My-edits
+Your branch is ahead of 'origin/My-edits' by 10 commits.
+  (use "git push" to publish your local commits)
+
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+        new file:   Backend/chat.txt
+        new file:   Backend/prompt.py
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+        modified:   Backend/controllers/meal.controller.js
+
+mealflow@valutoria:~/mealflow$ git add Backend/chat.txt Backend/prompt.py Backend/controllers/meal.controller.js
+git commit -m "Merged Backend/create-community-endpoint and resolved conflicts"
+git push origin My-edits
+[My-edits a06cf8c] Merged Backend/create-community-endpoint and resolved conflicts
+ Committer: mealflow <mealflow@valutoria.com>
+Your name and email address were configured automatically based
+on your username and hostname. Please check that they are accurate.
+You can suppress this message by setting them explicitly. Run the
+following command and follow the instructions in your editor to edit
+your configuration file:
+
+    git config --global --edit
+
+After doing this, you may fix the identity used for this commit with:
+
+    git commit --amend --reset-author
+
+ 3 files changed, 1554 insertions(+), 1 deletion(-)
+ create mode 100644 Backend/chat.txt
+ create mode 100644 Backend/prompt.py
+Enumerating objects: 27, done.
+Counting objects: 100% (27/27), done.
+Delta compression using up to 2 threads
+Compressing objects: 100% (14/14), done.
+Writing objects: 100% (14/14), 6.90 KiB | 1009.00 KiB/s, done.
+Total 14 (delta 9), reused 1 (delta 0), pack-reused 0
+remote: Resolving deltas: 100% (9/9), completed with 6 local objects.
+To https://github.com/baraaml/the-meal-planning-application.git
+   73f2b67..a06cf8c  My-edits -> My-edits
+mealflow@valutoria:~/mealflow$ git status
+On branch My-edits
+Your branch is up to date with 'origin/My-edits'.
+
+nothing to commit, working tree clean
+mealflow@valutoria:~/mealflow$ 
