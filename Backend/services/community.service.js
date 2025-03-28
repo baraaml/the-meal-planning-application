@@ -184,6 +184,43 @@ class CommunityService {
      *  If there are no other members, delete the community.
      * If they are not the only one admin, just remove him.
      */
+
+    // check for communiy Id and userId
+    if (!communityId || !userId) {
+      throw new CustomAPIError.BadRequestError(
+        "Community ID and User ID are required."
+      );
+    }
+
+    // check if user is already a member or not
+    const isMember = await communityRepository.isMember(communityId, userId);
+    if (!isMember) {
+      throw new CustomAPIError.NotFoundError(
+        "User is not a member of this community."
+      );
+    }
+
+    // ckeck if the user is the only admin
+    if (isMember.role === "ADMIN") {
+      const admins = await communityRepository.getAdmins(communityId);
+      console.log(admins.length);
+
+      // check for how many admins are there
+      if (admins.length > 1) {
+        // if there are other admins out there, just remove the current admin
+        const removedAdmin = await communityRepository.removeAdmin(
+          communityId,
+          userId
+        );
+        return removedAdmin;
+      } else {
+        // if he is the only admin
+        const members = await communityRepository.getAllMembers(communityId);
+        if (members > 1) {
+          
+        }
+      }
+    }
   }
   /**
    * Gets all the members of a community

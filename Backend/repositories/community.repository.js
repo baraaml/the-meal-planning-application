@@ -215,6 +215,44 @@ class CommunityRepository {
       },
     });
   }
+
+  /**
+   * Gets all the admins for a community
+   * @param {string} communityId  - The ID of the community
+   * @returns {Promise<Array>} - An array of community admins
+   */
+  async getAdmins(communityId) {
+    const admins = await prisma.communityMember.findMany({
+      where: {
+        communityId: communityId,
+        role: "ADMIN",
+      },
+      include: {
+        user: true,
+      },
+    });
+    return admins;
+  }
+
+  /**
+   * Removes an admin from a community
+   * @param {string} communityId  - The ID of the community
+   * @param {string} userId - The ID of the user
+   * @returns {Promise<Array>} - An array of community admins
+   */
+  async removeAdmin(communityId, userId) {
+    const removedAdmin = await prisma.communityMember.delete({
+      where: {
+        communityId: communityId,
+        userId: userId,
+        role: "ADMIN",
+      },
+      include: {
+        user: true,
+      },
+    });
+    return removedAdmin;
+  }
 }
 
 module.exports = new CommunityRepository();

@@ -88,12 +88,10 @@ const leaveCommunity = async (req, res) => {
 
   console.log(`Community id: ${id}`);
   const community = await communityService.leaveCommunity(id);
-
   console.log(community);
-  const addedMember = await communityService.joinCommunity(id, userId);
 
   res.status(StatusCodes.CREATED).json({
-    message: "Successfully joined the community.",
+    message: "Successfully left the community.",
     community: addedMember,
   });
 };
