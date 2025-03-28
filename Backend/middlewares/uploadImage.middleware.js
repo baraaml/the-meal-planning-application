@@ -45,8 +45,9 @@ const upload = multer({
 // Middleware to handle file uploads and Cloudinary upload
 const uploadMiddleware = (req, res, next) => {
   console.log("⭐ Starting file upload");
-  
+
   upload.single("image")(req, res, async (err) => {
+    console.log(err);
     if (err instanceof multer.MulterError) {
       console.error("⭐ Multer error:", err);
       if (err.code === "LIMIT_FILE_SIZE") {

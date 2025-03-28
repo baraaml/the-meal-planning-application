@@ -6,6 +6,7 @@ const {
   joinCommunity,
   getAllMembers,
   leaveCommunity,
+  setAdmins,
 } = require("../controllers/community.controller");
 const { authenticateUser } = require("../middlewares/authentication");
 const {
@@ -47,5 +48,11 @@ router.delete(
   validateRequest(leaveCommunitySchema, "params"),
   leaveCommunity
 );
+
+router.patch(
+  "/:id/admins",
+  authenticateUser,
+  setAdmins
+)
 
 module.exports = router;

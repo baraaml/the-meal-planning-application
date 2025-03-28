@@ -183,6 +183,9 @@ class CommunityRepository {
         communityId: communityId,
         userId: userId,
       },
+      include: {
+        user: true,
+      },
     });
     return membership;
   }
@@ -252,6 +255,26 @@ class CommunityRepository {
       },
     });
     return removedAdmin;
+  }
+
+  /**
+   * Makes members admins
+   * @param {string} communityId  - The ID of the community
+   * @param {string[]} memberIDs - An array of user IDs to promote
+   * @returns {Promise<Array>} - An array of community admins
+   */
+  async makeAdmins(communityId, memberIDs) {
+    const newAdmins = await prisma.communityMember.updateMany({
+      where: {
+        communityId: communityId,
+        userId: { in: memberIDs },
+        role: "MEMBER",
+      },
+      data: {
+        role: "ADMIN",
+      },
+    });
+    return newAdmins;
   }
 }
 

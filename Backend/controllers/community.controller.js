@@ -113,6 +113,26 @@ const getAllMembers = async (req, res) => {
   });
 };
 
+/**
+ * Sets list of members as admins
+ * @route PATCH /api/v1/community/:id/admins
+ * @access Private
+ */
+const setAdmins = async (req, res) => {
+  // Get the user id from the auth layer
+  const { userId } = req.user;
+  const { id } = req.params;
+  const { memberIDs } = req.body;
+
+  const newAdmins = await communityService.setAdmins(id, userId, memberIDs);
+
+  res.status(StatusCodes.OK).json({
+    success: true,
+    message: "Members successfully promoted to admins.",
+    admins: newAdmins,
+    });
+};
+
 module.exports = {
   createCommunity,
   getSingleCommunity,
@@ -120,4 +140,5 @@ module.exports = {
   joinCommunity,
   getAllMembers,
   leaveCommunity,
+  setAdmins,
 };

@@ -217,7 +217,6 @@ class CommunityService {
         // if he is the only admin
         const members = await communityRepository.getAllMembers(communityId);
         if (members > 1) {
-          
         }
       }
     }
@@ -228,6 +227,64 @@ class CommunityService {
    */
   async getAllMembers(id) {
     return await communityRepository.getAllMembers(id);
+  }
+
+  /**
+   * Sets members of a community admins
+   * @param {string} userId - User ID
+   * @param {string} communityId - Community ID
+   */
+  async setAdmins(communityId, adminId, memberIDs) {
+    /**
+     * check for communityId and adminId first
+     * check for the membersIDs
+     * make sure that the membersIDs are in the community
+     * make the memebers admins as well
+     */
+    if (
+      !communityId ||
+      !adminId ||
+      !Array.isArray(memberIDs) ||
+      memberIDs.length === 0
+    ) {
+      throw new CustomAPIError.BadRequestError(
+        "Community ID, Admin ID, and valid member IDs are required."
+      );
+    }
+
+    // Check if the requesting user is an admin
+    const requestingAdmin = await communityRepository.isMember(
+      communityId,
+      adminId
+    );
+    if (!requestingAdmin || requestingAdmin.role !== "ADMIN") {
+      throw new CustomAPIError.ForbiddenError(
+        "Only admins can promote members."
+      );
+    }
+
+    // Get all community members
+    const communityMembers = await communityRepository.getAllMembers(
+      communityId
+    );
+    const memberSet = new Set(communityMembers.map((member) => member.userId));
+
+    // Validate that all provided members exist in the community
+    const invalidMembers = memberIDs.filter((id) => !memberSet.has(id));
+    if (invalidMembers.length > 0) {
+      throw new CustomAPIError.BadRequestError(
+        `The following users are not members of this community: ${invalidMembers.join(
+          ", "
+        )}`
+      );
+    }
+
+    // Promote each valid member to admin
+    const newAdmins = await communityRepository.makeAdmins(
+      communityId,
+      memberIDs
+    );
+    return newAdmins;
   }
 
   /**
