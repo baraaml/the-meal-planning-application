@@ -215,12 +215,27 @@ class CommunityService {
         return removedAdmin;
       } else {
         // if he is the only admin
-        const members = await communityRepository.getAllMembers(communityId);
+        const members = await communityRepository.getMembersSortedByJoinDate(
+          communityId
+        );
         if (members > 1) {
+          const nextAdmin = members.find((member) => member.userId !== userId);
+
+          if (nextAdmin) {
+            this.setAdmins(communityId, userId, [nextAdmin.userId]);
+          }
+
+          // now remove the current admin
+          const removedAdmin = await communityRepository.removeAdmin(
+            communityId,
+            userId
+          );
+          return removedAdmin;
         }
       }
     }
   }
+
   /**
    * Gets all the members of a community
    * @param {string} communityId - Community ID
