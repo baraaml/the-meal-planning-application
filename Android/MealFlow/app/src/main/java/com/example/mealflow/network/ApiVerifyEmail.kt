@@ -73,7 +73,5 @@ fun verifyEmail(context: Context, otp: String, email: String, navController: Nav
     } catch (e: Exception) {
         Toast.makeText(context, "فشل التحقق: ${e.message}", Toast.LENGTH_LONG).show()
         Log.e("API", "❌ استثناء أثناء تنفيذ الطلب: ${e.message}")
-    } finally {
-        client.close()
     }
 }

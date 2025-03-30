@@ -2,6 +2,9 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
     kotlin("plugin.serialization") version "1.9.0" // تأكد من أن لديك نفس إصدار Kotlin
+//    id("com.android.application")
+//    id("org.jetbrains.kotlin.android")
+    id("com.google.devtools.ksp") version "1.9.22-1.0.16" // تأكد من استخدام آخر إصدار متوافق مع Gradle
 }
 
 android {
@@ -20,7 +23,6 @@ android {
             useSupportLibrary = true
         }
     }
-
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -49,7 +51,9 @@ android {
         }
     }
 }
-
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas") // ✅ تعيين مسار المخططات
+}
 dependencies {
 
     implementation(libs.androidx.core.ktx)
@@ -86,7 +90,18 @@ dependencies {
     implementation(libs.runtime.livedata)
     implementation(libs.navigation.fragment)
     implementation(libs.navigation.ui)
-
+    implementation(libs.accompanist.systemuicontroller)
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    ksp(libs.room.compiler) // هنا استخدم ksp بدلًا من kapt
+    implementation(libs.coil.compose)
+    implementation(libs.compose.material.icons.extended)
+    implementation(libs.androidx.ui.text.google.fonts)
+//    implementation(libs.androidx.security.crypto)
+    implementation(libs.androidx.security.identity.credential)
+    implementation(libs.androidx.security)
+    implementation(libs.androidx.core.splashscreen)
+    implementation(libs.accompanist.swiperefresh)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

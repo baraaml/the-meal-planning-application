@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Meal Flow</string>
+    <string name="change_language">تغيير اللغة</string>
+    <string name="join">انضم إلى المجتمع</string>
+    <string name="REmail">تابع مع الإيميل</string>
+    <string name="ForgotPassword">هل نسيت كلمة السر؟</string>
+    <string name="Register">التسجيل</string>
+    <string name="NotAccount">ليس لديك حساب؟</string>
+    <string name="VerifyAccount">قم بتأكيد حسابك</string>
+    <string name="Cancel">إلغاء</string>
+    <string name="Verify">تأكيد</string>
+    // -------------- Start Page -----------------
+    <string name="Get_Started">ابدأ الآن</string>
+    <string name="Header">تخطيط الوجبات،\nببساطة</string>
+    <string name="Already_member">هل أنت عضو بالفعل؟</string>
+    // -------------- Login Page -----------------
+    <string name="Welcome_back">مرحبًا بعودتك!</string>
+    <string name="EnterEmail">أدخل بريدك الإلكتروني</string>
+    <string name="EnterPassword">أدخل كلمة المرور</string>
+    <string name="DoNot_Account">ليس لديك حساب؟</string>
+    <string name="Login">تسجيل الدخول</string>
+    <string name="Skip">تخطي</string>
+    <string name="ForgetPassword">هل نسيت كلمة المرور؟</string>
+    // -------------- Otp Page -------------------
+    <string name="HeaderOtp">لقد أرسلنا لك رمز التحقق!</string>
+    <string name="check_email">تحقق من صندوق بريدك الإلكتروني</string>
+    <string name="Verification">التحقق</string>
+    <!-- Register Page -->
+    // -------------- Forget Password Page -------------------
+    <string name="ForgetPasswordHeader">نسيت كلمة المرور</string>
+    <string name="ResetPassword">إعادة تعيين كلمة المرور</string>
+    <string name="ForgottenPassword">كلمة المرور المنسية</string>
+    <string name="Submit">إرسال</string>
+    // Create Community
+    // Page 1
+    <string name="CreateCommunityHeaderFirstPage">Tell us about your Community</string>
+    <string name="CreateCommunitySubHeaderFirstPage">A name and description help people understand\n what your community is all about</string>
+    <string name="ErrorDescription">Forgotten Password</string>
+    // Page 2
+    <string name="CreateCommunityHeaderSecondPage">Tell us about your Community</string>
+    <string name="CreateCommunitySubHeaderSecondPage">A name and description help people understand\n what your community is all about</string>
+    <string name="Preview">Preview</string>
+</resources>

@@ -21,17 +21,11 @@ class RegisterViewModel : ViewModel(){
     private var _passwordVisible = MutableLiveData(false)
     val passwordVisible: LiveData<Boolean> get() = _passwordVisible
 
-    //private var _showOtpPopup = MutableLiveData(false)
-    //val context = LocalContext.current  // ✅ الحصول على الـ Context
-
     private val _registrationMessage = MutableLiveData<String?>()
     val registrationMessage: LiveData<String?> get() = _registrationMessage
 
     private val _navigateToOtp = MutableLiveData<Boolean>()
     val navigateToOtp: LiveData<Boolean> get() = _navigateToOtp
-
-//    private val _showErrorPopup = MutableLiveData<Boolean>()
-//    val showErrorPopup: LiveData<Boolean> get() = _showErrorPopup
 
     fun updateUsername(newUsername: String) {
         _username.value = newUsername
@@ -43,14 +37,6 @@ class RegisterViewModel : ViewModel(){
 
     fun updatePassword(newPassword: String) {
         _password.value = newPassword
-    }
-
-    fun updateRepassword(newRepassword: String) {
-        _repassword.value = newRepassword
-    }
-
-    fun toggleShowErrorPopupVisibility() {
-        _showErrorPopup.value = _showErrorPopup.value?.not()
     }
 
     fun togglePasswordVisibility() {
@@ -83,13 +69,9 @@ class RegisterViewModel : ViewModel(){
         if (errors.isNotEmpty()) {
             _errorMessage.value = errors.joinToString("\n")
             _showErrorPopup.value = true
-            return false // ❌ هناك أخطاء، لا تكمل التسجيل
+            return false // ❌ There are errors, do not complete the registration
         }
 
-        return true // ✅ لا توجد أخطاء، يمكن المتابعة
-    }
-
-    fun dismissErrorPopup() {
-        _showErrorPopup.value = false
+        return true // ✅ No errors, you can continue
     }
 }

@@ -1,6 +1,8 @@
 package com.example.mealflow.network
 
 import android.util.Log
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
 import androidx.navigation.NavController
 import com.example.mealflow.viewModel.ForgetPasswordViewModel
 import com.example.mealflow.viewModel.LoginViewModel
@@ -39,34 +41,34 @@ data class ForgetPasswordResponse(val success: Boolean, val message: String,val 
 
 @Serializable
 data class PasswordData(
-    val token: String,
+    val token: String
 )
 
-
-fun forgetPasswordApi(email: String, navController: NavController, viewModel: ForgetPasswordViewModel) {
+fun forgetPasswordApi(
+    email: String,
+    navController: NavController,
+    snackbarHostState: SnackbarHostState
+) {
     CoroutineScope(Dispatchers.IO).launch { // ✅ تشغيل الطلب في خيط منفصل (Background Thread)
-        val client = HttpClient(CIO) {
-            install(ContentNegotiation) {
-                json(Json { ignoreUnknownKeys = true })
-            }
-        }
 
+        val client = ApiClient.client
         val url = "https://mealflow.ddns.net/api/v1/users/forgot-password"
 
         try {
             Log.d("API", "📩 إرسال الطلب: email=$email")
-
             val response: HttpResponse = client.post(url) {
                 contentType(ContentType.Application.Json)
                 setBody(ForgetPasswordRequest(email))
             }
-
+            val responseBody = response.body<ForgetPasswordResponse>()
+            CoroutineScope(Dispatchers.Main).launch {
+                snackbarHostState.showSnackbar(
+                    message = responseBody.message,
+                    duration = SnackbarDuration.Short
+                )
+            }
             if (response.status.isSuccess()) {
-                val responseBody = response.body<ForgetPasswordResponse>()
-
                 withContext(Dispatchers.Main) { // ✅ تحديث UI داخل الـ Main Thread
-                    //viewModel.setLoginMessage(responseBody.message)
-
                     if (responseBody.success) {
                         Log.d("API", "✅ تسجيل دخول ناجح، الانتقال إلى الصفحة التالية")
                         navController.navigate("Test Page")
@@ -80,8 +82,6 @@ fun forgetPasswordApi(email: String, navController: NavController, viewModel: Fo
             }
         } catch (e: Exception) {
             Log.e("API", "❌ استثناء أثناء تنفيذ الطلب: ${e.localizedMessage}")
-        } finally {
-            client.close()
         }
     }
 }

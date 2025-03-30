@@ -1,5 +1,6 @@
 package com.example.mealflow.viewModel
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -18,48 +19,34 @@ class ForgetPasswordViewModel : ViewModel() {
     private var _passwordVisible = MutableLiveData(false)
     val passwordVisible: LiveData<Boolean> get() = _passwordVisible
 
-    //private var _showOtpPopup = MutableLiveData(false)
-    //val context = LocalContext.current  // ✅ الحصول على الـ Context
-
-    private val _ForgetPasswordMessage = MutableLiveData<String?>()
-    val registrationMessage: LiveData<String?> get() = _ForgetPasswordMessage
-
-    private val _navigateToOtp = MutableLiveData<Boolean>()
-    val navigateToOtp: LiveData<Boolean> get() = _navigateToOtp
-
-    // 🔹 إضافة متغير `token`
+    // 🔹 Add a variable `token`
     private val _token = MutableLiveData<String?>()
     val token: LiveData<String?> get() = _token
 
-    // 🔹 دالة لتحديث `token`
+    // 🔹 function to update `token`
     fun updateToken(newToken: String) {
         _token.value = newToken
     }
-//    private val _showErrorPopup = MutableLiveData<Boolean>()
-//    val showErrorPopup: LiveData<Boolean> get() = _showErrorPopup
 
     fun updatePassword(newPassword: String) {
         _password.value = newPassword
     }
 
+    // Add loading state
+    private val _isLoading = MutableLiveData(false)
+    val isLoading: LiveData<Boolean> get() = _isLoading
+
     fun updateEmail(newEmail: String) {
         _email.value = newEmail
     }
 
-    fun updateRepassword(newRepassword: String) {
-        _repassword.value = newRepassword
-    }
-
-    fun toggleShowErrorPopupVisibility() {
-        _showErrorPopup.value = _showErrorPopup.value?.not()
+    fun updaterepassword(newrepassword: String) {
+        _repassword.value = newrepassword
     }
 
     fun togglePasswordVisibility() {
         _passwordVisible.value = _passwordVisible.value?.not()
     }
-
-    private val _showErrorPopup = MutableLiveData(false)
-    val showErrorPopup: LiveData<Boolean> get() = _showErrorPopup
 
     private val _errorMessage = MutableLiveData<String?>()
     val errorMessage: LiveData<String?> get() = _errorMessage
@@ -77,14 +64,19 @@ class ForgetPasswordViewModel : ViewModel() {
 
         if (errors.isNotEmpty()) {
             _errorMessage.value = errors.joinToString("\n")
-            _showErrorPopup.value = true
-            return false // ❌ هناك أخطاء، لا تكمل التسجيل
+            return false // ❌ There are errors, do not complete the registration
         }
-
-        return true // ✅ لا توجد أخطاء، يمكن المتابعة
+        return true // ✅ No errors, can continue
     }
 
-    fun dismissErrorPopup() {
-        _showErrorPopup.value = false
+    fun setLoading(loading: Boolean) {
+        Log.d("LOADING_STATE", "🔄 isLoading = $loading") // ✅ تتبع التحديثات
+        _isLoading.value = loading
+    }
+    private val _navigateToTestPage = MutableLiveData<Boolean>(false)
+    val navigateToTestPage: LiveData<Boolean> = _navigateToTestPage
+
+    fun setNavigateToTestPage(navigate: Boolean) {
+        _navigateToTestPage.value = navigate
     }
 }

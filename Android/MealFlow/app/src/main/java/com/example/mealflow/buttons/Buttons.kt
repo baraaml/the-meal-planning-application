@@ -14,8 +14,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -89,6 +91,70 @@ fun DynamicButton(
             fontWeight = FontWeight.Bold,
             color = Color.White // لون النص الأسود
         )
+    }
+}
+// In a file like components/Buttons.kt
+@Composable
+fun PrimaryButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    isLoading: Boolean = false,
+    text: String
+) {
+    Button(
+        onClick = onClick,
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(8.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
+            disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+            disabledContentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f)
+        ),
+        enabled = enabled && !isLoading
+    ) {
+        if (isLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(24.dp),
+                color = MaterialTheme.colorScheme.onPrimary,
+                strokeWidth = 2.dp
+            )
+        } else {
+            Text(text = text)
+        }
+    }
+}
+
+@Composable
+fun SecondaryButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    isLoading: Boolean = false,
+    text: String
+) {
+    Button(
+        onClick = onClick,
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(8.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.secondary,
+            contentColor = MaterialTheme.colorScheme.onSecondary,
+            disabledContainerColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.5f),
+            disabledContentColor = MaterialTheme.colorScheme.onSecondary.copy(alpha = 0.5f)
+        ),
+        enabled = enabled && !isLoading
+    ) {
+        if (isLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(24.dp),
+                color = MaterialTheme.colorScheme.onSecondary,
+                strokeWidth = 2.dp
+            )
+        } else {
+            Text(text = text)
+        }
     }
 }
 

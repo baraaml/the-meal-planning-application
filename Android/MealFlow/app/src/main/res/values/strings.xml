@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">Meal Flow</string>
+    <string name="change_language">Change Language</string>
     <string name="join">Join our community</string>
     <string name="REmail">Continue with email</string>
     <string name="ForgotPassword"> Forgot password ?</string>
@@ -30,6 +31,15 @@
     <string name="ResetPassword">Reset your password</string>
     <string name="ForgottenPassword">Forgotten Password</string>
     <string name="Submit">Submit</string>
+    // Create Community
+    // Page 1
+    <string name="CreateCommunityHeaderFirstPage">Tell us about your Community</string>
+    <string name="CreateCommunitySubHeaderFirstPage">A name and description help people understand\n what your community is all about</string>
+    <string name="ErrorDescription">Description must be at least 15 characters</string>
+    // Page 2
+    <string name="CreateCommunityHeaderSecondPage">Style your community</string>
+    <string name="CreateCommunitySubHeaderSecondPage">A banner and avatar attract members and establish your community\'s culture. You can always do this later</string>
+    <string name="Preview">Preview</string>
 
 
 </resources>

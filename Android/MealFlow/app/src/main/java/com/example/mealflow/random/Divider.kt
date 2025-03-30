@@ -3,7 +3,7 @@ package com.example.mealflow.random
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -21,7 +21,7 @@ fun OrDivider(textDivider:String) {
             .fillMaxWidth()
             .padding(16.dp)
     ) {
-        Divider(
+        HorizontalDivider(
             modifier = Modifier.weight(1f),
             thickness = 1.dp,
             color = Color.Black
@@ -32,7 +32,7 @@ fun OrDivider(textDivider:String) {
             modifier = Modifier.padding(horizontal = 20.dp),
             color = Color.Black.copy(alpha = 0.7f)
         )
-        Divider(
+        HorizontalDivider(
             modifier = Modifier.weight(1f),
             thickness = 1.dp,
             color = Color.Black

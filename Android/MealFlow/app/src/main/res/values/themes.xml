@@ -1,5 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.MealFlow" parent="android:Theme.Material.Light.NoActionBar" />
+    <!-- الثيم الرئيسي للتطبيق بعد انتهاء الـ Splash -->
+    <style name="Theme.MealFlow" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="postSplashScreenTheme">@style/Theme.MealFlow</item>
+    </style>
+
+
+    <!-- ثيم الـ Splash Screen -->
+    <style name="Theme.MealFlow.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/white</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="postSplashScreenTheme">@style/Theme.MealFlow</item>
+    </style>
+
 </resources>
+<!--<?xml version="1.0" encoding="utf-8"?>-->
+<!--<resources>-->
+
+<!--    <style name="Theme.MealFlow" parent="android:Theme.Material.Light.NoActionBar" />-->
+
+<!--    <style name="Theme.MyApp.Splash" parent="Theme.SplashScreen">-->
+<!--        <item name="windowSplashScreenBackground">@color/white</item>-->
+<!--        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>-->
+<!--    </style>-->
+<!--</resources>-->
+
