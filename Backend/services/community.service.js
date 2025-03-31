@@ -1,6 +1,6 @@
 /**
- * @fileoverview Community controller for handling HTTP requests
- * @module controllers/community
+ * @fileoverview Community service for handling business logic
+ * @module services/community
  */
 
 const CustomAPIError = require("../errors");
@@ -301,6 +301,8 @@ class CommunityService {
     );
     return newAdmins;
   }
+
+  
 
   /**
    * Format community data for response

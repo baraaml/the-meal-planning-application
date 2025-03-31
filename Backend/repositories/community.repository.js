@@ -277,7 +277,6 @@ class CommunityRepository {
     return newAdmins;
   }
 
-
   async getMembersSortedByJoinDate(communityId) {
     return prisma.communityMember.findMany({
       where: { communityId },

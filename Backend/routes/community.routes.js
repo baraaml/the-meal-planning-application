@@ -1,3 +1,8 @@
+/**
+ * @fileoverview Community routes for handling HTTP requests
+ * @module routes/community
+ */
+
 const express = require("express");
 const {
   createCommunity,
@@ -7,6 +12,7 @@ const {
   getAllMembers,
   leaveCommunity,
   setAdmins,
+  deleteCommunity,
 } = require("../controllers/community.controller");
 const { authenticateUser } = require("../middlewares/authentication");
 const {
@@ -49,10 +55,8 @@ router.delete(
   leaveCommunity
 );
 
-router.patch(
-  "/:id/admins",
-  authenticateUser,
-  setAdmins
-)
+router.delete("/:id", authenticateUser, deleteCommunity);
+
+router.patch("/:id/admins", authenticateUser, setAdmins);
 
 module.exports = router;

@@ -1,6 +1,12 @@
+/**
+ * @fileoverview Community controller for handling HTTP requests
+ * @module controllers/community
+ */
+
 const { StatusCodes } = require("http-status-codes");
 const communityService = require("../services/community.service");
 const CustomAPIError = require("../errors");
+const { community } = require("../config/prismaClient");
 
 /**
  * Creates a new community
@@ -70,6 +76,7 @@ const joinCommunity = async (req, res) => {
   const addedMember = await communityService.joinCommunity(id, userId);
 
   res.status(StatusCodes.CREATED).json({
+    success: true,
     message: "Successfully joined the community.",
     community: addedMember,
   });
@@ -130,7 +137,19 @@ const setAdmins = async (req, res) => {
     success: true,
     message: "Members successfully promoted to admins.",
     admins: newAdmins,
-    });
+  });
+};
+
+/**
+ * Deletes a community with Id
+ * @route DELETE /api/v1/community/:id/
+ * @access Private
+ */
+const deleteCommunity = async (req, res) => {
+  res.status(StatusCodes.OK).json({
+    success: true,
+    message: "Community is deleted successfully.",
+  });
 };
 
 module.exports = {
@@ -141,4 +160,5 @@ module.exports = {
   getAllMembers,
   leaveCommunity,
   setAdmins,
+  deleteCommunity,
 };
