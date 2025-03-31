@@ -50,11 +50,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.mealflow.R
+import com.example.mealflow.network.registerUser
 import com.example.mealflow.random.OrDivider
 import com.example.mealflow.utils.Validator
 import com.example.mealflow.viewModel.RegisterViewModel
 import kotlinx.coroutines.launch
-import registerUser
 
 
 // ----------------------- Register Page ---------------------------

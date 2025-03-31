@@ -24,7 +24,7 @@ data class CommunityResponse(
 class CommunityApiService(private val context: Context) {
     suspend fun fetchCommunities(): CommunityResponse {
         val tokenManager = TokenManager(context)
-        val token = tokenManager.getAccessToken() // جلب التوكن الصحيح
+        val token = tokenManager.getAccessToken()
         Log.d("Token", "Token : $token")
 
         if (token.isNullOrEmpty()) {
@@ -40,14 +40,13 @@ class CommunityApiService(private val context: Context) {
                     append(HttpHeaders.Authorization, "Bearer $token")
                 }
             }
-            Log.d("API Response", response.bodyAsText()) // طباعة نص الاستجابة
+            Log.d("API Response", response.bodyAsText())
             Log.d("response", "Response status: ${response.status}")
 
             if (!response.status.isSuccess()) {
                 Log.e("Community", "Failed to fetch communities: ${response.status}")
                 return CommunityResponse(false, 0, emptyList())
             }
-
             val responseBody = response.body<CommunityResponse>()
             Log.d("Community", "API Response: $responseBody")
             responseBody
@@ -58,80 +57,3 @@ class CommunityApiService(private val context: Context) {
         }
     }
 }
-
-
-
-//fun getCommunity(
-//    context: Context,
-//    name: String,
-//    description: String,
-//    recipeCreationPermission: String,
-//    accessToken: String,
-//    categories: List<String>,
-//    imageUri: Uri?,
-//    navController: NavController,
-//    snackbarHostState: SnackbarHostState
-//) {
-//    CoroutineScope(Dispatchers.IO).launch {
-//        try {
-//            val client = HttpClient(CIO) {
-//                install(ContentNegotiation) {
-//                    json(Json {
-//                        ignoreUnknownKeys = true
-//                        isLenient = true
-//                    })
-//                }
-//                install(Logging) {
-//                    level = LogLevel.ALL
-//                }
-//            }
-//
-//            val url = "https://mealflow.ddns.net/api/v1/community"
-//
-//            // Prepare multipart form data
-//            val response = client.post(url) {
-////                setBody()
-//            }
-//
-//            // Process response
-//            val responseBody = response.bodyAsText()
-//            Log.d("CommunityCreation", "Response: $responseBody")
-//
-//            val apiResponse = try {
-//                Json { ignoreUnknownKeys = true }.decodeFromString<CreateCommunityResponse>(responseBody)
-//            } catch (e: Exception) {
-//                Log.e("CommunityCreation", "Parsing error: ${e.localizedMessage}")
-//                null
-//            }
-//
-//            // Handle response on Main thread
-//            withContext(Dispatchers.Main) {
-//                if (apiResponse?.success == true) {
-//                    snackbarHostState.showSnackbar(
-//                        message = "Community created successfully!",
-//                        duration = SnackbarDuration.Short
-//                    )
-//                    // Safe navigation
-//                    navController.navigate("Home Page") {
-//                        popUpTo(navController.graph.startDestinationId) {
-//                            inclusive = true
-//                        }
-//                    }
-//                } else {
-//                    snackbarHostState.showSnackbar(
-//                        message = apiResponse?.message ?: "Failed to create community",
-//                        duration = SnackbarDuration.Short
-//                    )
-//                }
-//            }
-//        } catch (e: Exception) {
-//            withContext(Dispatchers.Main) {
-//                snackbarHostState.showSnackbar(
-//                    message = "Error: ${e.localizedMessage}",
-//                    duration = SnackbarDuration.Short
-//                )
-//            }
-//        }
-//    }
-//}
-

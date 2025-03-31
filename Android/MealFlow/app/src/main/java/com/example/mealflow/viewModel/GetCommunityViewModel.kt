@@ -24,7 +24,7 @@ class GetCommunityViewModel(private val repository: CommunityRepository) : ViewM
         viewModelScope.launch(Dispatchers.IO) {
             Log.d("GetCommunityViewModel", "Fetching communities from DB...")
 
-            val data = repository.getCommunitiesFromFlow() // استخدم دالة جديدة في الريبو
+            val data = repository.getCommunitiesFromFlow() // Use a new function in the repo
             Log.d("GetCommunityViewModel", "Communities from DB: $data")
 
             _communities.value = data
@@ -34,12 +34,12 @@ class GetCommunityViewModel(private val repository: CommunityRepository) : ViewM
         viewModelScope.launch(Dispatchers.IO) {
             Log.d("GetCommunityViewModel", "Fetching and storing communities...")
 
-            repository.fetchCommunities()  // جلب البيانات الجديدة
-            val updatedData = repository.getCommunitiesFromFlow() // استرجاع البيانات بعد التحديث
+            repository.fetchCommunities() // Fetch new data
+            val updatedData = repository.getCommunitiesFromFlow() // Recover data after update
 
             Log.d("GetCommunityViewModel", "Updated Communities: $updatedData")
 
-            _communities.value = updatedData // تحديث الـ StateFlow بالبيانات الجديدة
+            _communities.value = updatedData // Update the StateFlow with new data
         }
     }
 

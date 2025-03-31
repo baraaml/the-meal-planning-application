@@ -21,7 +21,7 @@ fun HttpClientConfig<*>.installAuthInterceptor(tokenManager: TokenManager) {
         retryIf { _, response ->
             if (response.status == HttpStatusCode.Unauthorized) {
                 val newToken = runBlocking { refreshAccessToken(tokenManager) }
-                newToken != null // أعد المحاولة فقط إذا حصلنا على توكن جديد
+                newToken != null // Retry only if we get a new token
             } else {
                 false
             }

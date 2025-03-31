@@ -25,11 +25,11 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
-// ----------------------- LoginRequest ---------------------------
+// ----------------------- ResetPasswordRequest ---------------------------
 @Serializable
 data class ResetPasswordRequest(val token: String, val password: String)
 
-// ----------------------- LoginResponse ---------------------------
+// ----------------------- ResetPasswordResponse ---------------------------
 @Serializable
 data class ResetPasswordResponse(val success: Boolean,val error: String? = null, val message: String,val details: ResetData? = null)
 
@@ -41,9 +41,9 @@ data class ResetData(
 
 
 fun resetPasswordApi(
-    token: String,password: String,
+    token: String,
+    password: String,
     navController: NavController,
-    viewModel: ForgetPasswordViewModel,
     snackbarHostState: SnackbarHostState
 ) {
     CoroutineScope(Dispatchers.IO).launch { // ✅ Run the request in a separate thread (Background Thread)
@@ -53,7 +53,7 @@ fun resetPasswordApi(
             }
         }
 
-        val url = "https://mealflow.ddns.net/api/v1/users/reset-password"
+        val url = ApiClient.Endpoints.RESET_PASSWORD
 
         try {
             Log.d("API", "Token:Submit application=$token")

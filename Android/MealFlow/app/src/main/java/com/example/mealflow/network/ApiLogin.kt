@@ -35,15 +35,8 @@ data class Data(
     val user: User
 )
 
-@Serializable
-data class ApiUser(
-    val id: String,
-    val email: String,
-    val isVerified: Boolean
-)
-
 fun loginApi(
-    context: Context, // إضافة `context` هنا
+    context: Context,
     email: String,
     password: String,
     navController: NavController,
@@ -51,10 +44,10 @@ fun loginApi(
 ) {
     CoroutineScope(Dispatchers.IO).launch {
         val client = ApiClient.client
-        val url = "https://mealflow.ddns.net/api/v1/users/login"
+        val url = ApiClient.Endpoints.LOGIN
         val tokenManager = TokenManager(context)
         try {
-            Log.d("API", "📩 إرسال الطلب: email=$email, password=$password")
+            Log.d("API", "📩 Send Request: email=$email, password=$password")
 
             val response: HttpResponse = client.post(url) {
                 contentType(ContentType.Application.Json)
@@ -64,17 +57,17 @@ fun loginApi(
             val responseBody = response.body<LoginResponse>()
 
             withContext(Dispatchers.Main) {
-                // عرض الرسالة بشكل غير معتمد على عملية الانتقال
+                // Display the message independently of the navigation
                 CoroutineScope(Dispatchers.Main).launch {
                     snackbarHostState.showSnackbar(
                         message = responseBody.message,
                         duration = SnackbarDuration.Short
                     )
                 }
-                // الانتقال مباشرة بدون انتظار
+                // Go directly without waiting
                 if (response.status.isSuccess() && responseBody.success) {
-                    Log.d("API", "✅ تسجيل دخول ناجح، الانتقال إلى الصفحة التالية")
-                    // استخراج وحفظ التوكن فقط بدون `TokenEntity`
+                    Log.d("API", "✅ Successful login, go to the next page")
+                    // Extract and save the token only without `TokenEntity`
                     responseBody.data?.let {
                         tokenManager.saveTokens(it.accessToken, it.refreshToken)
                     }
@@ -84,77 +77,17 @@ fun loginApi(
                         popUpTo(navController.graph.startDestinationId) { inclusive = true }
                     }
                 } else {
-                    Log.e("API", "❌ فشل تسجيل الدخول: ${responseBody.message}")
+                    Log.e("API", "❌ login failed: ${responseBody.message}")
                 }
             }
         } catch (e: Exception) {
-            Log.e("API", "❌ استثناء أثناء تنفيذ الطلب: ${e.localizedMessage}")
+            Log.e("API", "❌ Exception during order execution: ${e.localizedMessage}")
             withContext(Dispatchers.Main) {
                 snackbarHostState.showSnackbar(
-                    message = "حدث خطأ أثناء الاتصال بالسيرفر",
+                    message = "Error occurred while connecting to the server.",
                     duration = SnackbarDuration.Short
                 )
             }
         }
     }
 }
-//fun loginApi(
-//    email: String,
-//    password: String,
-//    navController: NavController,
-//    snackbarHostState: LoginViewModel
-//) {
-//    CoroutineScope(Dispatchers.IO).launch {
-//        val client = HttpClient(CIO) {
-//            install(ContentNegotiation) {
-//                json(Json {
-//                    ignoreUnknownKeys = true
-//                    isLenient = true
-//                })
-//            }
-//        }
-//
-//        val url = "https://mealflow.ddns.net/api/v1/users/login"
-//
-//        try {
-//            Log.d("API", "📩 إرسال الطلب: email=$email, password=$password")
-//
-//            val response: HttpResponse = client.post(url) {
-//                contentType(ContentType.Application.Json)
-//                setBody(LoginRequest(email, password))
-//            }
-//
-//            val responseBody = response.body<LoginResponse>()
-//
-//            if (response.status.isSuccess() && responseBody.success) {
-//                Log.d("API", "✅ تسجيل دخول ناجح، الانتقال إلى الصفحة التالية")
-//
-//                // التنقل للصفحة التالية
-//                withContext(Dispatchers.Main) {
-//                    navController.navigate("Home Page") {
-//                        popUpTo(navController.graph.startDestinationId) { inclusive = true }
-//                    }
-//                }
-//            }
-//
-//            // عرض الرسالة سواء كان النجاح أو الفشل
-//            withContext(Dispatchers.Main) {
-//                snackbarHostState.showSnackbar(
-//                    message = responseBody.message,
-//                    duration = SnackbarDuration.Short
-//                )
-//            }
-//        } catch (e: Exception) {
-//            Log.e("API", "❌ استثناء أثناء تنفيذ الطلب: ${e.localizedMessage}")
-//
-//            withContext(Dispatchers.Main) {
-//                snackbarHostState.showSnackbar(
-//                    message = "حدث خطأ أثناء الاتصال بالسيرفر",
-//                    duration = SnackbarDuration.Short
-//                )
-//            }
-//        } finally {
-//            client.close()
-//        }
-//    }
-//}

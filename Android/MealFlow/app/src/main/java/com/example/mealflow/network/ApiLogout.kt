@@ -19,27 +19,27 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 
-// ----------------------- LoginRequest ---------------------------
+// ----------------------- LogoutRequest ---------------------------
 @Serializable
 data class LogoutRequest(val refreshToken: String)
 
-// ----------------------- LoginResponse ---------------------------
+// ----------------------- LogoutResponse ---------------------------
 @Serializable
 data class LogoutResponse(val success: Boolean, val message: String,val data: Data? = null)
 
 
 fun logoutApi(
-    context: Context, // إضافة `context` هنا
+    context: Context,
     navController: NavController,
     snackbarHostState: SnackbarHostState
 ) {
     CoroutineScope(Dispatchers.IO).launch {
         val client = ApiClient.client
-        val url = "https://mealflow.ddns.net/api/v1/users/logout"
+        val url = ApiClient.Endpoints.LOGOUT
         val tokenManager = TokenManager(context)
         val refreshToken = tokenManager.getRefreshToken()
         try {
-            Log.d("API", "📩 إرسال الطلب: email=$refreshToken")
+            Log.d("API", "📩Send request: refreshToken = $refreshToken")
             val response: HttpResponse = client.post(url) {
                 contentType(ContentType.Application.Json)
                 setBody(LogoutRequest(refreshToken.toString()))
@@ -48,29 +48,29 @@ fun logoutApi(
             val responseBody = response.body<LogoutResponse>()
 
             withContext(Dispatchers.Main) {
-                // عرض الرسالة بشكل غير معتمد على عملية الانتقال
+                // Display the message independently of the transition
                 CoroutineScope(Dispatchers.Main).launch {
                     snackbarHostState.showSnackbar(
                         message = responseBody.message,
                         duration = SnackbarDuration.Short
                     )
                 }
-                // الانتقال مباشرة بدون انتظار
+                // Go directly without waiting
                 if (response.status.isSuccess() && responseBody.success) {
-                    Log.d("API", "✅ تسجيل دخول ناجح، الانتقال إلى الصفحة التالية")
+                    Log.d("API", "✅ Successful login, go to the next page")
                     Log.d("accessToken", "accessToken: ${tokenManager.getAccessToken()}")
                     Log.d("refreshToken", "refreshToken: ${tokenManager.getRefreshToken()}")
                     tokenManager.clearAccessToken()
                     navController.navigate("Login Page")
                 } else {
-                    Log.e("API", "❌ فشل تسجيل الدخول: ${responseBody.message}")
+                    Log.e("API", "❌ Login failed: ${responseBody.message}")
                 }
             }
         } catch (e: Exception) {
-            Log.e("API", "❌ استثناء أثناء تنفيذ الطلب: ${e.localizedMessage}")
+            Log.e("API", "❌ Exception during order execution:${e.localizedMessage}")
             withContext(Dispatchers.Main) {
                 snackbarHostState.showSnackbar(
-                    message = "حدث خطأ أثناء الاتصال بالسيرفر",
+                    message = "Error occurred while connecting to the server.",
                     duration = SnackbarDuration.Short
                 )
             }

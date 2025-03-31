@@ -65,7 +65,7 @@ fun PostCommunity() {
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-            // معلومات المجتمع والخيارات
+            // Community information and options
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -111,8 +111,7 @@ fun PostCommunity() {
                         )
                     }
                 }
-
-                // قائمة خيارات المنشور
+                // Post options menu
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically
@@ -148,7 +147,7 @@ fun PostCommunity() {
                 }
             }
 
-            // عنوان المنشور
+            // Post title
             Text(
                 text = "This is a community post title",
                 style = MaterialTheme.typography.titleLarge.copy(
@@ -158,7 +157,7 @@ fun PostCommunity() {
                 modifier = Modifier.padding(bottom = 4.dp)
             )
 
-            // المحتوى الفرعي للمنشور
+            // Post sub-content
             Text(
                 text = "Test Test Test Test Test Test",
                 style = MaterialTheme.typography.bodyLarge,
@@ -168,7 +167,7 @@ fun PostCommunity() {
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // صورة المنشور
+            // Post image
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -187,7 +186,7 @@ fun PostCommunity() {
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // عداد التفاعلات
+            // Interaction counter
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -195,7 +194,7 @@ fun PostCommunity() {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "243 Upvotes",
+                    text = "243 upvote",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -207,7 +206,7 @@ fun PostCommunity() {
                 )
             }
 
-            // خط فاصل
+            // dividing line
             HorizontalDivider(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -215,14 +214,14 @@ fun PostCommunity() {
                 thickness = 1.dp,
                 color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
             )
-            // أزرار التفاعل
+            // Interaction buttons
             Row(
                 modifier = Modifier
                     .fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                // زر الإعجاب
+                //Like button
                 TextButton(
                     onClick = { /*TODO*/ },
                     contentPadding = PaddingValues(horizontal = 8.dp, vertical = 6.dp)
@@ -240,7 +239,7 @@ fun PostCommunity() {
                     )
                 }
 
-                // زر التعليق
+                // Comment button
                 TextButton(
                     onClick = { /*TODO*/ },
                     contentPadding = PaddingValues(horizontal = 8.dp, vertical = 6.dp)
@@ -258,7 +257,7 @@ fun PostCommunity() {
                     )
                 }
 
-                // زر المشاركة
+                // Share button
                 TextButton(
                     onClick = { /*TODO*/ },
                     contentPadding = PaddingValues(horizontal = 8.dp, vertical = 6.dp)
@@ -298,7 +297,7 @@ fun PostUser() {
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-            // معلومات المستخدم والوقت
+            // User information and time
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -345,7 +344,7 @@ fun PostUser() {
                     }
                 }
 
-                // قائمة خيارات المنشور
+                // Post options menu
                 IconButton(
                     onClick = { /*TODO*/ },
                     modifier = Modifier
@@ -362,7 +361,7 @@ fun PostUser() {
                 }
             }
 
-            // محتوى المنشور
+            // Post content
             Text(
                 text = "Test Test Test Test Test Test",
                 style = MaterialTheme.typography.bodyLarge,
@@ -372,7 +371,7 @@ fun PostUser() {
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // صورة المنشور
+            // Post image
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -391,7 +390,7 @@ fun PostUser() {
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // عداد الإعجابات والتعليقات
+            // Likes and comments counter
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -411,7 +410,7 @@ fun PostUser() {
                 )
             }
 
-            // خط فاصل
+            // dividing line
             HorizontalDivider(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -420,14 +419,14 @@ fun PostUser() {
                 color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
             )
 
-            // أزرار التفاعل
+            // Interaction buttons
             Row(
                 modifier = Modifier
                     .fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                // زر الإعجاب
+                //Like button
                 TextButton(
                     onClick = { /*TODO*/ },
                     contentPadding = PaddingValues(horizontal = 8.dp, vertical = 6.dp)
@@ -445,7 +444,7 @@ fun PostUser() {
                     )
                 }
 
-                // زر التعليق
+                // Comment button
                 TextButton(
                     onClick = { /*TODO*/ },
                     contentPadding = PaddingValues(horizontal = 8.dp, vertical = 6.dp)
@@ -463,7 +462,7 @@ fun PostUser() {
                     )
                 }
 
-                // زر المشاركة
+                // Share button
                 TextButton(
                     onClick = { /*TODO*/ },
                     contentPadding = PaddingValues(horizontal = 8.dp, vertical = 6.dp)
@@ -489,6 +488,5 @@ fun PostUser() {
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun PreviewPostCommunity() {
-    val communityViewModel: CommunityViewModel = viewModel()
     PostCommunity()
 }

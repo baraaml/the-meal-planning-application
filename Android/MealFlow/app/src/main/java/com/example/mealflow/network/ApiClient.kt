@@ -1,24 +1,3 @@
-//package com.example.mealflow.network
-//
-//import io.ktor.client.*
-//import io.ktor.client.engine.cio.*
-//import io.ktor.client.plugins.contentnegotiation.*
-//import kotlinx.serialization.json.Json
-//import io.ktor.serialization.kotlinx.json.*
-//
-//object ApiClient {
-//    val client: HttpClient by lazy {
-//        HttpClient(CIO) {
-//            install(ContentNegotiation) {
-//                json(Json {
-//                    ignoreUnknownKeys = true
-//                    isLenient = true
-//                })
-//            }
-//        }
-//    }
-//}
-// Location: network/ApiClient.kt
 package com.example.mealflow.network
 
 import io.ktor.client.HttpClient
@@ -59,6 +38,13 @@ object ApiClient {
         const val FORGOT_PASSWORD = "$BASE_URL/users/forgot-password"
         const val RESET_PASSWORD = "$BASE_URL/users/reset-password"
         const val RESET_OTP = "$BASE_URL/users/resend-verification"
+        const val CREATE_COMMUNITY = "$BASE_URL/community"
+        const val LOGOUT = "$BASE_URL/users/logout"
+        const val QUICK_LOGIN = "$BASE_URL/users/quick-login"
+
+
+
+
 
         // Meal endpoints
         const val RECOMMENDED_MEALS = "$BASE_URL/meal/recommended"

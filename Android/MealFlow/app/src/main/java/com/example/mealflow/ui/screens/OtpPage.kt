@@ -47,7 +47,6 @@ import com.example.mealflow.network.resetOtpApi
 import com.example.mealflow.network.verifyEmail
 import com.example.mealflow.viewModel.RegisterViewModel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 // ----------------------- Otp Page ---------------------------
 // ----------------------- Function to display text with otp input ---------------------------
@@ -180,33 +179,3 @@ fun OTPVerificationScreen(navController: NavController, viewModel: RegisterViewM
         }
     }
 }
-
-
-// ---------------- Function contains OTP input and verify email button (send OTP) -----------------
-//@Composable
-//fun OTPVerificationScreen(navController: NavController, viewModel: RegisterViewModel) {
-//    // ----------------------- Variables ---------------------------
-//    var otp by remember { mutableStateOf("") }
-//    val context = LocalContext.current
-//    val email by viewModel.email.observeAsState("")
-//    //--------------------------------------------------------------
-//    Column(
-//        verticalArrangement = Arrangement.Center,
-//        horizontalAlignment = Alignment.CenterHorizontally
-//    ) {
-//        // ----------------------- Subtitle Text -----------------------------
-//        Text(text = stringResource(id = R.string.check_email), fontSize = 20.sp)
-//        Spacer(modifier = Modifier.height(16.dp))
-//        // Input field (using function) ------------------ Otp Input -----------------------
-//        OTPInputField(onOtpEntered = { otp = it })
-//        Spacer(modifier = Modifier.height(16.dp))
-//        // Button ------------------ Verification -----------------------
-//        DynamicButton(
-//            onClick = {
-//                verifyEmail(context, otp, email, navController)
-//            },
-//            textOnButton = stringResource(id = R.string.Verification),
-//            buttonWidthDynamic = 200
-//        )
-//    }
-//}

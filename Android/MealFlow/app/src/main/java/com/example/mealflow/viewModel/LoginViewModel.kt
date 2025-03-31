@@ -1,14 +1,10 @@
 package com.example.mealflow.viewModel
 
 //import com.example.mealflow.network.loginApi
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.runtime.remember
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.NavController
-import com.example.mealflow.network.loginApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 

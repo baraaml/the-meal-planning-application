@@ -82,12 +82,12 @@ dependencies {
     implementation(libs.ktor.client.serialization) // دعم JSON
     implementation(libs.ktor.serialization.kotlinx.json) // Kotlinx JSON
     implementation(libs.ktor.client.logging) // لتسجيل الطلبات (اختياري)
-    implementation(libs.ktor.client.content.negotiation)
+//    implementation(libs.ktor.client.content.negotiation)
     implementation(libs.slf4j)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.runtime.livedata)
     implementation(libs.lifecycle.viewmodel.compose)
-    implementation(libs.runtime.livedata)
+//    implementation(libs.runtime.livedata)
     implementation(libs.navigation.fragment)
     implementation(libs.navigation.ui)
     implementation(libs.accompanist.systemuicontroller)

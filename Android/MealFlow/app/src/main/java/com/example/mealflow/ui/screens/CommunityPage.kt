@@ -34,7 +34,6 @@ data class CommunityData(
 @Composable
 fun CommunityPage(
     navController: NavController,
-    viewModel: CommunityViewModel,
     viewModelGet: GetCommunityViewModel
 ) {
     val communities by viewModelGet.communities.collectAsState()
@@ -55,7 +54,7 @@ fun CommunityPage(
             coroutineScope.launch {
                 isRefreshing = true
                 viewModelGet.fetchAndStoreCommunities()
-                delay(2000) // محاكاة تحميل البيانات
+                delay(2000) // Simulate data loading
                 isRefreshing = false
             }
         }
@@ -108,5 +107,5 @@ fun CommunityPage(
 fun PreviewCommunityScreen() {
     val communityViewModel: CommunityViewModel = viewModel()
     val getCommunityViewModel: GetCommunityViewModel = viewModel()
-    CommunityPage(navController = rememberNavController(), communityViewModel, getCommunityViewModel,)
+    CommunityPage(navController = rememberNavController(), getCommunityViewModel)
 }

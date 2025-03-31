@@ -8,17 +8,6 @@ import androidx.room.TypeConverters
 import com.example.mealflow.database.community.CommunityDao
 import com.example.mealflow.database.community.GetCommunityEntity
 
-//@Database(entities = [GetCommunityEntity::class], version = 1, exportSchema = false)
-
-//@Database(
-//    entities = [GetCommunityEntity::class],
-//    version = 2,
-//    autoMigrations = [
-//        AutoMigration(from = 1, to = 2)
-//    ],
-//    exportSchema = true
-//)
-//@Database(entities = [GetCommunityEntity::class,TokenEntity::class], version = 1, exportSchema = true)
 @Database(entities = [GetCommunityEntity::class], version = 1, exportSchema = true)
 
 @TypeConverters(Converters::class)

@@ -19,7 +19,7 @@ class CommunityRepository(
                 apiService.fetchCommunities()
             } catch (e: Exception) {
                 e.printStackTrace()
-                return@withContext emptyList() // 🔥 الحل الصحيح
+                return@withContext emptyList()
             }
 
             val communities: List<GetCommunityEntity> = response.communities
@@ -41,39 +41,17 @@ class CommunityRepository(
 
             communityDao.deleteAllCommunities()
             communityDao.insertCommunities(entities)
-            entities // ✅ إرجاع البيانات بعد الإدخال في Room
+            entities // ✅ Return data after entering into Room
         } catch (e: Exception) {
             e.printStackTrace()
-            emptyList() // ✅ تجنب الانهيار في حالة حدوث خطأ
+            emptyList() // ✅ Avoid crashing in case of an error
         }
     }
     suspend fun getCommunitiesFromDB(): List<GetCommunityEntity> {
         return communityDao.getCommunities()
     }
     suspend fun getCommunitiesFromFlow(): List<GetCommunityEntity> {
-        return communityDao.getAllCommunities().first() // يحول Flow إلى List
+        return communityDao.getAllCommunities().first() // Converts Flow to List
     }
 
 }
-
-
-
-
-//class CommunityRepository(private val dao: CommunityDao, private val apiService: CommunityApiService) {
-//    suspend fun fetchAndStoreCommunities() {
-//        val response = apiService.fetchCommunities(tokenViewModel = TokenViewModel())
-//        val entities = response.communities.map {
-//            CommunityEntity(it.id.toString(), it.name, it.description, it.image.toString())
-//        }
-//
-//        // حذف البيانات القديمة
-//        dao.deleteAllCommunities()
-//
-//        // إدخال البيانات الجديدة
-//        dao.insertCommunities(entities)
-//    }
-//
-//    suspend fun getCommunitiesFromDB(): List<CommunityEntity> {
-//        return dao.getAllCommunities()
-//    }
-//}

@@ -1,163 +1,63 @@
-//package com.example.mealflow.ui.screens
-//
-//import androidx.compose.foundation.Image
-//import androidx.compose.foundation.background
-//import androidx.compose.foundation.border
-//import androidx.compose.foundation.layout.*
-//import androidx.compose.foundation.shape.CircleShape
-//import androidx.compose.foundation.shape.RoundedCornerShape
-//import androidx.compose.material.*
-//import androidx.compose.material3.Button
-//import androidx.compose.material3.ButtonDefaults
-//import androidx.compose.material3.Tab
-//import androidx.compose.material3.TabRow
-//import androidx.compose.material3.Text
-//import androidx.compose.runtime.Composable
-//import androidx.compose.ui.Alignment
-//import androidx.compose.ui.Modifier
-//import androidx.compose.ui.graphics.Color
-//import androidx.compose.ui.res.painterResource
-//import androidx.compose.ui.text.font.FontWeight
-//import androidx.compose.ui.unit.dp
-//import androidx.compose.ui.unit.sp
-//import coil.compose.AsyncImage
-//import androidx.compose.ui.tooling.preview.Preview
-//import androidx.compose.ui.draw.clip
-//import androidx.compose.ui.graphics.Brush
-//import androidx.compose.ui.layout.ContentScale
-//import coil.compose.rememberAsyncImagePainter
-//import com.example.mealflow.R
-//
-//@Composable
-//fun ProfileScreen() {
-//    Column(
-//        modifier = Modifier
-//            .fillMaxSize()
-//            .background(
-//                brush = Brush.verticalGradient(
-//                    colors = listOf(Color.Black, Color.DarkGray)
-//                )
-//            )
-//            .padding(16.dp),
-//        horizontalAlignment = Alignment.CenterHorizontally
-//    )  {
-//        Image(
-//            painter = rememberAsyncImagePainter(
-//                model = "https://photobasement.com/wp-content/uploads/2017/04/this-is-a-photo.jpg",
-//                error = painterResource(R.drawable.placeholder), // صورة افتراضية عند الخطأ
-//                placeholder = painterResource(R.drawable.loading_placeholder) // صورة أثناء التحميل
-//            ),
-//            contentDescription = "صورة مجتمع ",
-////            contentScale = ContentScale.Crop,
-//            modifier = Modifier
-//                .size(100.dp)
-//                .clip(CircleShape)
-//                .border(2.dp, Color.White, CircleShape)
-//        )
-////        AsyncImage(
-////            model = "https://photobasement.com/wp-content/uploads/2017/04/this-is-a-photo.jpg",
-////            contentDescription = "Profile Picture",
-////            modifier = Modifier
-////                .size(100.dp)
-////                .clip(CircleShape)
-////        )
-//
-//        Spacer(modifier = Modifier.height(8.dp))
-//
-//        Text("Berivan Kul", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
-//        Text("bitesofberi", color = Color.Gray, fontSize = 16.sp)
-//
-//        Spacer(modifier = Modifier.height(8.dp))
-//
-//        Row(verticalAlignment = Alignment.CenterVertically) {
-//            Text("0 Following", color = Color.White, fontSize = 14.sp)
-//            Spacer(modifier = Modifier.width(16.dp))
-//            Text("23 Followers", color = Color.White, fontSize = 14.sp)
-//        }
-//
-//        Spacer(modifier = Modifier.height(8.dp))
-//
-//        Button(
-//            onClick = {},
-//            colors = ButtonDefaults.buttonColors( Color(0xFFFFA500)),
-//            shape = RoundedCornerShape(8.dp)
-//        ) {
-//            Text("Follow", color = Color.Black)
-//        }
-//
-//        Spacer(modifier = Modifier.height(8.dp))
-//
-//        Text("Simple recipes that taste delicious. 😋", color = Color.White, fontSize = 14.sp)
-//        Spacer(modifier = Modifier.height(4.dp))
-//        Text("www.bitesofberi.com", color = Color(0xFF1E90FF), fontSize = 14.sp)
-//
-//        Spacer(modifier = Modifier.height(16.dp))
-//        val selectTab =
-//        TabRow(selectedTabIndex = 0) {
-//            Tab(selected = true, onClick = {}) {
-//                Text("Activity", color = Color(0xFFFFA500), fontSize = 16.sp, fontWeight = FontWeight.Bold)
-//            }
-//            Tab(selected = false, onClick = {}) {
-//                Text("Created", color = Color.White, fontSize = 16.sp)
-//            }
-//        }
-//    }
-//}
-//
-//@Preview(showBackground = true)
-//@Composable
-//fun PreviewProfileScreen() {
-//    ProfileScreen()
-//}
-import android.content.Context
+package com.example.mealflow.ui.screens
+
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.draw.clip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
+import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.*
-import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.mealflow.R
 import com.example.mealflow.network.logoutApi
-import com.example.mealflow.ui.components.CommunityList
-import com.example.mealflow.ui.screens.PostCommunity
-import com.example.mealflow.ui.screens.PostUser
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfilePage(navController: NavController) {
-    var selectedTabIndex by remember { mutableStateOf(0) }
+    var selectedTabIndex by remember { mutableIntStateOf(0) }
     var expanded by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
@@ -226,10 +126,10 @@ fun ProfilePage(navController: NavController) {
                 Image(
                     painter = rememberAsyncImagePainter(
                         model = "https://photobasement.com/wp-content/uploads/2017/04/this-is-a-photo.jpg",
-                        error = painterResource(R.drawable.placeholder), // صورة افتراضية عند الخطأ
-                        placeholder = painterResource(R.drawable.loading_placeholder) // صورة أثناء التحميل
+                        error = painterResource(R.drawable.placeholder), // Default image on error
+                        placeholder = painterResource(R.drawable.loading_placeholder) // Image while loading
                     ),
-                    contentDescription = "صورة مجتمع ",
+                    contentDescription = "Community image",
 //            contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .size(100.dp)

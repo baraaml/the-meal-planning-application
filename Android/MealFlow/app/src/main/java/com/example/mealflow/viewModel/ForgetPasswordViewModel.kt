@@ -48,8 +48,6 @@ class ForgetPasswordViewModel : ViewModel() {
         _passwordVisible.value = _passwordVisible.value?.not()
     }
 
-    private val _errorMessage = MutableLiveData<String?>()
-    val errorMessage: LiveData<String?> get() = _errorMessage
 
     fun validateInputs(username: String, email: String, password: String): Boolean {
         val errors = mutableListOf<String>()
@@ -62,10 +60,6 @@ class ForgetPasswordViewModel : ViewModel() {
         emailError?.let { errors.add(it) }
         passwordError?.let { errors.add(it) }
 
-        if (errors.isNotEmpty()) {
-            _errorMessage.value = errors.joinToString("\n")
-            return false // ❌ There are errors, do not complete the registration
-        }
         return true // ✅ No errors, can continue
     }
 

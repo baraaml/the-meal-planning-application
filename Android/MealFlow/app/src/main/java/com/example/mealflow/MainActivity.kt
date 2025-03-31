@@ -1,7 +1,6 @@
 package com.example.mealflow
 
-import ProfilePage
-import ViewModelFactory
+//import com.example.mealflow.viewModel.TokenViewModel
 import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
@@ -52,7 +51,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.core.splashscreen.SplashScreen
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -78,6 +77,8 @@ import com.example.mealflow.ui.screens.MarketPage
 import com.example.mealflow.ui.screens.MealDetailScreen
 import com.example.mealflow.ui.screens.OtpPage
 import com.example.mealflow.ui.screens.PlannerPage
+import com.example.mealflow.ui.screens.ProfilePage
+import com.example.mealflow.ui.screens.QuickLoginPage
 import com.example.mealflow.ui.screens.RegisterPage
 import com.example.mealflow.ui.screens.ResetPasswordPage
 import com.example.mealflow.ui.screens.SearchPage
@@ -93,9 +94,7 @@ import com.example.mealflow.viewModel.LoginViewModel
 import com.example.mealflow.viewModel.MealViewModel
 import com.example.mealflow.viewModel.MealViewModelFactory
 import com.example.mealflow.viewModel.RegisterViewModel
-//import com.example.mealflow.viewModel.TokenViewModel
-import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import com.example.mealflow.ui.screens.QuickLoginPage
+import com.example.mealflow.viewModel.ViewModelFactory
 
 // Keep this data class from the old code
 data class BottomNavigationItem(
@@ -120,7 +119,7 @@ class MainActivity : ComponentActivity() {
 
         Handler(Looper.getMainLooper()).postDelayed({
             isLoading = false
-        }, 1000) // تأخير لمدة 2 ثانية
+        }, 1000) // Delay for 2 seconds
 
 
         // Set the uncaught exception handler from the old code
@@ -223,7 +222,7 @@ fun AppNavHost(
         {
             "Home Page"
         }
-//    // تحديث البيانات عند فتح التطبيق
+    // Update data when opening the application
 //    CoroutineScope(Dispatchers.IO).launch {
 //        viewModelGetCommunity.refreshCommunities()
 //    }
@@ -247,7 +246,7 @@ fun AppNavHost(
     }
 
     Scaffold(
-        containerColor = Color.White, // هنا قمنا بتعيين الخلفية باللون الأبيض
+        containerColor = Color.White, // Here we set the background to white.
         topBar = {
             if (shouldShowTopBar(currentRoute)) {
 //                TopBar(navController = rememberNavController())
@@ -311,7 +310,6 @@ fun AppNavHost(
             composable("Community Page") {
                 CommunityPage(
                     navController,
-                    communityViewModel,
                     viewModelGetCommunity
                 )
             }
@@ -352,7 +350,7 @@ fun AppNavHost(
             }
 
             composable("Planner Page") {
-                PlannerPage(navController)
+                PlannerPage()
             }
 
             composable("Market Page") {
@@ -457,18 +455,18 @@ fun getNavigationItems(): List<BottomNavigationItem> {
             route = "Home Page"
         ),
         BottomNavigationItem(
-            title = "Search",
-            selectedIcon = Icons.Filled.Search,
-            nonSelectedIcon = Icons.Outlined.Search,
-            hasNews = false,
-            route = "Search Page"
-        ),
-        BottomNavigationItem(
             title = "Market",
             selectedIcon = Icons.Filled.ShoppingCart,
             nonSelectedIcon = Icons.Outlined.ShoppingCart,
             hasNews = false,
             route = "Market Page"
+        ),
+        BottomNavigationItem(
+            title = "Search",
+            selectedIcon = Icons.Filled.Search,
+            nonSelectedIcon = Icons.Outlined.Search,
+            hasNews = false,
+            route = "Search Page"
         ),
         BottomNavigationItem(
             title = "Community",

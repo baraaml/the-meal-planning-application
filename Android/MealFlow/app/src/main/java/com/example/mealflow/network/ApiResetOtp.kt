@@ -12,68 +12,17 @@ import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 
-// ----------------------- LoginRequest ---------------------------
+// ----------------------- ResetOtpRequest ---------------------------
 @Serializable
 data class ResetOtpRequest(val email: String)
 
-// ----------------------- LoginResponse ---------------------------
+// ----------------------- ResetOtpResponse ---------------------------
 @Serializable
 data class ResetOtpResponse(val success: Boolean, val message: String)
 
-
-//fun resetOtpApi(
-//    email: String,
-//    navController: NavController,
-//    snackbarHostState: SnackbarHostState
-//) {
-//    CoroutineScope(Dispatchers.IO).launch {
-//        val client = ApiClient.client
-//        val url = "https://mealflow.ddns.net/api/v1/users/resend-verification"
-//
-//        try {
-//            Log.d("API", "📩 إرسال الطلب: email=$email")
-//
-//            val response: HttpResponse = client.post(url) {
-//                contentType(ContentType.Application.Json)
-//                setBody(ResetOtpRequest(email))
-//            }
-//
-//            val responseBody = response.body<ResetOtpResponse>()
-//
-//            withContext(Dispatchers.Main) {
-//                // عرض الرسالة بشكل غير معتمد على عملية الانتقال
-//                CoroutineScope(Dispatchers.Main).launch {
-//                    snackbarHostState.showSnackbar(
-//                        message = responseBody.message,
-//                        duration = SnackbarDuration.Short
-//                    )
-//                }
-//                // الانتقال مباشرة بدون انتظار
-//                if (response.status.isSuccess() && responseBody.success) {
-//                    Log.d("API", "✅ تسجيل دخول ناجح، الانتقال إلى الصفحة التالية")
-//                    navController.navigate("Home Page") {
-//                        popUpTo(navController.graph.startDestinationId) { inclusive = true }
-//                    }
-//                } else {
-//                    Log.e("API", "❌ فشل تسجيل الدخول: ${responseBody.message}")
-//                }
-//            }
-//        } catch (e: Exception) {
-//            Log.e("API", "❌ استثناء أثناء تنفيذ الطلب: ${e.localizedMessage}")
-//            withContext(Dispatchers.Main) {
-//                snackbarHostState.showSnackbar(
-//                    message = "حدث خطأ أثناء الاتصال بالسيرفر",
-//                    duration = SnackbarDuration.Short
-//                )
-//            }
-//        }
-//    }
-//}
 fun resetOtpApi(
     email: String,
     navController: NavController,
@@ -82,7 +31,7 @@ fun resetOtpApi(
 ) {
     coroutineScope.launch {
         val client = ApiClient.client
-        val url = "https://mealflow.ddns.net/api/v1/users/resend-verification"
+        val url = ApiClient.Endpoints.RESET_OTP
 
         try {
             Log.d("API", "📩 Sending request: email=$email")

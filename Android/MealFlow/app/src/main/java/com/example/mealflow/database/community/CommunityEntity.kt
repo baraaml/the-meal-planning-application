@@ -24,7 +24,7 @@ data class GetCommunityEntity(
     val updatedAt: String,
     val categories: List<Category>,
     val members: List<Member>,
-    @Embedded(prefix = "owner_") val owner: OwnerCommunity // ✅ حل التكرار
+    @Embedded(prefix = "owner_") val owner: OwnerCommunity // ✅ Repetition solution
 )
 
 

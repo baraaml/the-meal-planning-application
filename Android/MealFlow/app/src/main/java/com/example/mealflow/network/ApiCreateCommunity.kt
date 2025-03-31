@@ -1,177 +1,5 @@
-//package com.example.mealflow.network
-//
-//import android.content.Context
-//import android.net.Uri
-//import android.util.Log
-//import androidx.compose.material3.SnackbarDuration
-//import androidx.compose.material3.SnackbarHostState
-//import androidx.navigation.NavController
-//import com.example.mealflow.viewModel.LoginViewModel
-//import io.ktor.client.HttpClient
-//import io.ktor.client.call.body
-//import io.ktor.client.engine.cio.CIO
-//import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-//import io.ktor.client.request.forms.MultiPartFormDataContent
-//import io.ktor.client.request.forms.formData
-//import io.ktor.client.request.get
-//import io.ktor.client.request.post
-//import io.ktor.client.request.setBody
-//import io.ktor.client.statement.HttpResponse
-//import io.ktor.client.statement.bodyAsText
-//import io.ktor.http.ContentType
-//import io.ktor.http.Headers
-//import io.ktor.http.HttpStatusCode
-//import io.ktor.http.contentType
-//import io.ktor.http.isSuccess
-//import io.ktor.serialization.kotlinx.json.json
-//import kotlinx.coroutines.CoroutineScope
-//import kotlinx.coroutines.Dispatchers
-//import kotlinx.coroutines.launch
-//import kotlinx.coroutines.withContext
-//import kotlinx.serialization.Contextual
-//import kotlinx.serialization.Serializable
-//import kotlinx.serialization.json.Json
-//
-//// ----------------------- LoginRequest ---------------------------
-//@Serializable
-//data class CreateCommunityRequest(
-//    val name: String,
-//    val description: String,
-//    val recipeCreationPermission:String,
-//    val categories:List<String>,
-//    @Contextual val image: Uri?
-//)
-//
-//// ----------------------- LoginResponse ---------------------------
-//@Serializable
-//data class CreateCommunityResponse(
-//    val success: Boolean,
-//    val message: String,
-//    val community: Community
-//)
-//@Serializable
-//data class Community(
-//    val id: String,
-//    val name: String,
-//    val description: String,
-//    val ownerId: String,
-//    val image: String,
-//    val privacy: String,
-//    val recipeCreationPermission: String,
-//    val createdAt: String,
-//    val updatedAt: String,
-//    val categories: List<Category>,
-//    val members: List<Member>,
-//    val owner: OwnerCommunity
-//)
-//
-//@Serializable
-//data class Category(
-//    val id: String,
-//    val name: String,
-//    val parentId: String
-//)
-//
-//@Serializable
-//data class Member(
-//    val id: String,
-//    val communityId: String,
-//    val userId: String,
-//    val role: String,
-//    val joinedAt: String,
-//    val leftAt: String?,
-//    val isPending: Boolean,
-//    val user: User
-//)
-//
-//@Serializable
-//data class UserCreateCommunity(
-//    val id: String,
-//    val name: String?,
-//    val username: String
-//)
-//
-//@Serializable
-//data class OwnerCommunity(
-//    val id: String,
-//    val name: String?,
-//    val username: String
-//)
-//
-//fun createCommunityApi(
-//    context: Context,
-//    name: String,
-//    description: String,
-//    recipeCreationPermission: String,
-//    categories: List<String>,
-//    imageUri: Uri?,
-//    navController: NavController,
-//    snackbarHostState: SnackbarHostState
-//) {
-//    CoroutineScope(Dispatchers.IO).launch {
-//        val client = ApiClient.client ?: return@launch
-//        val url = "https://mealflow.ddns.net/api/v1/community"
-//
-//        try {
-//            Log.d("API", "📩 إرسال الطلب: name=$name, description=$description")
-//
-//            val response: HttpResponse = client.post(url) {
-//                contentType(ContentType.MultiPart.FormData)
-//                setBody(MultiPartFormDataContent(formData {
-//                    append("name", name)
-//                    append("description", description)
-//                    append("recipeCreationPermission", recipeCreationPermission)
-//                    categories.forEach { category ->
-//                        append("categories[]", category)
-//                    }
-//
-//                    // معالجة الصورة كملف
-//                    imageUri?.let {
-//                        val inputStream = context.contentResolver.openInputStream(it)
-//                        val bytes = inputStream?.readBytes() ?: ByteArray(0)
-//
-//                        append("image", bytes, Headers.build {
-//                            append("Content-Disposition", "form-data; name=\"image\"; filename=\"community_image.jpg\"")
-//                            append("Content-Type", "image/jpeg")
-//                        })
-//                    }
-//                }))
-//            }
-//
-//            val responseBody = Json { ignoreUnknownKeys = true }
-//                .decodeFromString<CreateCommunityResponse>(response.bodyAsText())
-//
-//            withContext(Dispatchers.Main) {
-//                snackbarHostState.showSnackbar(
-//                    message = responseBody.message,
-//                    duration = SnackbarDuration.Short
-//                )
-//
-//                if (response.status.isSuccess() && responseBody.success) {
-//                    navController.navigate("Home Page") {
-//                        popUpTo(navController.graph.startDestinationId) { inclusive = true }
-//                    }
-//                } else {
-//                    Log.e("API", "❌ فشل إنشاء المجتمع: ${responseBody.message}")
-//                }
-//            }
-//        } catch (e: Exception) {
-//            Log.e("API", "❌ خطأ أثناء إرسال الطلب: ${e.localizedMessage}", e)
-//            withContext(Dispatchers.Main) {
-//                snackbarHostState.showSnackbar(
-//                    message = "حدث خطأ أثناء الاتصال بالسيرفر: ${e.localizedMessage}",
-//                    duration = SnackbarDuration.Short
-//                )
-//            }
-//        }
-//    }
-//}
-
-
-
 package com.example.mealflow.network
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.net.Uri
 import android.util.Log
@@ -180,59 +8,42 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.navigation.NavController
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.example.mealflow.viewModel.LoginViewModel
 import io.ktor.client.HttpClient
-import io.ktor.client.call.body
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.forms.MultiPartFormDataContent
 import io.ktor.client.request.forms.formData
+import io.ktor.client.request.headers
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
-import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.Headers
-import io.ktor.http.HttpStatusCode
+import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
-import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
-import io.ktor.client.request.*
-import io.ktor.client.request.forms.InputProvider
-import io.ktor.http.*
-import io.ktor.util.InternalAPI
-import io.ktor.utils.io.streams.asInput
-import kotlinx.serialization.builtins.ListSerializer
-import kotlinx.serialization.builtins.serializer
-import java.nio.channels.ByteChannel
-import io.ktor.utils.io.*
-import io.ktor.utils.io.streams.*
-import kotlinx.coroutines.withContext
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.encodeToString
-import java.io.ByteArrayInputStream
 
-// ----------------------- LoginRequest ---------------------------
-@Serializable
-data class CreateCommunityRequest(
-    val name: String,
-    val description: String,
-    val recipeCreationPermission: String,
-    val categories: List<String>,
-    @Contextual val image: Uri?
-)
+// ----------------------- ApiCreateCommunityRequest ---------------------------
+//@Serializable
+//data class CreateCommunityRequest(
+//    val name: String,
+//    val description: String,
+//    val recipeCreationPermission: String,
+//    val categories: List<String>,
+//    @Contextual val image: Uri?
+//)
 
-// ----------------------- LoginResponse ---------------------------
+// ----------------------- ApiCreateCommunityResponse ---------------------------
 @Serializable
 data class CreateCommunityResponse(
     val success: Boolean,
@@ -242,12 +53,11 @@ data class CreateCommunityResponse(
 @Entity(tableName = "community_table")
 @Serializable
 data class Community(
-//    val id: String,
-    @PrimaryKey val id: Int,  // ✅ تم إضافة @PrimaryKey
+    @PrimaryKey val id: String,  // ✅ @PrimaryKey has been added
     val name: String,
     val description: String,
     val ownerId: String,
-    val image: String?,  // 👈 اجعلها nullable
+    val image: String?,
     val privacy: String,
     val recipeCreationPermission: String,
     val createdAt: String,
@@ -261,7 +71,7 @@ data class Community(
 data class Category(
     val id: String,
     val name: String,
-    val parentId: String? = null // اجعل الحقل اختياريًا
+    val parentId: String? = null
 )
 
 @Serializable
@@ -285,13 +95,6 @@ data class OwnerCommunity(
     val name: String?,
     val username: String
 )
-
-object JsonConfig {
-    val json = Json {
-        ignoreUnknownKeys = true
-        coerceInputValues = true
-    }
-}
 
 //@OptIn(ExperimentalSerializationApi::class)
 fun createCommunityApi(
@@ -330,7 +133,7 @@ fun createCommunityApi(
                 }
             }
 
-            val url = "https://mealflow.ddns.net/api/v1/community"
+            val url = ApiClient.Endpoints.CREATE_COMMUNITY
 
             // Prepare image for upload
             val imageFile: File? = imageUri?.let { uri ->
@@ -414,23 +217,4 @@ fun createCommunityApi(
             Log.e("CommunityCreation", "Error: ${e.localizedMessage}", e)
         }
     }
-}
-
-// ------------------ Test Function ------------------
-fun testCreateCommunityApi(
-    context: Context,
-    navController: NavController,
-    snackbarHostState: SnackbarHostState
-) {
-    createCommunityApi(
-        context = context,
-        name = "Test Community",
-        description = "This is a test community",
-        recipeCreationPermission = "all",
-        accessToken = "sfdsfdsd",
-        categories = listOf("Category1", "Category2"),
-        imageUri = null,  // لو عايز تختبر بصورة حقيقية حط الـ Uri هنا
-        navController = navController,
-        snackbarHostState = snackbarHostState
-    )
 }

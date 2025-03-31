@@ -1,9 +1,10 @@
+package com.example.mealflow.network
+
 import android.content.Context
 import android.util.Log
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.navigation.NavController
-import com.example.mealflow.network.ApiClient
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
@@ -40,7 +41,7 @@ fun registerUser(
 //            }
 //        }
         val client = ApiClient.client
-        val url = "https://mealflow.ddns.net/api/v1/users/register"
+        val url = ApiClient.Endpoints.REGISTER
 
         try {
             val response: HttpResponse = client.post(url) {
@@ -54,34 +55,34 @@ fun registerUser(
                 Json.decodeFromString<RegisterResponse>(responseBodyText).message
             } catch (e: Exception) {
                 Regex("\"message\"\\s*:\\s*\"(.*?)\"").find(responseBodyText)?.groupValues?.get(1)
-                    ?: "حدث خطأ غير معروف"
+                    ?: "An unknown error occurred."
             }
 
             Log.d("RegisterUser", "Response Status: ${response.status}")
             Log.d("RegisterUser", "Message: $message")
 
             withContext(Dispatchers.Main) {
-                // عرض الـ Snackbar هنا بعد الحصول على الرسالة
+                // Display the Snackbar here after getting the message
                 snackbarHostState.showSnackbar(
                     message = message,
                     duration = SnackbarDuration.Short
                 )
 
                 if (response.status == HttpStatusCode.OK || message == "User account created successfully. Please check your email for the verification code.") {
-                    Log.d("RegisterUser", "✅ تسجيل ناجح: التنقل إلى OtpPage")
+                    Log.d("RegisterUser", "✅ Successful registration: Navigate to OtpPage")
                     navController.navigate("Otp Page") {
                         popUpTo("Register Page") { inclusive = true }
                         launchSingleTop = true
                     }
                 } else {
-                    Log.e("RegisterUser", "❌ تسجيل فشل: $message")
+                    Log.e("RegisterUser", "❌ Registration failed:$message")
                     onError(message)
                 }
             }
         } catch (e: Exception) {
             withContext(Dispatchers.Main) {
                 snackbarHostState.showSnackbar(
-                    message = "حدث خطأ أثناء الاتصال بالسيرفر",
+                    message = "Error occurred while connecting to the server.",
                     duration = SnackbarDuration.Short
                 )
             }

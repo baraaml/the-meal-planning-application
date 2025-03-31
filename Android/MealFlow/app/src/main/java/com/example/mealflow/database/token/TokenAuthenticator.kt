@@ -42,40 +42,11 @@ suspend fun refreshAccessToken(tokenManager: TokenManager): String? {
         if (newAccessToken != null) {
             tokenManager.saveTokens(newAccessToken, refreshToken)
         } else {
-            tokenManager.clearTokens() // إذا كان هناك خطأ، امسح التوكنات
+            tokenManager.clearTokens() // If there is an error, clear the tokens.
         }
         newAccessToken
     } else {
-        tokenManager.clearTokens() // إذا كان الـ Refresh Token غير صالح، احذف التوكنات
+        tokenManager.clearTokens() // If the Refresh Token is invalid, delete the tokens.
         null
     }
 }
-
-//suspend fun refreshAccessToken(tokenManager: TokenManager): String? {
-//    val refreshToken = tokenManager.getRefreshToken() ?: return null
-//
-//    val client = HttpClient {
-//        install(ContentNegotiation) {
-//            json()
-//        }
-//    }
-//
-//    val response: HttpResponse = client.post("https://mealflow.ddns.net/api/v1/users/refresh-token") {
-//        contentType(ContentType.Application.Json)
-//        setBody(mapOf("refresh_token" to refreshToken))
-//    }
-//
-//    return if (response.status == HttpStatusCode.OK) {
-//        val json = response.body<Map<String, String>>()
-//        val newAccessToken = json["access_token"]
-//        val newRefreshToken = json["refresh_token"]
-//
-//        if (newAccessToken != null && newRefreshToken != null) {
-//            tokenManager.saveTokens(newAccessToken, newRefreshToken)
-//        }
-//        newAccessToken
-//    } else {
-//        tokenManager.clearTokens() // إذا كان الـ Refresh Token غير صالح، احذف التوكنات
-//        null
-//    }
-//}

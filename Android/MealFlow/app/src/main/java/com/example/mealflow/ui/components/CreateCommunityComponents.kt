@@ -21,30 +21,29 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Public
-import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.outlined.AddPhotoAlternate
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Restaurant
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -64,16 +63,11 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
-import com.example.mealflow.random.BottomBar
 import com.example.mealflow.viewModel.CommunityViewModel
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
 
 
 @Composable
-fun TopBarCreateCommunity(navController: NavController, textnumber: String, onClick: () -> Unit, isButtonEnabled: Boolean) {
+fun TopBarCreateCommunity(navController: NavController, textNumber: String, onClick: () -> Unit, isButtonEnabled: Boolean) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -88,14 +82,14 @@ fun TopBarCreateCommunity(navController: NavController, textnumber: String, onCl
                 .padding(end = 8.dp)
         ) {
             Icon(
-                imageVector = Icons.Default.ArrowBack,
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = "Back",
                 tint = Color.Black
             )
         }
 
         Text(
-            text = textnumber,
+            text = textNumber,
             modifier = Modifier
                 .border(1.dp, Color.Gray, RoundedCornerShape(8.dp))
                 .padding(horizontal = 12.dp, vertical = 6.dp),
@@ -133,7 +127,7 @@ fun ImagePickerSection(viewModel: CommunityViewModel) {
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-        viewModel.setImageUri(uri) // تخزين الصورة في الـ ViewModel
+        viewModel.setImageUri(uri) // Store the image in the ViewModel
     }
 
     Column(modifier = Modifier.padding(16.dp)) {
@@ -141,7 +135,7 @@ fun ImagePickerSection(viewModel: CommunityViewModel) {
             title = "Community Image",
             subtitle = "Displays at 10:3",
             onPickImage = { imagePickerLauncher.launch("image/*") },
-            selectedImageUri = viewModel.selectedImageUri // تمرير الصورة المختارة
+            selectedImageUri = viewModel.selectedImageUri // Pass the selected image
         )
     }
 }
@@ -163,7 +157,7 @@ fun ImagePickerItem(title: String, subtitle: String? = null, onPickImage: () -> 
         }
 
         Row(verticalAlignment = Alignment.CenterVertically) {
-            // عرض الصورة المختارة إذا تم تحديد صورة
+            // Display the selected image if an image is selected
             if (selectedImageUri != null) {
                 Image(
                     painter = rememberAsyncImagePainter(selectedImageUri),
@@ -176,7 +170,7 @@ fun ImagePickerItem(title: String, subtitle: String? = null, onPickImage: () -> 
                 Spacer(modifier = Modifier.width(8.dp))
             }
 
-            // زر اختيار الصورة
+            // Image selection button
             Button(
                 onClick = { onPickImage() },
                 colors = ButtonDefaults.buttonColors(containerColor = Color.DarkGray),
@@ -273,7 +267,7 @@ fun CardCommunityTest(
     imageUri: Uri?,
     modifier: Modifier = Modifier
 ) {
-    androidx.compose.material3.Card(
+    Card(
         modifier = modifier
             .width(220.dp)
             .wrapContentHeight(),
@@ -290,7 +284,7 @@ fun CardCommunityTest(
                 if (imageUri != null) {
                     Image(
                         painter = rememberAsyncImagePainter(imageUri),
-                        contentDescription = "صورة مجتمع $communityName",
+                        contentDescription = "Community image : $communityName",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize()
                     )
@@ -378,7 +372,7 @@ fun CardCommunityTest(
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "$recipes وصفة",
+                        text = "$recipes recipe",
                         style = MaterialTheme.typography.bodySmall
                     )
                 }
@@ -451,7 +445,6 @@ fun TopicCard(topic: String) {
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun PreviewFourthStep1() {
-    val communityViewModel: CommunityViewModel = viewModel()
     CommunityTopicsScreen()
 }
 

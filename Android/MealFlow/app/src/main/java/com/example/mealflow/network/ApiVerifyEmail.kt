@@ -46,32 +46,32 @@ fun verifyEmail(context: Context, otp: String, email: String, navController: Nav
     val url = "https://mealflow.ddns.net/api/v1/users/verify-email"
 
     try {
-        Log.d("API", "🔹 إرسال طلب التحقق: $url")
-        Log.d("API", "📩 بيانات الطلب: otp=$otp, email=$email")
+        Log.d("API", "🔹Send verification request: $url")
+        Log.d("API", "📩 Request data: otp=$otp, email=$email")
 
         val response: HttpResponse = client.post(url) {
             contentType(ContentType.Application.Json)
-            accept(ContentType.Application.Json) // تأكيد قبول JSON كاستجابة
+            accept(ContentType.Application.Json)// Confirm that JSON is accepted as a response
             setBody(OtpRequest(otp, email))
         }
 
         val responseText = response.bodyAsText()
-        Log.d("API", "🔹 استجابة الخادم: $responseText")
+        Log.d("API", "🔹Server response: $responseText")
         //response.status == HttpStatusCode.OK
         if (response.status == HttpStatusCode.OK || response.status == HttpStatusCode.Accepted) {
             val responseBody = Json.decodeFromString<OtpResponse>(responseText)
             if (responseBody.success) {
-                Log.d("API", "✅ التحقق ناجح! الانتقال إلى الصفحة التالية")
+                Log.d("API", "✅ Verification successful! Go to the next page")
                 navController.navigate("Test Page")
             } else {
                 Toast.makeText(context, responseBody.message, Toast.LENGTH_LONG).show()
-                Log.e("API", "❌ خطأ في التحقق: ${responseBody.message}")
+                Log.e("API", "❌ Validation error:${responseBody.message}")
             }
         } else {
-            Log.e("API", "⚠️ استجابة غير متوقعة: ${response.status}")
+            Log.e("API", "⚠️ Unexpected response: ${response.status}")
         }
     } catch (e: Exception) {
-        Toast.makeText(context, "فشل التحقق: ${e.message}", Toast.LENGTH_LONG).show()
-        Log.e("API", "❌ استثناء أثناء تنفيذ الطلب: ${e.message}")
+        Toast.makeText(context, "Verification failed: ${e.message}", Toast.LENGTH_LONG).show()
+        Log.e("API", "❌ Exception during order execution: ${e.message}")
     }
 }

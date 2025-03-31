@@ -63,7 +63,7 @@ fun FirstStep(navController: NavController, viewModel: CommunityViewModel = view
         topBar = {
             TopBarCreateCommunity(
                 navController = navController,
-                textnumber = "1 of 4",
+                textNumber = "1 of 4",
                 onClick = { if (isButtonEnabled) navController.navigate("SecondStep Page") },
                 isButtonEnabled = isButtonEnabled
             )
@@ -121,7 +121,6 @@ fun FirstStep(navController: NavController, viewModel: CommunityViewModel = view
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun PreviewFirstStepCreateCommunity() {
-    val communityViewModel: CommunityViewModel = viewModel()
     FirstStep(navController = rememberNavController())
 }
 
@@ -187,7 +186,6 @@ fun SecondStep(navController: NavController, viewModel: CommunityViewModel = vie
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun PreviewSecondStep() {
-    val communityViewModel: CommunityViewModel = viewModel()
     SecondStep(navController = rememberNavController())
 }
 
@@ -200,8 +198,8 @@ fun ThirdStep(
     val selectedTopics = remember { mutableStateListOf<String>() }
     val categoriesCommunity by viewModel.categories.observeAsState(emptyList())
 
-    // الفئات والمواضيع المتاحة
-    // الفئات والمواضيع المتاحة بناءً على البيانات الجديدة
+    // Available categories and topics
+    // Available categories and topics based on new data
     val categories = mapOf(
         "Cuisine Types" to listOf(
             "Italian Cuisine", "French Cuisine", "Mexican Cuisine", "Middle Eastern Cuisine",
@@ -318,7 +316,7 @@ fun ThirdStep(
                 .padding(paddingValues)
                 .systemBarsPadding()
                 .padding(16.dp)
-                .verticalScroll(rememberScrollState()) // ✅ تفعيل التمرير العمودي
+                .verticalScroll(rememberScrollState()) // ✅ Activate vertical scrolling
         ) {
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -358,7 +356,7 @@ fun ThirdStep(
 //                    )
 //                }
 //            }
-            // عرض المواضيع بشكل أفقي مع قابلية التمرير
+            // Display topics horizontally with scrolling
             for ((category, topics) in categories) {
                 Text(
                     text = category,
@@ -367,12 +365,12 @@ fun ThirdStep(
                     modifier = Modifier.padding(vertical = 8.dp)
                 )
 
-                // استخدام Row لعرض المواضيع جنبًا إلى جنب
+                // Use Row to display topics side by side
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState()), // قابلية التمرير الأفقي عند زيادة المواضيع
-                    horizontalArrangement = Arrangement.spacedBy(8.dp) // مسافة بين المواضيع
+                        .horizontalScroll(rememberScrollState()), // Horizontal scrolling when topics increase
+                    horizontalArrangement = Arrangement.spacedBy(8.dp) // Space between topics
                 ) {
                     for (topic in topics) {
                         SelectableTopicCard(
@@ -407,7 +405,6 @@ fun ThirdStep(
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun PreviewThirdStep() {
-    val communityViewModel: CommunityViewModel = viewModel()
     ThirdStep(navController = rememberNavController())
 }
 
@@ -507,6 +504,5 @@ fun FourthStep(
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun PreviewFourthStep() {
-    val communityViewModel: CommunityViewModel = viewModel()
     FourthStep(navController = rememberNavController())
 }

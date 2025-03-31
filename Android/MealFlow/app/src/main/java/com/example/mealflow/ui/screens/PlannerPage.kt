@@ -1,24 +1,23 @@
 package com.example.mealflow.ui.screens
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.example.mealflow.random.BottomBar
-import com.example.mealflow.viewModel.HomeViewModel
 
 @Composable
-fun PlannerPage(navController: NavController, viewModel: HomeViewModel = viewModel()) {
+fun PlannerPage() {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .navigationBarsPadding()
-            .systemBarsPadding() // ✅ يضيف مسافة بحيث لا يتداخل المحتوى مع شريط الإشعارات
+            .systemBarsPadding() // ✅ Adds space so that the content doesn't overlap the notification bar
             .padding(16.dp)
     ) {
         SectionTitle(title = "Planner Page")

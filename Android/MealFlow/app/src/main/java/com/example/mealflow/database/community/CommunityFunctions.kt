@@ -13,7 +13,7 @@ fun saveImageToInternalStorage(context: Context, bitmap: Bitmap, fileName: Strin
         val fos = FileOutputStream(file)
         bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos)
         fos.close()
-        file.absolutePath // 🔹 إرجاع المسار لحفظه في قاعدة البيانات
+        file.absolutePath // 🔹 Return the path to save it in the database
     } catch (e: IOException) {
         e.printStackTrace()
         null

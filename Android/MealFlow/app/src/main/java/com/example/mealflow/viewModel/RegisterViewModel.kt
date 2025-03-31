@@ -9,7 +9,7 @@ class RegisterViewModel : ViewModel(){
     private var _username = MutableLiveData("")
     val username: LiveData<String> get() = _username
 
-    private var _email = MutableLiveData<String>("")
+    private var _email = MutableLiveData("")
     val email: LiveData<String> get() = _email
 
     private var _password = MutableLiveData("")
@@ -20,12 +20,6 @@ class RegisterViewModel : ViewModel(){
 
     private var _passwordVisible = MutableLiveData(false)
     val passwordVisible: LiveData<Boolean> get() = _passwordVisible
-
-    private val _registrationMessage = MutableLiveData<String?>()
-    val registrationMessage: LiveData<String?> get() = _registrationMessage
-
-    private val _navigateToOtp = MutableLiveData<Boolean>()
-    val navigateToOtp: LiveData<Boolean> get() = _navigateToOtp
 
     fun updateUsername(newUsername: String) {
         _username.value = newUsername
@@ -45,15 +39,11 @@ class RegisterViewModel : ViewModel(){
     fun setEmail(newEmail: String) {
         _email.value = newEmail
     }
+
     fun getEmail(): String {
         return _email.value ?: ""
     }
 
-    private val _showErrorPopup = MutableLiveData(false)
-    val showErrorPopup: LiveData<Boolean> get() = _showErrorPopup
-
-    private val _errorMessage = MutableLiveData<String?>()
-    val errorMessage: LiveData<String?> get() = _errorMessage
 
     fun validateInputs(username: String, email: String, password: String): Boolean {
         val errors = mutableListOf<String>()
@@ -65,12 +55,6 @@ class RegisterViewModel : ViewModel(){
         usernameError?.let { errors.add(it) }
         emailError?.let { errors.add(it) }
         passwordError?.let { errors.add(it) }
-
-        if (errors.isNotEmpty()) {
-            _errorMessage.value = errors.joinToString("\n")
-            _showErrorPopup.value = true
-            return false // ❌ There are errors, do not complete the registration
-        }
 
         return true // ✅ No errors, you can continue
     }
