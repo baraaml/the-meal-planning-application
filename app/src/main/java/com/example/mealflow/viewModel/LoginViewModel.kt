@@ -1,14 +1,12 @@
 package com.example.mealflow.viewModel
 
-import android.content.Context
+//import com.example.mealflow.network.loginApi
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.NavController
-import com.example.mealflow.network.loginApi
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class LoginViewModel : ViewModel() {
     private var _email = MutableLiveData("")
@@ -19,9 +17,6 @@ class LoginViewModel : ViewModel() {
 
     private var _passwordVisible = MutableLiveData(false)
     val passwordVisible: LiveData<Boolean> get() = _passwordVisible
-
-    private val _registrationMessage = MutableLiveData<String?>()
-    val registrationMessage: LiveData<String?> get() = _registrationMessage
 
     private val _navigateToOtp = MutableLiveData<Boolean>()
     val navigateToOtp: LiveData<Boolean> get() = _navigateToOtp
@@ -34,42 +29,14 @@ class LoginViewModel : ViewModel() {
     private val _isLoading = MutableLiveData(false)
     val isLoading: LiveData<Boolean> get() = _isLoading
 
-    // This will be set to true when login is successful to trigger data fetching
-    private val _loginSuccessful = MutableLiveData<Boolean>()
-    val loginSuccessful: LiveData<Boolean> get() = _loginSuccessful
-
-    private val _loginMessage = MutableLiveData<String>()
-    val loginMessage: LiveData<String> get() = _loginMessage
 
     fun updateEmail(newEmail: String) {
         _email.value = newEmail
     }
 
+
     fun updatePassword(newPassword: String) {
         _password.value = newPassword
-    }
-
-    fun togglePasswordVisibility() {
-        _passwordVisible.value = _passwordVisible.value?.not()
-    }
-
-    fun loginButton(email: String, password: String, navController: NavController) {
-        // Set loading state to true before API call
-        _isLoading.value = true
-
-        viewModelScope.launch {
-            try {
-                loginApi(email, password, navController, this@LoginViewModel)
-            } catch (e: Exception) {
-                // If there's an exception, set error message and reset loading state
-                _loginMessage.value = "Login failed: ${e.message}"
-                _isLoading.value = false
-            }
-        }
-    }
-
-    fun setLoginMessage(message: String) {
-        _loginMessage.value = message
     }
 
     // Add a function to navigate to home screen
@@ -99,4 +66,11 @@ class LoginViewModel : ViewModel() {
     fun setLoading(isLoading: Boolean) {
         _isLoading.value = isLoading
     }
+
+    fun togglePasswordVisibility() {
+        _passwordVisible.value = _passwordVisible.value?.not()
+    }
+    // This will be set to true when login is successful to trigger data fetching
+    private val _loginSuccessful = MutableLiveData<Boolean>()
+    val loginSuccessful: LiveData<Boolean> get() = _loginSuccessful
 }

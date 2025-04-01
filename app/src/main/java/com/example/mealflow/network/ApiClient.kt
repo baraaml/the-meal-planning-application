@@ -1,4 +1,3 @@
-// Location: network/ApiClient.kt
 package com.example.mealflow.network
 
 import io.ktor.client.HttpClient
@@ -38,6 +37,14 @@ object ApiClient {
         const val VERIFY_EMAIL = "$BASE_URL/users/verify-email"
         const val FORGOT_PASSWORD = "$BASE_URL/users/forgot-password"
         const val RESET_PASSWORD = "$BASE_URL/users/reset-password"
+        const val RESET_OTP = "$BASE_URL/users/resend-verification"
+        const val CREATE_COMMUNITY = "$BASE_URL/community"
+        const val LOGOUT = "$BASE_URL/users/logout"
+        const val QUICK_LOGIN = "$BASE_URL/users/quick-login"
+
+
+
+
 
         // Meal endpoints
         const val RECOMMENDED_MEALS = "$BASE_URL/meal/recommended"

@@ -1,8 +1,8 @@
 [versions]
-agp = "8.6.1"
+agp = "8.9.1"
 coilCompose = "2.7.0"
-coreKtxVersion = "1.10.1"
-gradle = "8.6.1"
+coreKtxVersion = "1.15.0"
+gradle = "8.9.1"
 kotlin = "2.1.0"
 composeCompiler = "1.5.15"
 coreKtx = "1.15.0"
@@ -12,32 +12,32 @@ espressoCore = "3.6.1"
 kotlinGradlePlugin = "2.1.0"
 lifecycleRuntimeKtx = "2.8.7"
 activityCompose = "1.10.1"
-composeBom = "2025.03.00"
+composeBom = "2025.03.01"
 materialIconsExtended = "1.7.8"
 navigationRuntimeKtx = "2.8.9"
-navigationRuntimeAndroid = "2.9.0-alpha08"
+navigationRuntimeAndroid = "2.9.0-alpha09"
 navigationCompose = "2.8.9"
-#accompanist = "0.30.1"
+accompanist = "0.32.0"
 retrofit = "2.11.0"
 lifecycle = "2.8.7"
 ktor = "3.1.1"
 ktor-client-engine = "3.1.0"
 serialization = "1.8.0"
-#kotlinx-serialization = "1.8.0"
 runtimeLivedata = "1.7.8"
 composeVersion = "1.7.8"
-#lifecycleVersion = "2.6.2"
 navigation = "2.8.9"
 uiTextGoogleFonts = "1.7.8"
-
-
-
+room = "2.6.1"
+ksp = "2.1.0-1.0.29"
+androidx-security = "1.0.0"
+androidx-security-identity-credential = "1.0.0-alpha03"
+androidx-splashscreen = "1.0.1"
+accompanistSwipeRefresh = "0.32.0"
 
 [libraries]
 androidx-core-ktx-v1101 = { module = "androidx.core:core-ktx", version.ref = "coreKtxVersion" }
 androidx-ui-text-google-fonts = { module = "androidx.compose.ui:ui-text-google-fonts", version.ref = "uiTextGoogleFonts" }
 compose-compiler = { module = "androidx.compose.compiler:compiler", version.ref = "composeCompiler" }
-androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
 gradle = { module = "com.android.tools.build:gradle", version.ref = "gradle" }
@@ -67,20 +67,28 @@ retrofit-gson = { module = "com.squareup.retrofit2:converter-gson", version = "2
 coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version = "1.10.1" }
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor-client-engine" }
-ktor-client-serialization = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 slf4j = { module = "org.slf4j:slf4j-simple", version = "2.0.9" }
 androidx-runtime-livedata = { group = "androidx.compose.runtime", name = "runtime-livedata", version.ref = "runtimeLivedata" }
-runtime-livedata = { module = "androidx.compose.runtime:runtime-livedata", version.ref = "composeVersion" }
 navigation-fragment = { module = "androidx.navigation:navigation-fragment-ktx", version.ref = "navigation" }
 navigation-ui = { module = "androidx.navigation:navigation-ui-ktx", version.ref = "navigation" }
-kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization"}
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
+accompanist-systemuicontroller = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "accompanist" }
+room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
+room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
+room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
+ksp-plugin = { module = "com.google.devtools.ksp:symbol-processing-api", version.ref = "ksp" }
+androidx-security = { module = "androidx.security:security-crypto", version.ref = "androidx-security" }
+androidx-security-identity-credential = { module = "androidx.security:security-identity-credential", version.ref = "androidx-security-identity-credential" }
+androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "androidx-splashscreen" }
+accompanist-swiperefresh = { group = "com.google.accompanist", name = "accompanist-swiperefresh", version.ref = "accompanistSwipeRefresh" }
 
 [plugins]
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 android-application = { id = "com.android.application", version.ref = "agp" }
 jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }

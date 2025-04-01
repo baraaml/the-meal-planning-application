@@ -3,7 +3,6 @@ package com.example.mealflow.ui.screens
 import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,12 +12,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -45,14 +43,10 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.mealflow.R
 import com.example.mealflow.buttons.BackButton
-import com.example.mealflow.network.ResetPasswordApi
-import com.example.mealflow.random.OrDivider
+import com.example.mealflow.network.resetPasswordApi
 import com.example.mealflow.utils.Validator
 import com.example.mealflow.viewModel.ForgetPasswordViewModel
-import com.example.mealflow.viewModel.LoginViewModel
 
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ResetPasswordPage(navController: NavController, token: String?, viewModel: ForgetPasswordViewModel = viewModel()) {
     Log.d("ResetPasswordPage", "Received token: $token")
@@ -67,7 +61,8 @@ fun ResetPasswordPage(navController: NavController, token: String?, viewModel: F
     val repassword by viewModel.repassword.observeAsState("")
     val tokenValue by viewModel.token.observeAsState("")
     val isLoading by viewModel.isLoading.observeAsState(false)
-    val errorMessage by viewModel.errorMessage.observeAsState("")
+    // snackbarHostState and CoroutineScope
+    val snackbarHostState = remember { SnackbarHostState() }
 
     val passwordError = Validator.validatePassword(password)
     var isFocusedPassword by remember { mutableStateOf(false) }
@@ -144,7 +139,7 @@ fun ResetPasswordPage(navController: NavController, token: String?, viewModel: F
         // Re-enter Password Field
         OutlinedTextField(
             value = repassword,
-            onValueChange = { viewModel.updateRepassword(it) },
+            onValueChange = { viewModel.updaterepassword(it) },
             label = { Text("Re-Enter your password") },
             trailingIcon = {
                 Icon(
@@ -182,26 +177,27 @@ fun ResetPasswordPage(navController: NavController, token: String?, viewModel: F
             )
         }
 
-        // API error message display
-        if (errorMessage.isNotEmpty()) {
-            Text(
-                text = errorMessage,
-                modifier = Modifier
-                    .padding(start = 24.dp, end = 24.dp, top = 10.dp),
-                color = Color.Red,
-                fontSize = 14.sp
-            )
-        }
+//        // API error message display
+//        if (errorMessage?.isNotEmpty()) {
+//            Text(
+//                text = errorMessage,
+//                modifier = Modifier
+//                    .padding(start = 24.dp, end = 24.dp, top = 10.dp),
+//                color = Color.Red,
+//                fontSize = 14.sp
+//            )
+//        }
 
         // Submit Button with loading state
         Button(
             onClick = {
                 if (isFormValid) {
                     // Use the stored token value
-                    ResetPasswordApi(tokenValue ?: "", password, navController, viewModel)
-                } else {
-                    viewModel.setErrorMessage("Please fix the validation errors before submitting")
+                    resetPasswordApi(tokenValue ?: "", password, navController, snackbarHostState)
                 }
+//                else {
+//                    viewModel.setErrorMessage("Please fix the validation errors before submitting")
+//                }
             },
             modifier = Modifier
                 .padding(start = 20.dp, end = 20.dp, top = 100.dp)
@@ -228,3 +224,10 @@ fun ResetPasswordPage(navController: NavController, token: String?, viewModel: F
     }
 }// the password now is reset
 // after this the user should be redirected to the home page
+
+@Preview(showSystemUi = true, showBackground = true)
+@Composable
+fun ResetPasswordPagePreview()
+{
+    ResetPasswordPage(navController = rememberNavController(),"456456")
+}

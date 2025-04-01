@@ -1,21 +1,18 @@
+
 package com.example.mealflow.network
 
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
 import androidx.navigation.NavController
-import io.ktor.client.request.accept
-import io.ktor.client.request.post
-import io.ktor.client.request.setBody
-import io.ktor.client.statement.HttpResponse
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.ContentType
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.contentType
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import io.ktor.client.*
+import io.ktor.client.engine.cio.*
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
+import io.ktor.serialization.kotlinx.json.*
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
@@ -23,7 +20,7 @@ import kotlinx.serialization.json.Json
 data class OtpRequest(val otp: String, val email: String)
 
 @Serializable
-data class OtpResponse(val success: Boolean, val message: String, val data: AuthData? = null)
+data class OtpResponse(val success: Boolean, val message: String,  val data: AuthData? = null)
 
 @Serializable
 data class AuthData(
@@ -39,41 +36,42 @@ data class User(
     val isVerified: Boolean
 )
 
-fun verifyEmail(context: Context, otp: String, email: String, navController: NavController) {
-    CoroutineScope(Dispatchers.IO).launch {
-        try {
-            Log.d("API", "🔹 إرسال طلب التحقق: ${ApiClient.Endpoints.VERIFY_EMAIL}")
-            Log.d("API", "📩 بيانات الطلب: otp=$otp, email=$email")
-
-            val response: HttpResponse = ApiClient.client.post(ApiClient.Endpoints.VERIFY_EMAIL) {
-                contentType(ContentType.Application.Json)
-                accept(ContentType.Application.Json)
-                setBody(OtpRequest(otp, email))
-            }
-
-            val responseText = response.bodyAsText()
-            Log.d("API", "🔹 استجابة الخادم: $responseText")
-            
-            withContext(Dispatchers.Main) {
-                if (response.status == HttpStatusCode.OK || response.status == HttpStatusCode.Accepted) {
-                    val responseBody = Json.decodeFromString<OtpResponse>(responseText)
-                    if (responseBody.success) {
-                        Log.d("API", "✅ التحقق ناجح! الانتقال إلى الصفحة التالية")
-                        navController.navigate("Test Page")
-                    } else {
-                        Toast.makeText(context, responseBody.message, Toast.LENGTH_LONG).show()
-                        Log.e("API", "❌ خطأ في التحقق: ${responseBody.message}")
-                    }
-                } else {
-                    Log.e("API", "⚠️ استجابة غير متوقعة: ${response.status}")
-                }
-            }
-        } catch (e: Exception) {
-            withContext(Dispatchers.Main) {
-                Toast.makeText(context, "فشل التحقق: ${e.message}", Toast.LENGTH_LONG).show()
-                Log.e("API", "❌ استثناء أثناء تنفيذ الطلب: ${e.message}")
-            }
+fun verifyEmail(context: Context, otp: String, email: String, navController: NavController) = runBlocking {
+    val client = HttpClient(CIO) {
+        install(ContentNegotiation) {
+            json(Json { ignoreUnknownKeys = true })
         }
-        // No need to close the client as it's shared
+    }
+
+    val url = "https://mealflow.ddns.net/api/v1/users/verify-email"
+
+    try {
+        Log.d("API", "🔹Send verification request: $url")
+        Log.d("API", "📩 Request data: otp=$otp, email=$email")
+
+        val response: HttpResponse = client.post(url) {
+            contentType(ContentType.Application.Json)
+            accept(ContentType.Application.Json)// Confirm that JSON is accepted as a response
+            setBody(OtpRequest(otp, email))
+        }
+
+        val responseText = response.bodyAsText()
+        Log.d("API", "🔹Server response: $responseText")
+        //response.status == HttpStatusCode.OK
+        if (response.status == HttpStatusCode.OK || response.status == HttpStatusCode.Accepted) {
+            val responseBody = Json.decodeFromString<OtpResponse>(responseText)
+            if (responseBody.success) {
+                Log.d("API", "✅ Verification successful! Go to the next page")
+                navController.navigate("Home Page")
+            } else {
+                Toast.makeText(context, responseBody.message, Toast.LENGTH_LONG).show()
+                Log.e("API", "❌ Validation error:${responseBody.message}")
+            }
+        } else {
+            Log.e("API", "⚠️ Unexpected response: ${response.status}")
+        }
+    } catch (e: Exception) {
+        Toast.makeText(context, "Verification failed: ${e.message}", Toast.LENGTH_LONG).show()
+        Log.e("API", "❌ Exception during order execution: ${e.message}")
     }
 }

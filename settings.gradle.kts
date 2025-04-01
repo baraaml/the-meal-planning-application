@@ -20,6 +20,6 @@ dependencyResolutionManagement {
 }
 
 
+
 rootProject.name = "Meal Flow"
 include(":app")
- 

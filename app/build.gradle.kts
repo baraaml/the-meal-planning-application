@@ -3,8 +3,8 @@ plugins {
     alias(libs.plugins.jetbrains.kotlin.android)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.ksp)
 }
-
 
 android {
     namespace = "com.example.mealflow"
@@ -32,19 +32,24 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
+
     kotlinOptions {
         jvmTarget = "1.8"
     }
+
     buildFeatures {
         compose = true
     }
+
     composeOptions {
         kotlinCompilerExtensionVersion = libs.versions.composeCompiler.get()
     }
+
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -52,53 +57,73 @@ android {
     }
 }
 
-dependencies {
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
 
-    implementation(libs.androidx.core.ktx)
+dependencies {
+    // Core Android dependencies
+    implementation(libs.androidx.core.ktx.v1101)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
+
+    // Compose dependencies
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    implementation(libs.androidx.navigation.runtime.ktx)
-    implementation(libs.androidx.navigation.runtime.android)//new
-    implementation(libs.androidx.navigation.compose)//new
-
-
-    // Coil for image loading
-    // For Coil with Compose
-
-    implementation(libs.coil.compose) // Use the latest version
     implementation(libs.androidx.material.icons.extended)
-
-    // Retrofit
-    implementation(libs.retrofit)
-    // Retrofit with Scalar Converter
-    implementation(libs.retrofit.converter.scalars)
-    implementation(libs.lifecycle.viewmodel) // لاستخدام ViewModel العادي
-    implementation(libs.lifecycle.viewmodel.compose) // لاستخدام ViewModel مع Jetpack Compose
-    implementation(libs.gson) // مكتبة Gson
-    implementation(libs.retrofit) // Retrofit
-    implementation(libs.retrofit.gson) // Gson Converter لـ Retrofit
-    implementation(libs.coroutines.android) // دعم Coroutines في Android
-    implementation(libs.ktor.client.core)
-    implementation(libs.ktor.client.cio) //
-    implementation(libs.ktor.client.serialization)
-    implementation(libs.ktor.serialization.kotlinx.json) // Kotlinx JSON
-    implementation(libs.ktor.client.logging) // لتسجيل الطلبات (اختياري)
-    implementation(libs.ktor.client.content.negotiation)
-    implementation(libs.slf4j)
-    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.androidx.ui.text.google.fonts)
     implementation(libs.androidx.runtime.livedata)
-    implementation(libs.lifecycle.viewmodel.compose)
-    implementation(libs.runtime.livedata)
+
+    // Navigation
+    implementation(libs.androidx.navigation.runtime.ktx)
+    implementation(libs.androidx.navigation.runtime.android)
+    implementation(libs.androidx.navigation.compose)
     implementation(libs.navigation.fragment)
     implementation(libs.navigation.ui)
 
-    implementation(libs.androidx.ui.text.google.fonts)
+    // Image loading
+    implementation(libs.coil.compose)
 
+    // Network and API
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.converter.scalars)
+    implementation(libs.retrofit.gson)
+    implementation(libs.gson)
+
+    // Coroutines
+    implementation(libs.coroutines.android)
+
+    // Ktor client
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.cio)
+    implementation(libs.ktor.serialization.kotlinx.json)
+    implementation(libs.ktor.client.logging)
+    implementation(libs.ktor.client.content.negotiation)
+    implementation(libs.slf4j)
+
+    // Serialization
+    implementation(libs.kotlinx.serialization.json)
+
+    // ViewModel
+    implementation(libs.lifecycle.viewmodel)
+    implementation(libs.lifecycle.viewmodel.compose)
+
+    // Room Database
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    ksp(libs.room.compiler)
+
+    // UI & System features
+    implementation(libs.androidx.security)
+    implementation(libs.androidx.security.identity.credential)
+    implementation(libs.androidx.core.splashscreen)
+    implementation(libs.accompanist.systemuicontroller)
+    implementation(libs.accompanist.swiperefresh)
+
+    // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -106,7 +131,4 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-    implementation(libs.androidx.core.ktx.v1101)
-
-
 }

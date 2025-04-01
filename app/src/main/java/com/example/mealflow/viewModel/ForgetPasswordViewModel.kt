@@ -1,5 +1,6 @@
 package com.example.mealflow.viewModel
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -18,27 +19,11 @@ class ForgetPasswordViewModel : ViewModel() {
     private var _passwordVisible = MutableLiveData(false)
     val passwordVisible: LiveData<Boolean> get() = _passwordVisible
 
-    private val _forgetPasswordMessage = MutableLiveData<String?>()
-    val forgetPasswordMessage: LiveData<String?> get() = _forgetPasswordMessage
-
-    private val _navigateToOtp = MutableLiveData<Boolean>()
-    val navigateToOtp: LiveData<Boolean> get() = _navigateToOtp
-
-    // Token handling
+    // 🔹 Add a variable `token`
     private val _token = MutableLiveData<String?>()
     val token: LiveData<String?> get() = _token
 
-    private val _showErrorPopup = MutableLiveData(false)
-    val showErrorPopup: LiveData<Boolean> get() = _showErrorPopup
-
-    // Loading state
-    private val _isLoading = MutableLiveData(false)
-    val isLoading: LiveData<Boolean> = _isLoading
-
-    // Error message - combined the two declarations
-    private val _errorMessage = MutableLiveData<String>()
-    val errorMessage: LiveData<String> get() = _errorMessage
-
+    // 🔹 function to update `token`
     fun updateToken(newToken: String) {
         _token.value = newToken
     }
@@ -47,54 +32,45 @@ class ForgetPasswordViewModel : ViewModel() {
         _password.value = newPassword
     }
 
+    // Add loading state
+    private val _isLoading = MutableLiveData(false)
+    val isLoading: LiveData<Boolean> get() = _isLoading
+
     fun updateEmail(newEmail: String) {
         _email.value = newEmail
     }
 
-    fun updateRepassword(newRepassword: String) {
-        _repassword.value = newRepassword
+    fun updaterepassword(newrepassword: String) {
+        _repassword.value = newrepassword
     }
 
     fun togglePasswordVisibility() {
         _passwordVisible.value = _passwordVisible.value?.not()
     }
 
-    fun toggleShowErrorPopupVisibility() {
-        _showErrorPopup.value = _showErrorPopup.value?.not()
-    }
 
-    fun validateInputs(email: String, password: String, repassword: String): Boolean {
+    fun validateInputs(username: String, email: String, password: String): Boolean {
         val errors = mutableListOf<String>()
 
+        val usernameError = Validator.validateUsername(username)
         val emailError = Validator.validateEmail(email)
         val passwordError = Validator.validatePassword(password)
 
-        // Check if passwords match
-        if (password != repassword) {
-            errors.add("Passwords do not match")
-        }
-
+        usernameError?.let { errors.add(it) }
         emailError?.let { errors.add(it) }
         passwordError?.let { errors.add(it) }
 
-        if (errors.isNotEmpty()) {
-            _errorMessage.value = errors.joinToString("\n")
-            _showErrorPopup.value = true
-            return false
-        }
-
-        return true
-    }
-
-    fun dismissErrorPopup() {
-        _showErrorPopup.value = false
+        return true // ✅ No errors, can continue
     }
 
     fun setLoading(loading: Boolean) {
+        Log.d("LOADING_STATE", "🔄 isLoading = $loading") // ✅ تتبع التحديثات
         _isLoading.value = loading
     }
+    private val _navigateToTestPage = MutableLiveData<Boolean>(false)
+    val navigateToTestPage: LiveData<Boolean> = _navigateToTestPage
 
-    fun setErrorMessage(message: String) {
-        _errorMessage.value = message
+    fun setNavigateToTestPage(navigate: Boolean) {
+        _navigateToTestPage.value = navigate
     }
 }

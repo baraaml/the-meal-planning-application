@@ -1,7 +1,7 @@
 package com.example.mealflow.ui.screens
 
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,9 +11,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -29,6 +30,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -41,33 +43,47 @@ import com.example.mealflow.network.forgetPasswordApi
 import com.example.mealflow.utils.Validator
 import com.example.mealflow.viewModel.ForgetPasswordViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
+
+// ----------------------- Forget Password Page ---------------------------
 @Composable
-fun ForgetPasswordPage(navController: NavController,viewModel: ForgetPasswordViewModel = viewModel())
+fun ForgetPasswordPage(
+    navController: NavController,
+    viewModel: ForgetPasswordViewModel = viewModel()
+)
 {
+    // ----------------------- Variables ---------------------------
     val email by viewModel.email.observeAsState("")
     val emailError = Validator.validateEmail(email)
     var isFocusedEmail by remember { mutableStateOf(false) }
     val isLoading by viewModel.isLoading.observeAsState(false)
+    val shouldNavigate by viewModel.navigateToTestPage.observeAsState(false)
 
+    // snackbarHostState and CoroutineScope
+    val snackbarHostState = remember { SnackbarHostState() }
+    //val coroutineScope = rememberCoroutineScope()
+    Box{
         Column {
+            // ----------------------- Back Button ---------------------------
             Row(
                 Modifier
                     .fillMaxWidth()
-                    .padding(top = 20.dp), horizontalArrangement = Arrangement.Start) {
-                BackButton(onClick = {
-                    navController.navigate("Home Page")
-                })
+                    .padding(top = 20.dp), horizontalArrangement = Arrangement.Start
+            ) {
+                BackButton(
+                    onClick = { navController.popBackStack() }
+                )
             }
+            // ----------------------- Forgotten Password Text -----------------------------
             Text(
                 text = stringResource(id = R.string.ForgottenPassword),
-                Modifier
-                    .align(Alignment.Start)
-                    .padding(start = 20.dp, bottom = 10.dp),
+                Modifier.padding(start = 20.dp, top = 50.dp, bottom = 20.dp),
                 fontSize = 25.sp,
+                fontWeight = FontWeight.Bold,
                 fontFamily = FontFamily(Font(R.font.sf_pro_rounded_heavy)),
-
             )
+            // ----------------------- InputFields ---------------------------
+            // ---------------------------------------------------------------
+            // Input field ------------------ Email -----------------------
             OutlinedTextField(
                 value = email,
                 onValueChange = { viewModel.updateEmail(it) },
@@ -76,18 +92,18 @@ fun ForgetPasswordPage(navController: NavController,viewModel: ForgetPasswordVie
                         stringResource(id = R.string.EnterEmail),
                         fontFamily = FontFamily(Font(R.font.sf_reg_ita))
                     )
-                        },
+                },
                 singleLine = true,
                 textStyle = TextStyle(color = Color.Black),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = if (emailError != null) Color.Red else Color.Blue,  // لون الحدود عند التركيز
+                    focusedBorderColor = if (emailError != null) Color.Red else Color.Blue,
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 20.dp, end = 20.dp)
+                    .padding(start = 20.dp, top = 20.dp, end = 20.dp)
                     .onFocusChanged { isFocusedEmail = it.isFocused }
             )
-
+            // Text ------------------ Email Error -----------------------
             if (isFocusedEmail && emailError != null) {
                 Text(
                     text = emailError,
@@ -97,15 +113,25 @@ fun ForgetPasswordPage(navController: NavController,viewModel: ForgetPasswordVie
                     fontSize = 12.sp
                 )
             }
+            //-----------------------------------------------------------------------------------------------------
+            //-----------------------------------------------------------------------------------------------------
+            // Button ------------------ Reset your Password -------------------------------------------------------------------
 
+            // Add this somewhere in your ForgetPasswordPage for testing
+//            Button(
+//                onClick = { navController.navigate("Test Page") },
+//                modifier = Modifier.padding(8.dp)
+//            ) {
+//                Text("Test Navigation")
+//            }
             Button(
                 onClick = {
-                    if(emailError == null) {
-                        forgetPasswordApi(email, navController, viewModel)
+                    if (emailError == null) {
+                        forgetPasswordApi(email, navController,snackbarHostState)
                     }
                 },
                 Modifier
-                    .padding(start = 20.dp, end = 20.dp, top = 20.dp)
+                    .padding(start = 20.dp, end = 20.dp, top = 100.dp)
                     .align(alignment = Alignment.CenterHorizontally)
                     .fillMaxWidth(),
                 shape = RoundedCornerShape(8.dp),
@@ -130,11 +156,16 @@ fun ForgetPasswordPage(navController: NavController,viewModel: ForgetPasswordVie
                 }
             }
         }
+    }
 }
 
+//------------------------------------------------------------------
+//------------------------------------------------------------------
 @Preview(showSystemUi = true, showBackground = true)
 @Composable
 fun ForgetPasswordPagePreview()
 {
     ForgetPasswordPage(navController = rememberNavController())
 }
+//------------------------------------------------------------------
+//------------------------------------------------------------------

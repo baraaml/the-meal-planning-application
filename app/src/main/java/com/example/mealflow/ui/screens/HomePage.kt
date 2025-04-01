@@ -49,8 +49,14 @@ import com.example.mealflow.viewModel.MealViewModel
 import java.util.Calendar
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import com.example.mealflow.data.model.Ingredient
+import com.example.mealflow.data.model.Interactions
+import com.example.mealflow.data.model.Note
+import com.example.mealflow.data.model.User
 
 @Composable
 fun HomePage(
@@ -385,4 +391,62 @@ fun HomeMealCard(
             }
         }
     }
+}
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun PreviewHomeScreen() {
+    val sampleMeals = listOf(
+        Meal(
+            mealId = "1",
+            name = "Spaghetti",
+            description = "Delicious spaghetti with tomato sauce",
+            imageUrl = "https://via.placeholder.com/150",
+            tags = listOf("Italian", "Pasta"),
+            ingredients = listOf(
+                Ingredient(name = "Spaghetti", quantity = 200.0, unit = "grams"),
+                Ingredient(name = "Tomato Sauce", quantity = 100.0, unit = "ml")
+            ),
+            instructions = listOf("Boil water", "Add pasta", "Cook sauce", "Mix together"),
+            cookware = listOf("Pot", "Pan"),
+            preparationTime = 10,
+            cookingTime = 15,
+            servings = 2,
+            caloriesPerServing = 350,
+            rating = 4.5,
+            reviewsCount = 100,
+            createdBy = User(userId = "user_123", username = "ChefMaster"),
+            isFavorited = true,
+            isSaved = false,
+            notes = listOf(
+                Note(
+                    noteId = "note_1",
+                    user = User(userId = "user_456", username = "Foodie123"),
+                    comment = "Loved it!",
+                    didCook = true,
+                    likes = 10,
+                    dislikes = 1
+                )
+            ),
+            interactions = Interactions(views = 500, likes = 50, dislikes = 2, shares = 5),
+            createdAt = "2023-01-01",
+            updatedAt = "2023-01-02"
+        )
+    )
+
+    HomePage(
+        meals = sampleMeals,
+        userName = "Abdelrahman",
+        onMealClick = { /* Do nothing for preview */ }
+    )
+}
+
+@Composable
+fun SectionTitle(title: String) {
+    Text(
+        text = title,
+        fontSize = 20.sp,
+        fontWeight = FontWeight.Bold,
+        modifier = Modifier.padding(vertical = 8.dp)
+    )
 }

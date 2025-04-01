@@ -29,8 +29,7 @@ fun SucResPasPage(){
             fontSize = 20.sp,
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxWidth()
-                .padding(bottom = 50.dp)
+                .padding(50.dp)
         )
         Button(
             onClick = {}

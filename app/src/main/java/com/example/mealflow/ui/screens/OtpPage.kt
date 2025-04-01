@@ -1,6 +1,6 @@
 package com.example.mealflow.ui.screens
 
-import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,12 +13,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,8 +43,14 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.mealflow.R
 import com.example.mealflow.buttons.DynamicButton
+import com.example.mealflow.network.resetOtpApi
 import com.example.mealflow.network.verifyEmail
 import com.example.mealflow.viewModel.RegisterViewModel
+import kotlinx.coroutines.delay
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+
 
 // ----------------------- Otp Page ---------------------------
 // ----------------------- Function to display text with otp input ---------------------------
@@ -71,77 +81,136 @@ fun PreviewOtpPage()
     OtpPage(navController = rememberNavController(),testViewModel)
 }
 
-// ----------------------- Function to implement OTP input ---------------------------
+
 @Composable
 fun OTPInputField(
     otpLength: Int = 6,
     onOtpEntered: (String) -> Unit
 ) {
-    // Single text field for OTP
-    var otpValue by remember { mutableStateOf("") }
+    // ----------------------- Variables ---------------------------
+    var otpValues by remember { mutableStateOf(List(otpLength) { "" }) }
+    val focusRequesters = List(otpLength) { remember { FocusRequester() } }
 
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
+    Row(
+        horizontalArrangement = Arrangement.Center,
         modifier = Modifier.fillMaxWidth()
     ) {
-        OutlinedTextField(
-            value = otpValue,
-            onValueChange = { newValue ->
-                // Only allow digits and limit to otpLength
-                if (newValue.all { it.isDigit() } && newValue.length <= otpLength) {
-                    otpValue = newValue
+        otpValues.forEachIndexed { index, value ->
+            OutlinedTextField(
+                value = value,
+                onValueChange = { newValue ->
+                    // Handle paste in first field
+                    if (index == 0 && newValue.length > 1 && newValue.all { it.isDigit() }) {
+                        // Handle paste operation
+                        val pastedOtp = newValue.take(otpLength)
+                        val newOtpValues = List(otpLength) { i ->
+                            if (i < pastedOtp.length) pastedOtp[i].toString() else ""
+                        }
+                        otpValues = newOtpValues
 
-                    // Trigger callback when complete code is entered
-                    if (newValue.length == otpLength) {
-                        onOtpEntered(newValue)
+                        // Focus on the appropriate field after pasting
+                        if (pastedOtp.length < otpLength) {
+                            focusRequesters[pastedOtp.length].requestFocus()
+                        }
+
+                        // Notify if we have a complete OTP
+                        if (pastedOtp.length == otpLength) {
+                            onOtpEntered(pastedOtp)
+                        }
+                    } else if (newValue.length <= 1 && newValue.all { it.isDigit() }) {
+                        // Normal single digit input handling
+                        val newOtpValues = otpValues.toMutableList()
+                        newOtpValues[index] = newValue
+                        otpValues = newOtpValues
+
+                        // Auto-advance focus when entering a digit
+                        if (newValue.isNotEmpty() && index < otpLength - 1) {
+                            focusRequesters[index + 1].requestFocus()
+                        }
+
+                        // Notify if we have a complete OTP
+                        if (otpValues.joinToString("").length == otpLength) {
+                            onOtpEntered(otpValues.joinToString(""))
+                        }
                     }
-                }
-            },
-            singleLine = true,
-            keyboardOptions = KeyboardOptions.Default.copy(
-                keyboardType = KeyboardType.Number
-            ),
-            modifier = Modifier
-                .height(55.dp)
-                .fillMaxWidth()
-                .padding(start = 20.dp, end = 20.dp),
-            textStyle = TextStyle(
-                fontSize = 18.sp,
-                textAlign = TextAlign.Center,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black
-            ),
-            label = { Text("Enter verification code") },
-            placeholder = { Text("123456") }
-        )
+                },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    keyboardType = KeyboardType.Number
+                ),
+                modifier = Modifier
+                    .width(50.dp)
+                    .height(55.dp)
+                    .focusRequester(focusRequesters[index])
+                    .padding(4.dp)
+                    // Add key event handler for backspace navigation
+                    .onKeyEvent { keyEvent ->
+                        if (keyEvent.key == Key.Backspace && value.isEmpty() && index > 0) {
+                            // Move focus to previous field when backspace is pressed on an empty field
+                            focusRequesters[index - 1].requestFocus()
+                            true
+                        } else {
+                            false
+                        }
+                    },
+                textStyle = TextStyle(
+                    fontSize = 15.sp,
+                    textAlign = TextAlign.Center,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
+                )
+            )
+        }
     }
 }
-
-// Update the OTPVerificationScreen function to use the new OTPInputField
 @Composable
 fun OTPVerificationScreen(navController: NavController, viewModel: RegisterViewModel) {
     var otp by remember { mutableStateOf("") }
     val context = LocalContext.current
     val email by viewModel.email.observeAsState("")
+    var timer by remember { mutableIntStateOf(60) }
+    var canResend by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+
+    LaunchedEffect(key1 = timer) {
+        if (timer > 0) {
+            delay(1000L)
+            timer--
+        } else {
+            canResend = true
+        }
+    }
 
     Column(
         verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(text = stringResource(id = R.string.check_email), fontSize = 20.sp)
         Spacer(modifier = Modifier.height(16.dp))
-
-        // Single text field for OTP
         OTPInputField(onOtpEntered = { otp = it })
-
         Spacer(modifier = Modifier.height(16.dp))
-
         DynamicButton(
-            onClick = {
-                verifyEmail(context, otp, email, navController)
-            },
+            onClick = { verifyEmail(context, otp, email, navController) },
             textOnButton = stringResource(id = R.string.Verification),
             buttonWidthDynamic = 200
         )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        if (canResend) {
+            Text(
+                text = "Resend OTP",
+                style = TextStyle(fontWeight = FontWeight.Bold, fontSize = 16.sp),
+                modifier = Modifier.clickable {
+                    timer = 60
+                    canResend = false
+                    // You can add any page reset operation here
+                    resetOtpApi(email, navController, snackbarHostState,coroutineScope)
+                }
+            )
+        } else {
+            Text(text = "Resend after: $timer seconds", fontSize = 14.sp)
+        }
     }
 }
