@@ -29,14 +29,14 @@ fun MealItem(meal: Meal, onClick: () -> Unit) {
         Column(modifier = Modifier.fillMaxWidth()) {
             // Display meal image with safe handling
             AsyncImage(
-                model = meal.imageUrl.takeIf { meal.imageUrl.isNotBlank() } ?: R.drawable.android_robot,
+                model = meal.imageUrl.takeIf { meal.imageUrl.isNotBlank() } ?: R.drawable.neptune_placeholder_48,
                 contentDescription = meal.name,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(150.dp),
                 contentScale = ContentScale.Crop,
-                placeholder = painterResource(id = R.drawable.android_robot),
-                error = painterResource(id = R.drawable.android_robot)
+                placeholder = painterResource(id = R.drawable.neptune_placeholder_48),
+                error = painterResource(id = R.drawable.neptune_placeholder_48)
             )
 
             Column(modifier = Modifier.fillMaxWidth().padding(12.dp)) {
