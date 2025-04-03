@@ -22,4 +22,8 @@ interface CommunityDao {
 
     @Query("SELECT * FROM communities ")
     suspend fun getCommunityId(): List<GetCommunityEntity>
+
+    @Query("SELECT * FROM communities WHERE id = :communityId")
+    suspend fun getCommunityWithID(communityId: String): GetCommunityEntity?
+
 }

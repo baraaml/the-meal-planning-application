@@ -123,6 +123,8 @@ dependencies {
     implementation(libs.accompanist.systemuicontroller)
     implementation(libs.accompanist.swiperefresh)
 
+    implementation(libs.androidx.datastore)
+
     // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

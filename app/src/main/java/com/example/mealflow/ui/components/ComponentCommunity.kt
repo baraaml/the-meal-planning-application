@@ -24,6 +24,7 @@ import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Restaurant
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -42,12 +43,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.compose.rememberNavController
+import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.mealflow.R
+import com.example.mealflow.database.UserPreferencesManager
 import com.example.mealflow.database.token.TokenManager
 import com.example.mealflow.network.joinCommunityApi
 import com.example.mealflow.ui.screens.CommunityData
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @Composable
 fun CardCommunity(
@@ -56,13 +61,15 @@ fun CardCommunity(
     members: Int,
     recipes: Int,
     onJoinClick: () -> Unit,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    androidx.compose.material3.Card(
+    Card(
         modifier = modifier
             .width(220.dp)
             .wrapContentHeight(),
         shape = RoundedCornerShape(16.dp),
+        onClick = onClick,
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
@@ -174,12 +181,11 @@ fun CardCommunity(
 
 // ---------------------------------------- Login Page -------------------------------------------
 @Composable
-fun CommunityList(communities: List<CommunityData>) {
+fun CommunityList(communities: List<CommunityData>, navController: NavController) {
     val context = LocalContext.current
     val tokenManager = TokenManager(context)
     val accessToken = tokenManager.getAccessToken()
     val snackbarHostState = remember { SnackbarHostState() }
-    val navController = rememberNavController()
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
@@ -214,6 +220,7 @@ fun CommunityList(communities: List<CommunityData>) {
 //                )
 //            }
 //        }
+        val userPreferencesManager = remember { UserPreferencesManager(context) }
         LazyRow(
             modifier = Modifier.fillMaxWidth(),
             contentPadding = PaddingValues(horizontal = 16.dp),
@@ -228,6 +235,12 @@ fun CommunityList(communities: List<CommunityData>) {
                     {
                         joinCommunityApi(community.id,context,snackbarHostState)
                     },
+                    {
+                        CoroutineScope(Dispatchers.IO).launch {
+                            userPreferencesManager.saveCommunityId(community.id)
+                        }
+                        navController.navigate("main screen")
+                    }
                 )
             }
         }

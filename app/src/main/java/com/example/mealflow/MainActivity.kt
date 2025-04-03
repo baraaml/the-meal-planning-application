@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import android.view.Window
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -63,15 +64,15 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import com.example.mealflow.database.CommunityDatabase
+import com.example.mealflow.database.UserPreferencesManager
 import com.example.mealflow.database.community.CommunityRepository
 import com.example.mealflow.database.token.TokenManager
 import com.example.mealflow.network.CommunityApiService
 import com.example.mealflow.ui.screens.CommunityPage
-import com.example.mealflow.ui.screens.FirstStep
 import com.example.mealflow.ui.screens.ForgetPasswordPage
-import com.example.mealflow.ui.screens.FourthStep
 import com.example.mealflow.ui.screens.HomePage
 import com.example.mealflow.ui.screens.LoginPage
+import com.example.mealflow.ui.screens.MainScreen
 import com.example.mealflow.ui.screens.MarketPage
 import com.example.mealflow.ui.screens.MealDetailScreen
 import com.example.mealflow.ui.screens.OtpPage
@@ -81,10 +82,12 @@ import com.example.mealflow.ui.screens.QuickLoginPage
 import com.example.mealflow.ui.screens.RegisterPage
 import com.example.mealflow.ui.screens.ResetPasswordPage
 import com.example.mealflow.ui.screens.SearchPage
-import com.example.mealflow.ui.screens.SecondStep
 import com.example.mealflow.ui.screens.StartPage
-import com.example.mealflow.ui.screens.ThirdStep
 import com.example.mealflow.ui.screens.TopBar
+import com.example.mealflow.ui.screens.createCommunity.FirstStep
+import com.example.mealflow.ui.screens.createCommunity.FourthStep
+import com.example.mealflow.ui.screens.createCommunity.SecondStep
+import com.example.mealflow.ui.screens.createCommunity.ThirdStep
 import com.example.mealflow.ui.theme.MealFlowTheme
 import com.example.mealflow.viewModel.CommunityViewModel
 import com.example.mealflow.viewModel.GetCommunityViewModel
@@ -105,8 +108,12 @@ data class BottomNavigationItem(
 )
 
 class MainActivity : ComponentActivity() {
+    private lateinit var userPreferencesManager: UserPreferencesManager
     override fun onCreate(savedInstanceState: Bundle?) {
 
+        this.requestWindowFeature(Window.FEATURE_NO_TITLE);
+
+        userPreferencesManager = UserPreferencesManager(this)
 
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -160,7 +167,7 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                AppNavHost(navController, viewModel, loginViewModel)
+                AppNavHost(navController, viewModel, loginViewModel,userPreferencesManager)
             }
         }
     }
@@ -171,7 +178,8 @@ class MainActivity : ComponentActivity() {
 fun AppNavHost(
     navController: NavHostController,
     mealViewModel: MealViewModel,
-    loginViewModel: LoginViewModel
+    loginViewModel: LoginViewModel,
+    userPreferencesManager: UserPreferencesManager
 ) {
     val registerViewModel: RegisterViewModel = viewModel()
     val communityViewModel: CommunityViewModel = viewModel()
@@ -342,9 +350,12 @@ fun AppNavHost(
             composable("Planner Page") {
                 PlannerPage()
             }
-
             composable("Market Page") {
                 MarketPage(navController)
+            }
+            composable("main screen")
+            {
+                MainScreen(viewModelGetCommunity)
             }
             composable(
                 route = "meal_detail/{mealId}",

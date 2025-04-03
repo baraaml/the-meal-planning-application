@@ -33,6 +33,7 @@ androidx-security = "1.0.0"
 androidx-security-identity-credential = "1.0.0-alpha03"
 androidx-splashscreen = "1.0.1"
 accompanistSwipeRefresh = "0.32.0"
+datastore = "1.0.0"
 
 [libraries]
 androidx-core-ktx-v1101 = { module = "androidx.core:core-ktx", version.ref = "coreKtxVersion" }
@@ -85,6 +86,7 @@ androidx-security = { module = "androidx.security:security-crypto", version.ref 
 androidx-security-identity-credential = { module = "androidx.security:security-identity-credential", version.ref = "androidx-security-identity-credential" }
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "androidx-splashscreen" }
 accompanist-swiperefresh = { group = "com.google.accompanist", name = "accompanist-swiperefresh", version.ref = "accompanistSwipeRefresh" }
+androidx-datastore = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }
 
 [plugins]
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }

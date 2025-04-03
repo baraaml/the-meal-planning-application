@@ -53,5 +53,8 @@ class CommunityRepository(
     suspend fun getCommunitiesFromFlow(): List<GetCommunityEntity> {
         return communityDao.getAllCommunities().first() // Converts Flow to List
     }
+    suspend fun getCommunitiesFromDBWithId(communityId: String): GetCommunityEntity? {
+        return communityDao.getCommunityWithID(communityId)
+    }
 
 }

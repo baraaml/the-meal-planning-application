@@ -4,12 +4,69 @@
     <shared>
       <config />
     </shared>
+    <layouts>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/xml/locale_config.xml">
+        <config>
+          <theme>@style/Theme.MealFlow</theme>
+        </config>
+      </layout>
+    </layouts>
   </component>
   <component name="AutoImportSettings">
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="00899f72-2a81-42a2-b05c-d8860b419ced" name="Changes" comment="" />
+    <list default="true" id="c27443f1-8784-4399-8d5f-2eb0a7fa1a11" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/../../.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/../../.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../.idea/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/../../.idea/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../.idea/AndroidProjectSystem.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../../.idea/AndroidProjectSystem.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../../.idea/gradle.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../.idea/kotlinc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../../.idea/kotlinc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../.idea/migrations.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../../.idea/migrations.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../../.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../.idea/runConfigurations.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../../.idea/runConfigurations.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../../.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../.kotlin/errors/errors-1740540710768.log" beforeDir="false" afterPath="$PROJECT_DIR$/../../.kotlin/errors/errors-1740540710768.log" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../.kotlin/errors/errors-1740540887017.log" beforeDir="false" afterPath="$PROJECT_DIR$/../../.kotlin/errors/errors-1740540887017.log" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../.kotlin/errors/errors-1740541186978.log" beforeDir="false" afterPath="$PROJECT_DIR$/../../.kotlin/errors/errors-1740541186978.log" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../.kotlin/errors/errors-1740541232571.log" beforeDir="false" afterPath="$PROJECT_DIR$/../../.kotlin/errors/errors-1740541232571.log" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../.kotlin/errors/errors-1740541311092.log" beforeDir="false" afterPath="$PROJECT_DIR$/../../.kotlin/errors/errors-1740541311092.log" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../.kotlin/errors/errors-1740541381350.log" beforeDir="false" afterPath="$PROJECT_DIR$/../../.kotlin/errors/errors-1740541381350.log" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../.kotlin/errors/errors-1740541398186.log" beforeDir="false" afterPath="$PROJECT_DIR$/../../.kotlin/errors/errors-1740541398186.log" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../.kotlin/errors/errors-1740541636274.log" beforeDir="false" afterPath="$PROJECT_DIR$/../../.kotlin/errors/errors-1740541636274.log" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../app/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/../../app/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../app/proguard-rules.pro" beforeDir="false" afterPath="$PROJECT_DIR$/../../app/proguard-rules.pro" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../app/schemas/com.example.mealflow.database.CommunityDatabase/1.json" beforeDir="false" afterPath="$PROJECT_DIR$/../../app/schemas/com.example.mealflow.database.CommunityDatabase/1.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../app/src/androidTest/java/com/example/mealflow/ExampleInstrumentedTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../../app/src/androidTest/java/com/example/mealflow/ExampleInstrumentedTest.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/MainActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/MainActivity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/database/community/CommunityDao.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/database/community/CommunityDao.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/database/community/CommunityRepository.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/database/community/CommunityRepository.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/ui/components/ComponentCommunity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/ui/components/ComponentCommunity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/ui/components/CreateCommunityComponents.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/ui/components/CreateCommunityComponents.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/ui/screens/CommunityPage.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/ui/screens/CommunityPage.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/ui/screens/CreateCommunityPages.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/ui/screens/CreateCommunityPages.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/ui/screens/Profile.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/ui/screens/Profile.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/ui/theme/Theme.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/ui/theme/Theme.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/viewModel/GetCommunityViewModel.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/viewModel/GetCommunityViewModel.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/drawable/ic_launcher_background.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../../app/src/main/res/drawable/ic_launcher_background.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/drawable/ic_launcher_foreground.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../../app/src/main/res/drawable/ic_launcher_foreground.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../../app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../../app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/values-ar/strings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../../app/src/main/res/values-ar/strings.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/values/colors.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../../app/src/main/res/values/colors.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/values/strings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../../app/src/main/res/values/strings.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/xml/backup_rules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../../app/src/main/res/xml/backup_rules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/xml/data_extraction_rules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../../app/src/main/res/xml/data_extraction_rules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/xml/locale_config.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../../app/src/main/res/xml/locale_config.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../app/src/test/java/com/example/mealflow/ExampleUnitTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/../../app/src/test/java/com/example/mealflow/ExampleUnitTest.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/../../build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../gradle.properties" beforeDir="false" afterPath="$PROJECT_DIR$/../../gradle.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../gradle/libs.versions.toml" beforeDir="false" afterPath="$PROJECT_DIR$/../../gradle/libs.versions.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../gradle/wrapper/gradle-wrapper.properties" beforeDir="false" afterPath="$PROJECT_DIR$/../../gradle/wrapper/gradle-wrapper.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../gradlew" beforeDir="false" afterPath="$PROJECT_DIR$/../../gradlew" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../gradlew.bat" beforeDir="false" afterPath="$PROJECT_DIR$/../../gradlew.bat" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../settings.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/../../settings.gradle.kts" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -27,12 +84,33 @@
   <component name="ExternalProjectsManager">
     <system id="GRADLE">
       <state>
+        <task path="$PROJECT_DIR$/app">
+          <activation />
+        </task>
         <projects_view>
           <tree_state>
             <expand>
               <path>
                 <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
                 <item name="Meal Flow" type="f1a62948:ProjectNode" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="Meal Flow" type="f1a62948:ProjectNode" />
+                <item name="app" type="2d1252cf:ModuleNode" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="Meal Flow" type="f1a62948:ProjectNode" />
+                <item name="app" type="2d1252cf:ModuleNode" />
+                <item name="Tasks" type="e4a08cd1:TasksNode" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="Meal Flow" type="f1a62948:ProjectNode" />
+                <item name="app" type="2d1252cf:ModuleNode" />
+                <item name="Tasks" type="e4a08cd1:TasksNode" />
+                <item name="other" type="c8890929:TasksNode$1" />
               </path>
             </expand>
             <select />
@@ -41,30 +119,92 @@
       </state>
     </system>
   </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+        <option value="valueResourceFile" />
+        <option value="resourceFile" />
+        <option value="Kotlin Class" />
+        <option value="Kotlin File" />
+      </list>
+    </option>
+  </component>
+  <component name="GenerateSignedApkSettings">
+    <option name="BUILD_TARGET_KEY" value="apk" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$/../.." value="release1.2.1" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../.." />
+  </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
   <component name="ProjectColorInfo">{
-  &quot;associatedIndex&quot;: 1
+  &quot;associatedIndex&quot;: 5
 }</component>
-  <component name="ProjectId" id="2vBU1Tp9hFWpdxxWskYZJIQfj48" />
+  <component name="ProjectId" id="2t2yPrVU3pkWugoqPyQQEW611Wb" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Android App.app.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.cidr.known.project.marker": "true",
-    "RunOnceActivity.readMode.enableVisualFormatting": "true",
-    "cf.first.check.clang-format": "false",
-    "cidr.known.project.marker": "true",
-    "com.google.services.firebase.aqiPopupShown": "true",
-    "dart.analysis.tool.window.visible": "false",
-    "last_opened_file_path": "D:/Android/app/release/the-meal-planning-application-release1.2",
-    "show.migrate.to.gradle.popup": "false"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Android App.app.executor&quot;: &quot;Run&quot;,
+    &quot;ApkExportedModule&quot;: &quot;Meal_Flow.app&quot;,
+    &quot;Compose Preview.MyTextField.executor&quot;: &quot;Run&quot;,
+    &quot;Kotlin.ApiRegisterKt.executor&quot;: &quot;Coverage&quot;,
+    &quot;Kotlin.TestApiKt.executor&quot;: &quot;Coverage&quot;,
+    &quot;Kotlin.TestKt.executor&quot;: &quot;Run&quot;,
+    &quot;ResourceManagerPrefKey.ResourceType&quot;: &quot;DRAWABLE&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.readMode.enableVisualFormatting&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;android.gradle.sync.needed&quot;: &quot;true&quot;,
+    &quot;cf.first.check.clang-format&quot;: &quot;false&quot;,
+    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;com.google.services.firebase.aqiPopupShown&quot;: &quot;true&quot;,
+    &quot;dart.analysis.tool.window.visible&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;release1.2&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/Android/مجلد جديد/1.2/meal planning&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Suggestions&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.17&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.language.Kotlin&quot;,
+    &quot;show.migrate.to.gradle.popup&quot;: &quot;false&quot;
   }
-}]]></component>
-  <component name="RunManager">
-    <configuration name="app" type="AndroidRunConfigurationType" factoryName="Android App" activateToolWindowBeforeRun="false">
+}</component>
+  <component name="PsdUISettings">
+    <option name="MODULE_TAB" value="Properties" />
+    <option name="LAST_EDITED_SIGNING_CONFIG" value="debug" />
+    <option name="LAST_EDITED_BUILD_TYPE" value="release" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\abdo6\Documents\GitHub\meal planning\Android\MealFlow\app\src\main\java\com\example\mealflow\ui\components" />
+      <recent name="C:\Users\abdo6\Documents\GitHub\meal planning\Android\MealFlow\app\src\main\res" />
+      <recent name="C:\Users\abdo6\Documents\GitHub\meal planning\Android\MealFlow\app\src\main\java\com\example\mealflow\ui\screens" />
+      <recent name="C:\Users\abdo6\Documents\GitHub\meal planning\Android\MealFlow\app\src\main\java\com\example\mealflow\ui1\components" />
+      <recent name="C:\Users\abdo6\Documents\GitHub\meal planning\Android\MealFlow\app\src\main\java\com\example\mealflow\viewModel" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\abdo6\Documents\GitHub\meal planning\Android\MealFlow\app\src\main\java\com\example\mealflow\database\community" />
+      <recent name="C:\Users\abdo6\Documents\GitHub\meal planning\Android\MealFlow\app\src\main\java\com\example\mealflow\ui\components" />
+      <recent name="D:\Android\MealFlow\app\src\main\res\fonts" />
+    </key>
+    <key name="CopyKotlinDeclarationDialog.RECENTS_KEY">
+      <recent name="com.example.mealflow.network" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Android App.app">
+    <configuration name="app" type="AndroidRunConfigurationType" factoryName="Android App">
       <module name="Meal_Flow.app" />
       <option name="ANDROID_RUN_CONFIGURATION_SCHEMA_VERSION" value="1" />
       <option name="DEPLOY" value="true" />
@@ -136,29 +276,148 @@
         <option name="Android.Gradle.BeforeRunTask" enabled="true" />
       </method>
     </configuration>
+    <configuration name="MyTextField" type="ComposePreviewRunConfiguration" singleton="false" temporary="true">
+      <module name="Meal_Flow.app" />
+      <option name="ANDROID_RUN_CONFIGURATION_SCHEMA_VERSION" value="1" />
+      <option name="DEPLOY" value="true" />
+      <option name="DEPLOY_APK_FROM_BUNDLE" value="false" />
+      <option name="DEPLOY_AS_INSTANT" value="false" />
+      <option name="ARTIFACT_NAME" value="" />
+      <option name="PM_INSTALL_OPTIONS" value="" />
+      <option name="ALL_USERS" value="false" />
+      <option name="ALWAYS_INSTALL_WITH_PM" value="false" />
+      <option name="ALLOW_ASSUME_VERIFIED" value="false" />
+      <option name="CLEAR_APP_STORAGE" value="false" />
+      <option name="DYNAMIC_FEATURES_DISABLED_LIST" value="" />
+      <option name="ACTIVITY_EXTRA_FLAGS" value="--es composable com.example.mealflow.MainActivityKt.MyTextField" />
+      <option name="MODE" value="specific_activity" />
+      <option name="RESTORE_ENABLED" value="false" />
+      <option name="RESTORE_FILE" value="" />
+      <option name="RESTORE_FRESH_INSTALL_ONLY" value="false" />
+      <option name="CLEAR_LOGCAT" value="false" />
+      <option name="SHOW_LOGCAT_AUTOMATICALLY" value="false" />
+      <option name="TARGET_SELECTION_MODE" value="DEVICE_AND_SNAPSHOT_COMBO_BOX" />
+      <option name="SELECTED_CLOUD_MATRIX_CONFIGURATION_ID" value="-1" />
+      <option name="SELECTED_CLOUD_MATRIX_PROJECT_ID" value="" />
+      <option name="DEBUGGER_TYPE" value="Auto" />
+      <Auto>
+        <option name="USE_JAVA_AWARE_DEBUGGER" value="false" />
+        <option name="SHOW_STATIC_VARS" value="true" />
+        <option name="WORKING_DIR" value="" />
+        <option name="TARGET_LOGGING_CHANNELS" value="lldb process:gdb-remote packets" />
+        <option name="SHOW_OPTIMIZED_WARNING" value="true" />
+        <option name="ATTACH_ON_WAIT_FOR_DEBUGGER" value="false" />
+        <option name="DEBUG_SANDBOX_SDK" value="false" />
+      </Auto>
+      <Hybrid>
+        <option name="USE_JAVA_AWARE_DEBUGGER" value="false" />
+        <option name="SHOW_STATIC_VARS" value="true" />
+        <option name="WORKING_DIR" value="" />
+        <option name="TARGET_LOGGING_CHANNELS" value="lldb process:gdb-remote packets" />
+        <option name="SHOW_OPTIMIZED_WARNING" value="true" />
+        <option name="ATTACH_ON_WAIT_FOR_DEBUGGER" value="false" />
+        <option name="DEBUG_SANDBOX_SDK" value="false" />
+      </Hybrid>
+      <Java>
+        <option name="ATTACH_ON_WAIT_FOR_DEBUGGER" value="false" />
+        <option name="DEBUG_SANDBOX_SDK" value="false" />
+      </Java>
+      <Native>
+        <option name="USE_JAVA_AWARE_DEBUGGER" value="false" />
+        <option name="SHOW_STATIC_VARS" value="true" />
+        <option name="WORKING_DIR" value="" />
+        <option name="TARGET_LOGGING_CHANNELS" value="lldb process:gdb-remote packets" />
+        <option name="SHOW_OPTIMIZED_WARNING" value="true" />
+        <option name="ATTACH_ON_WAIT_FOR_DEBUGGER" value="false" />
+        <option name="DEBUG_SANDBOX_SDK" value="false" />
+      </Native>
+      <Profilers>
+        <option name="ADVANCED_PROFILING_ENABLED" value="false" />
+        <option name="STARTUP_PROFILING_ENABLED" value="false" />
+        <option name="STARTUP_CPU_PROFILING_ENABLED" value="false" />
+        <option name="STARTUP_CPU_PROFILING_CONFIGURATION_NAME" value="Java/Kotlin Method Sample (legacy)" />
+        <option name="STARTUP_NATIVE_MEMORY_PROFILING_ENABLED" value="false" />
+        <option name="NATIVE_MEMORY_SAMPLE_RATE_BYTES" value="2048" />
+      </Profilers>
+      <option name="DEEP_LINK" value="" />
+      <option name="ACTIVITY" value="" />
+      <option name="ACTIVITY_CLASS" value="androidx.compose.ui.tooling.PreviewActivity" />
+      <option name="SEARCH_ACTIVITY_IN_GLOBAL_SCOPE" value="true" />
+      <option name="SKIP_ACTIVITY_VALIDATION" value="false" />
+      <compose-preview-run-configuration composable-fqn="com.example.mealflow.MainActivityKt.MyTextField" />
+      <method v="2">
+        <option name="Android.Gradle.BeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ApiRegisterKt" type="JetRunConfigurationType" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="ApiRegisterKt" />
+      <module name="Meal_Flow.app.main" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestApiKt" type="JetRunConfigurationType" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="TestApiKt" />
+      <module name="Meal_Flow.app.main" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="TestKt" type="JetRunConfigurationType" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="com.example.mealflow.network.TestKt" />
+      <module name="Meal_Flow.app.main" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Kotlin.TestKt" />
+        <item itemvalue="Kotlin.TestApiKt" />
+        <item itemvalue="Kotlin.ApiRegisterKt" />
+        <item itemvalue="Compose Preview.MyTextField" />
+        <item itemvalue="Kotlin.ApiRegisterKt" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="00899f72-2a81-42a2-b05c-d8860b419ced" name="Changes" comment="" />
-      <created>1743617746040</created>
+      <changelist id="c27443f1-8784-4399-8d5f-2eb0a7fa1a11" name="Changes" comment="" />
+      <created>1739564442515</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
-      <updated>1743617746040</updated>
+      <updated>1739564442515</updated>
     </task>
     <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/Meal_Flow$TestKt.ic" NAME="TestKt Coverage Results" MODIFIED="1740585678949" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="true" />
+    <SUITE FILE_PATH="coverage/Meal_Flow$ApiRegisterKt.ic" NAME="ApiRegisterKt Coverage Results" MODIFIED="1740597306461" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="true" />
+    <SUITE FILE_PATH="coverage/Meal_Flow$TestApiKt.ic" NAME="TestApiKt Coverage Results" MODIFIED="1740592429211" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="true" />
   </component>
   <component name="play_dynamic_filters_status">
     <option name="appIdToCheckInfo">
       <map>
         <entry key="com.example.mealflow">
           <value>
-            <CheckInfo lastCheckTimestamp="1743618400824" />
+            <CheckInfo lastCheckTimestamp="1743529032459" />
           </value>
         </entry>
         <entry key="com.example.mealflow.test">
           <value>
-            <CheckInfo lastCheckTimestamp="1743618400824" />
+            <CheckInfo lastCheckTimestamp="1743529032459" />
           </value>
         </entry>
       </map>

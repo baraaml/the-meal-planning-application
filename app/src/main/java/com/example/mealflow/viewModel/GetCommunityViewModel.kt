@@ -1,6 +1,8 @@
 package com.example.mealflow.viewModel
 
 import android.util.Log
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mealflow.database.community.CommunityRepository
@@ -14,6 +16,14 @@ import kotlinx.coroutines.launch
 class GetCommunityViewModel(private val repository: CommunityRepository) : ViewModel() {
     private val _communities = MutableStateFlow<List<GetCommunityEntity>>(emptyList())
     val communities: StateFlow<List<GetCommunityEntity>> = _communities.asStateFlow()
+
+    private var _selectCommunity = MutableLiveData("")
+    val selectCommunity: LiveData<String> get() = _selectCommunity
+
+    fun updateSelectCommunity(newSelectCommunity: String) {
+        _selectCommunity.value = newSelectCommunity
+    }
+
 
     init {
         Log.d("GetCommunityViewModel", "ViewModel initialized, calling fetchCommunities()")
@@ -42,6 +52,25 @@ class GetCommunityViewModel(private val repository: CommunityRepository) : ViewM
             _communities.value = updatedData // Update the StateFlow with new data
         }
     }
+
+
+    private val _communityData = MutableStateFlow<GetCommunityEntity?>(null)
+    val communityData: StateFlow<GetCommunityEntity?> = _communityData.asStateFlow()
+
+    fun getCommunityById(communityId: String) {
+        viewModelScope.launch {
+            _communityData.value = repository.getCommunitiesFromDBWithId(communityId)
+        }
+    }
+
+//    var communityData: GetCommunityEntity? = null
+//
+//    // استدعاء بيانات المجتمع بناءً على الـ communityId
+//    fun getCommunityById(communityId: String) {
+//        viewModelScope.launch {
+//            communityData = repository.getCommunitiesFromDBWithId(communityId)
+//        }
+//    }
 
 //    fun fetchAndStoreCommunities() {
 //        viewModelScope.launch {

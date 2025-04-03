@@ -1,5 +1,6 @@
 package com.example.mealflow.ui.screens
 
+import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -16,6 +17,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
@@ -23,6 +28,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Tab
@@ -54,7 +60,6 @@ import com.example.mealflow.R
 import com.example.mealflow.network.logoutApi
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfilePage(navController: NavController) {
     var selectedTabIndex by remember { mutableIntStateOf(0) }
@@ -64,49 +69,10 @@ fun ProfilePage(navController: NavController) {
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        IconButton(onClick = {}) {
-                            Icon(
-                                painter = painterResource(id = android.R.drawable.ic_menu_revert),
-                                contentDescription = "Back",
-                                tint = Color.White
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Profile", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                    }
-                },
-                colors = TopAppBarDefaults.mediumTopAppBarColors(containerColor = Color.Black),
-                actions = {
-                    IconButton(onClick = { expanded = true }) {
-                        Icon(
-                            painter = painterResource(id = android.R.drawable.ic_menu_more),
-                            contentDescription = "More",
-                            tint = Color.White
-                        )
-                    }
-                    DropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false }
-                    ) {
-                        DropdownMenuItem(text = { Text("Settings") }, onClick = { expanded = false })
-                        DropdownMenuItem(
-                            text = { Text("Logout") },
-                            onClick = {
-                                expanded = false
-                                logoutApi(
-                                    context,
-                                    navController,
-                                    snackbarHostState
-                                )
-                            })
-                    }
-                }
+            TopBarProfile(
+                context,
+                navController,
+                snackbarHostState
             )
         }
     ) { paddingValues ->
@@ -115,7 +81,7 @@ fun ProfilePage(navController: NavController) {
                 .fillMaxSize()
                 .background(
                     brush = Brush.verticalGradient(
-                        colors = listOf(Color.Black, Color.DarkGray)
+                        colors = listOf(Color.DarkGray, Color.White)
                     )
                 )
                 .padding(paddingValues)
@@ -145,8 +111,8 @@ fun ProfilePage(navController: NavController) {
 //                        .border(3.dp, Color.White, CircleShape)
 //                )
                 Column(horizontalAlignment = Alignment.Start) {
-                    Text("Berivan Kul", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold)
-                    Text("bitesofberi", color = Color.Gray, fontSize = 18.sp)
+                    Text("Abdelrahman", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                    Text("123456789", color = Color.Gray, fontSize = 18.sp)
                     Spacer(modifier = Modifier.height(8.dp))
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         Text("0 Following", color = Color.White, fontSize = 16.sp)
@@ -201,10 +167,75 @@ fun ProfilePage(navController: NavController) {
 fun PreviewProfileScreen() {
     ProfilePage(navController = rememberNavController())
 }
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TopBarProfile(
+    context: Context,
+    navController: NavController,
+    snackbarHostState: SnackbarHostState
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    TopAppBar(
+        title = {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                IconButton(onClick = { /* Handle back action */ }) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back",
+                        tint = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    "Profile",
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(1f) // لجعل العنوان يتمدد ويكون بمحاذاة أفضل
+                )
+            }
+        },
+        colors = TopAppBarDefaults.mediumTopAppBarColors(
+            containerColor = MaterialTheme.colorScheme.error
+        ),
+        actions = {
+            IconButton(onClick = { expanded = true }) {
+                Icon(
+                    imageVector = Icons.Default.MoreVert,
+                    contentDescription = "More",
+                    tint = MaterialTheme.colorScheme.onPrimary
+                )
+            }
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                modifier = Modifier.background(MaterialTheme.colorScheme.surface)
+            ) {
+                DropdownMenuItem(
+                    text = { Text("Settings", fontSize = 16.sp) },
+                    onClick = { expanded = false },
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                )
+                DropdownMenuItem(
+                    text = { Text("Logout", fontSize = 16.sp, color = Color.Red) },
+                    onClick = {
+                        expanded = false
+                        logoutApi(context, navController, snackbarHostState)
+                    },
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                )
+            }
+        }
+    )
+}
+
 @Composable
 fun ActivityTabContent() {
     Column(modifier = Modifier.fillMaxWidth()) {
-        Text("Activity Content Here", color = Color.White, fontSize = 16.sp)
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(12.dp),

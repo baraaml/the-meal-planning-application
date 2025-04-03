@@ -11,15 +11,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
-    primary = com.example.mealflow.ui.theme.Purple80,
-    secondary = com.example.mealflow.ui.theme.PurpleGrey80,
-    tertiary = com.example.mealflow.ui.theme.Pink80
+    primary = Purple80,
+    secondary = PurpleGrey80,
+    tertiary = Pink80
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = com.example.mealflow.ui.theme.Purple40,
-    secondary = com.example.mealflow.ui.theme.PurpleGrey40,
-    tertiary = com.example.mealflow.ui.theme.Pink40
+    primary = Purple40,
+    secondary = PurpleGrey40,
+    tertiary = Pink40
 
     /* Other default colors to override
     background = Color(0xFFFFFBFE),

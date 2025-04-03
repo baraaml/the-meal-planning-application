@@ -74,7 +74,7 @@ fun CommunityPage(
                 ) {
                     items(1) {
                         SearchBar()
-                        CommunityList(communities = formattedCommunities)
+                        CommunityList(communities = formattedCommunities,navController)
                         PostCommunity()
                         PostUser()
                         PostUser()
