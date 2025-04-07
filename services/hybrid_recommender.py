@@ -33,7 +33,7 @@ class HybridRecommender(BaseRecommender):
     def get_recommendations(
         self, 
         user_id: Optional[str] = None,
-        content_id: Optional[str] = None,
+        meal_id: Optional[str] = None,
         content_type: Optional[str] = None,
         limit: int = DEFAULT_RECOMMENDATION_LIMIT,
         **kwargs
@@ -43,7 +43,7 @@ class HybridRecommender(BaseRecommender):
         
         Args:
             user_id: The ID of the user for personalized recommendations
-            content_id: Optional content ID for similar content recommendations
+            meal_id: Optional content ID for similar content recommendations
             content_type: Optional content type filter
             limit: Maximum number of recommendations
             
@@ -75,7 +75,7 @@ class HybridRecommender(BaseRecommender):
             
             if recent_interactions:
                 recent = recent_interactions[0]
-                content_id = recent['content_id']
+                meal_id = recent['meal_id']
                 content_type_for_content = recent['content_type']
                 
                 # Get additional recommendations based on this content
@@ -84,7 +84,7 @@ class HybridRecommender(BaseRecommender):
                 
                 remaining = limit - len(recommended_items)
                 content_based_items = self.content_based_recommender.get_recommendations(
-                    content_id=content_id,
+                    meal_id=meal_id,
                     content_type=content_type_for_content,
                     limit=remaining,
                     **kwargs

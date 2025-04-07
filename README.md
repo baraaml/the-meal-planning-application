@@ -96,7 +96,7 @@ Get personalized recommendations for a user with options to use hybrid, user-bas
 ### Similar Content
 
 ```
-GET /recommend/similar/{content_type}/{content_id}?limit=10&similarity_method=content
+GET /recommend/similar/{content_type}/{meal_id}?limit=10&similarity_method=content
 ```
 
 Get content similar to the specified item. Choose between content-based similarity (using embeddings) or interaction-based similarity (based on co-occurrence patterns).
@@ -124,7 +124,7 @@ POST /interactions
 
 {
   "user_id": "123",
-  "content_id": "456",
+  "meal_id": "456",
   "content_type": "post",
   "interaction_type": "view"
 }

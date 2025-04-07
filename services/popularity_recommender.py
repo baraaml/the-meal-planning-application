@@ -25,7 +25,7 @@ class PopularityRecommender(BaseRecommender):
     def get_recommendations(
         self, 
         user_id: Optional[str] = None,
-        content_id: Optional[str] = None,
+        meal_id: Optional[str] = None,
         content_type: Optional[str] = None,
         limit: int = DEFAULT_RECOMMENDATION_LIMIT,
         time_window: str = "day",
@@ -37,7 +37,7 @@ class PopularityRecommender(BaseRecommender):
         
         Args:
             user_id: Optional user ID (used for filtering recommendations)
-            content_id: Not used for popularity recommendations
+            meal_id: Not used for popularity recommendations
             content_type: Optional content type filter ('post', 'community', 'all')
             limit: Maximum number of recommendations
             time_window: Time window for trending content ('day', 'week', 'month')

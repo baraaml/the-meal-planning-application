@@ -5,17 +5,17 @@ Endpoints for finding content similar to a given item.
 from fastapi import APIRouter, Depends, Query, HTTPException, status
 from typing import Optional
 
-from api.base import get_db, validate_content_type
+from base import get_db, validate_content_type
 from services.content_based_recommender import ContentBasedRecommender
 from services.item_based_recommender import ItemBasedRecommender
 from config.settings import DEFAULT_RECOMMENDATION_LIMIT
 
 router = APIRouter(prefix="/recommend", tags=["recommendations"])
 
-@router.get("/similar/{content_type}/{content_id}")
+@router.get("/similar/{content_type}/{meal_id}")
 def get_similar_content(
     content_type: str,
-    content_id: str,
+    meal_id: str,
     limit: int = Query(DEFAULT_RECOMMENDATION_LIMIT, description="Maximum number of similar items"),
     similarity_method: str = Query("content", description="Method to determine similarity (content, interaction)"),
     db=Depends(get_db)
@@ -29,7 +29,7 @@ def get_similar_content(
     
     Parameters:
     - content_type: Type of content ('post' or 'community')
-    - content_id: ID of the content item
+    - meal_id: ID of the content item
     - limit: Maximum number of similar items to return
     - similarity_method: Method to determine similarity (content, interaction)
     
@@ -54,7 +54,7 @@ def get_similar_content(
     
     # Get similar content
     similar_items = recommender.get_recommendations(
-        content_id=content_id,
+        meal_id=meal_id,
         content_type=content_type,
         limit=limit
     )

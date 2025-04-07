@@ -94,12 +94,12 @@ class EmbeddingGenerator:
         embedding = self.model.encode(text)
         return embedding.tolist()
     
-    def generate_embedding_for_content(self, content_id: str, content_type: str, text: str) -> bool:
+    def generate_embedding_for_content(self, meal_id: str, content_type: str, text: str) -> bool:
         """
         Generate and store an embedding for specific content.
         
         Args:
-            content_id: The ID of the content
+            meal_id: The ID of the content
             content_type: The type of content
             text: The text to encode
             
@@ -107,7 +107,7 @@ class EmbeddingGenerator:
             Success status
         """
         embedding = self.model.encode(text)
-        return self.repository.save_embedding(content_id, content_type, embedding.tolist())
+        return self.repository.save_embedding(meal_id, content_type, embedding.tolist())
     
     def generate_all_embeddings(self) -> Dict[str, int]:
         """

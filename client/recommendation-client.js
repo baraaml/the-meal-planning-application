@@ -85,7 +85,7 @@ async function recordInteraction(userId, contentId, contentType, interactionType
       },
       body: JSON.stringify({
         user_id: userId,
-        content_id: contentId,
+        meal_id: contentId,
         content_type: contentType,
         interaction_type: interactionType
       })

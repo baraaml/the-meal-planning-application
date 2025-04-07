@@ -127,7 +127,7 @@ Request body:
 ```json
 {
   "user_id": "123",
-  "content_id": "post-456",
+  "meal_id": "post-456",
   "content_type": "post",
   "interaction_type": "view"
 }
@@ -135,7 +135,7 @@ Request body:
 
 Parameters:
 - `user_id`: The ID of the user
-- `content_id`: The ID of the content
+- `meal_id`: The ID of the content
 - `content_type`: The type of content (post, community, comment)
 - `interaction_type`: The type of interaction (view, click, vote, etc.)
 

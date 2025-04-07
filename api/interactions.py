@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from typing import Optional
 
-from api.base import get_db, validate_content_type
+from base import get_db, validate_content_type
 from data.repositories.interaction_repository import InteractionRepository
 
 router = APIRouter(tags=["interactions"])
@@ -14,7 +14,7 @@ router = APIRouter(tags=["interactions"])
 class InteractionCreate(BaseModel):
     """Request model for creating an interaction record."""
     user_id: str
-    content_id: str
+    meal_id: str
     content_type: str
     interaction_type: str
 
@@ -28,7 +28,7 @@ def record_interaction(
     
     Parameters:
     - user_id: ID of the user
-    - content_id: ID of the content
+    - meal_id: ID of the content
     - content_type: Type of content ('post', 'community', 'comment')
     - interaction_type: Type of interaction ('view', 'click', 'vote', etc.)
     
@@ -45,7 +45,7 @@ def record_interaction(
     repository = InteractionRepository()
     success = repository.record_interaction(
         user_id=interaction.user_id,
-        content_id=interaction.content_id,
+        meal_id=interaction.meal_id,
         content_type=interaction.content_type,
         interaction_type=interaction.interaction_type
     )

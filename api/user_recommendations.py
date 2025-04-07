@@ -5,7 +5,7 @@ Endpoints for personalized user recommendations.
 from fastapi import APIRouter, Depends, Query, HTTPException, status
 from typing import Optional, List, Dict, Any
 
-from api.base import get_db, validate_content_type
+from base import get_db, validate_content_type
 from services.hybrid_recommender import HybridRecommender
 from services.item_based_recommender import ItemBasedRecommender
 from services.collaborative_recommender import CollaborativeRecommender

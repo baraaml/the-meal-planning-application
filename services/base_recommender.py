@@ -12,7 +12,7 @@ class BaseRecommender(ABC):
     def get_recommendations(
         self, 
         user_id: Optional[str] = None,
-        content_id: Optional[str] = None,
+        meal_id: Optional[str] = None,
         content_type: Optional[str] = None,
         limit: int = 10,
         **kwargs
@@ -22,7 +22,7 @@ class BaseRecommender(ABC):
         
         Args:
             user_id: Optional user ID for personalized recommendations
-            content_id: Optional content ID for similar content recommendations
+            meal_id: Optional content ID for similar content recommendations
             content_type: Optional content type filter
             limit: Maximum number of recommendations to return
             kwargs: Additional strategy-specific parameters

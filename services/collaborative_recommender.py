@@ -25,7 +25,7 @@ class CollaborativeRecommender(BaseRecommender):
     def get_recommendations(
         self, 
         user_id: Optional[str] = None,
-        content_id: Optional[str] = None,
+        meal_id: Optional[str] = None,
         content_type: Optional[str] = None,
         limit: int = DEFAULT_RECOMMENDATION_LIMIT,
         min_common_items: int = 2,
@@ -37,7 +37,7 @@ class CollaborativeRecommender(BaseRecommender):
         
         Args:
             user_id: The ID of the user
-            content_id: Not used for collaborative recommendations
+            meal_id: Not used for collaborative recommendations
             content_type: Optional content type filter
             limit: Maximum number of recommendations
             min_common_items: Minimum number of items in common to consider users similar

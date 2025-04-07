@@ -22,7 +22,7 @@ class InteractionRepository:
     def record_interaction(
         self, 
         user_id: str, 
-        content_id: str, 
+        meal_id: str, 
         content_type: str, 
         interaction_type: str
     ) -> bool:
@@ -31,7 +31,7 @@ class InteractionRepository:
         
         Args:
             user_id: The ID of the user
-            content_id: The ID of the content
+            meal_id: The ID of the content
             content_type: The type of content ('post', 'community', 'comment')
             interaction_type: The type of interaction ('view', 'click', 'vote', etc.)
             
@@ -46,7 +46,7 @@ class InteractionRepository:
                 RECORD_INTERACTION,
                 {
                     "user_id": user_id,
-                    "content_id": content_id,
+                    "meal_id": meal_id,
                     "content_type": content_type,
                     "interaction_type": interaction_type
                 },
@@ -96,7 +96,7 @@ class InteractionRepository:
         interactions = []
         for row in result:
             interactions.append({
-                "content_id": row[0],
+                "meal_id": row[0],
                 "content_type": row[1],
                 "interaction_type": row[2],
                 "created_at": row[3]

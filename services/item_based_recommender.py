@@ -27,7 +27,7 @@ class ItemBasedRecommender(BaseRecommender):
     def get_recommendations(
         self, 
         user_id: Optional[str] = None,
-        content_id: Optional[str] = None,
+        meal_id: Optional[str] = None,
         content_type: Optional[str] = None,
         limit: int = DEFAULT_RECOMMENDATION_LIMIT,
         **kwargs
@@ -37,27 +37,27 @@ class ItemBasedRecommender(BaseRecommender):
         
         Args:
             user_id: The ID of the user
-            content_id: Optional specific content ID to find similar items for
+            meal_id: Optional specific content ID to find similar items for
             content_type: Optional content type filter
             limit: Maximum number of recommendations
             
         Returns:
             List of recommended items based on item similarity
         """
-        if not user_id and not content_id:
-            logger.warning("Either user_id or content_id required for item-based recommendations")
+        if not user_id and not meal_id:
+            logger.warning("Either user_id or meal_id required for item-based recommendations")
             return []
         
-        # If content_id is provided, use it directly to find similar items
-        if content_id:
-            return self._get_similar_items(content_id, content_type, limit)
+        # If meal_id is provided, use it directly to find similar items
+        if meal_id:
+            return self._get_similar_items(meal_id, content_type, limit)
         
         # Otherwise, use the user's recent interactions to find similar items
         return self._get_user_item_based_recommendations(user_id, content_type, limit)
     
     def _get_similar_items(
         self,
-        content_id: str,
+        meal_id: str,
         content_type: Optional[str] = None,
         limit: int = DEFAULT_RECOMMENDATION_LIMIT
     ) -> List[Dict[str, Any]]:
@@ -65,19 +65,19 @@ class ItemBasedRecommender(BaseRecommender):
         Find items similar to a specific content item based on co-occurrence patterns.
         
         Args:
-            content_id: The ID of the content to find similar items for
+            meal_id: The ID of the content to find similar items for
             content_type: Optional content type filter
             limit: Maximum number of similar items to return
             
         Returns:
             List of similar items
         """
-        # Execute SQL to find items that frequently co-occur with the given content_id
-        # This is done by finding users who interacted with content_id and then
+        # Execute SQL to find items that frequently co-occur with the given meal_id
+        # This is done by finding users who interacted with meal_id and then
         # counting other items they interacted with
         
         params = {
-            "content_id": content_id,
+            "meal_id": meal_id,
             "limit": limit
         }
         
@@ -137,13 +137,13 @@ class ItemBasedRecommender(BaseRecommender):
             return []
         
         all_recommendations = []
-        user_items = [interaction["content_id"] for interaction in recent_interactions]
+        user_items = [interaction["meal_id"] for interaction in recent_interactions]
         
         # For each item the user has interacted with, find similar items
         for interaction in recent_interactions:
-            content_id = interaction["content_id"]
+            meal_id = interaction["meal_id"]
             similar_items = self._get_similar_items(
-                content_id=content_id,
+                meal_id=meal_id,
                 content_type=content_type,
                 limit=limit
             )

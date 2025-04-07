@@ -18,12 +18,12 @@ from data.queries.content_embedding_queries import (
 class ContentEmbeddingRepository:
     """Repository for content embeddings."""
     
-    def save_embedding(self, content_id: str, content_type: str, embedding: List[float]) -> bool:
+    def save_embedding(self, meal_id: str, content_type: str, embedding: List[float]) -> bool:
         """
         Save or update a content embedding.
         
         Args:
-            content_id: The ID of the content
+            meal_id: The ID of the content
             content_type: The type of content ('post', 'community', etc.)
             embedding: The vector embedding
             
@@ -34,7 +34,7 @@ class ContentEmbeddingRepository:
             execute_query(
                 SAVE_EMBEDDING,
                 {
-                    "content_id": content_id,
+                    "meal_id": meal_id,
                     "content_type": content_type,
                     "embedding": embedding
                 },
@@ -45,12 +45,12 @@ class ContentEmbeddingRepository:
             print(f"Error saving embedding: {e}")
             return False
     
-    def get_embedding(self, content_id: str, content_type: str) -> Optional[List[float]]:
+    def get_embedding(self, meal_id: str, content_type: str) -> Optional[List[float]]:
         """
         Get the embedding for specific content.
         
         Args:
-            content_id: The ID of the content
+            meal_id: The ID of the content
             content_type: The type of content
             
         Returns:
@@ -58,7 +58,7 @@ class ContentEmbeddingRepository:
         """
         result = execute_query(
             GET_EMBEDDING,
-            {"content_id": content_id, "content_type": content_type}
+            {"meal_id": meal_id, "content_type": content_type}
         )
         
         row = result.fetchone()
@@ -94,7 +94,7 @@ class ContentEmbeddingRepository:
         exclude_clause = ""
         if exclude_ids and len(exclude_ids) > 0:
             placeholder_list = ','.join([f':exclude_{i}' for i in range(len(exclude_ids))])
-            exclude_clause = f"AND ce.content_id NOT IN ({placeholder_list})"
+            exclude_clause = f"AND ce.meal_id NOT IN ({placeholder_list})"
             for i, id_val in enumerate(exclude_ids):
                 params[f"exclude_{i}"] = id_val
         

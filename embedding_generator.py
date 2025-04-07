@@ -13,7 +13,7 @@ def generate_post_embeddings():
         result = conn.execute(text("""
             SELECT p.id, p.title, p.content
             FROM "Post" p
-            LEFT JOIN content_embeddings ce ON ce.content_id = p.id AND ce.content_type = 'post'
+            LEFT JOIN content_embeddings ce ON ce.meal_id = p.id AND ce.content_type = 'post'
             WHERE ce.id IS NULL
             LIMIT 500
         """))
@@ -34,12 +34,12 @@ def generate_post_embeddings():
             
             # Store embedding
             conn.execute(text("""
-                INSERT INTO content_embeddings (content_id, content_type, embedding)
-                VALUES (:content_id, 'post', :embedding)
-                ON CONFLICT (content_id, content_type) 
+                INSERT INTO content_embeddings (meal_id, content_type, embedding)
+                VALUES (:meal_id, 'post', :embedding)
+                ON CONFLICT (meal_id, content_type) 
                 DO UPDATE SET embedding = :embedding, updated_at = CURRENT_TIMESTAMP
             """), {
-                "content_id": post_id,
+                "meal_id": post_id,
                 "embedding": embedding.tolist()
             })
             
@@ -56,7 +56,7 @@ def generate_community_embeddings():
         result = conn.execute(text("""
             SELECT c.id, c.name, c.description
             FROM "Community" c
-            LEFT JOIN content_embeddings ce ON ce.content_id = c.id AND ce.content_type = 'community'
+            LEFT JOIN content_embeddings ce ON ce.meal_id = c.id AND ce.content_type = 'community'
             WHERE ce.id IS NULL
         """))
         
@@ -76,12 +76,12 @@ def generate_community_embeddings():
             
             # Store embedding
             conn.execute(text("""
-                INSERT INTO content_embeddings (content_id, content_type, embedding)
-                VALUES (:content_id, 'community', :embedding)
-                ON CONFLICT (content_id, content_type) 
+                INSERT INTO content_embeddings (meal_id, content_type, embedding)
+                VALUES (:meal_id, 'community', :embedding)
+                ON CONFLICT (meal_id, content_type) 
                 DO UPDATE SET embedding = :embedding, updated_at = CURRENT_TIMESTAMP
             """), {
-                "content_id": community_id,
+                "meal_id": community_id,
                 "embedding": embedding.tolist()
             })
             

@@ -31,10 +31,10 @@ class ContentList(BaseModel):
 def read_root():
     return {"status": "Recommendation service is running"}
 
-@app.get("/recommend/similar/{content_type}/{content_id}", response_model=ContentList)
+@app.get("/recommend/similar/{content_type}/{meal_id}", response_model=ContentList)
 def get_similar_content(
     content_type: str,
-    content_id: str,
+    meal_id: str,
     limit: int = 10,
     db = Depends(get_db)
 ):
@@ -47,9 +47,9 @@ def get_similar_content(
         text("""
             SELECT embedding
             FROM content_embeddings
-            WHERE content_id = :content_id AND content_type = :content_type
+            WHERE meal_id = :meal_id AND content_type = :content_type
         """),
-        {"content_id": content_id, "content_type": content_type}
+        {"meal_id": meal_id, "content_type": content_type}
     )
     
     item = result.fetchone()
@@ -61,19 +61,19 @@ def get_similar_content(
     # Find similar content
     result = db.execute(
         text(f"""
-            SELECT ce.content_id, ce.content_type,
+            SELECT ce.meal_id, ce.content_type,
                    CASE WHEN ce.content_type = 'post' THEN p.title
                         WHEN ce.content_type = 'community' THEN c.name
                    END as title,
                    1 - (ce.embedding <=> :embedding) AS similarity
             FROM content_embeddings ce
-            LEFT JOIN "Post" p ON ce.content_id = p.id AND ce.content_type = 'post'
-            LEFT JOIN "Community" c ON ce.content_id = c.id AND ce.content_type = 'community'
-            WHERE ce.content_id != :content_id
+            LEFT JOIN "Post" p ON ce.meal_id = p.id AND ce.content_type = 'post'
+            LEFT JOIN "Community" c ON ce.meal_id = c.id AND ce.content_type = 'community'
+            WHERE ce.meal_id != :meal_id
             ORDER BY similarity DESC
             LIMIT :limit
         """),
-        {"embedding": embedding, "content_id": content_id, "limit": limit}
+        {"embedding": embedding, "meal_id": meal_id, "limit": limit}
     )
     
     items = []
@@ -111,37 +111,37 @@ def get_user_recommendations(
             WITH similar_users AS (
                 SELECT DISTINCT ri2.user_id
                 FROM recommendation_interactions ri1
-                JOIN recommendation_interactions ri2 ON ri1.content_id = ri2.content_id 
+                JOIN recommendation_interactions ri2 ON ri1.meal_id = ri2.meal_id 
                                                   AND ri1.content_type = ri2.content_type
                 WHERE ri1.user_id = :user_id
                 AND ri2.user_id != :user_id
                 GROUP BY ri2.user_id
-                HAVING COUNT(DISTINCT ri1.content_id) > 2
+                HAVING COUNT(DISTINCT ri1.meal_id) > 2
                 LIMIT 10
             ),
             -- Get content these similar users interacted with
             candidate_content AS (
-                SELECT DISTINCT ri.content_id, ri.content_type, COUNT(*) as interaction_count
+                SELECT DISTINCT ri.meal_id, ri.content_type, COUNT(*) as interaction_count
                 FROM recommendation_interactions ri
                 JOIN similar_users su ON ri.user_id = su.user_id
-                WHERE ri.content_id NOT IN (
-                    SELECT content_id 
+                WHERE ri.meal_id NOT IN (
+                    SELECT meal_id 
                     FROM recommendation_interactions 
                     WHERE user_id = :user_id
                 )
                 {type_filter}
-                GROUP BY ri.content_id, ri.content_type
+                GROUP BY ri.meal_id, ri.content_type
                 ORDER BY interaction_count DESC
                 LIMIT :limit
             )
             -- Get content details
-            SELECT cc.content_id, cc.content_type,
+            SELECT cc.meal_id, cc.content_type,
                    CASE WHEN cc.content_type = 'post' THEN p.title
                         WHEN cc.content_type = 'community' THEN c.name
                    END as title
             FROM candidate_content cc
-            LEFT JOIN "Post" p ON cc.content_id = p.id AND cc.content_type = 'post'
-            LEFT JOIN "Community" c ON cc.content_id = c.id AND cc.content_type = 'community'
+            LEFT JOIN "Post" p ON cc.meal_id = p.id AND cc.content_type = 'post'
+            LEFT JOIN "Community" c ON cc.meal_id = c.id AND cc.content_type = 'community'
         """),
         params
     )
@@ -162,7 +162,7 @@ def get_user_recommendations(
         # Get user's most recent interactions
         result = db.execute(
             text("""
-                SELECT content_id, content_type
+                SELECT meal_id, content_type
                 FROM recommendation_interactions
                 WHERE user_id = :user_id
                 ORDER BY created_at DESC
@@ -175,16 +175,16 @@ def get_user_recommendations(
         
         # If user has recent interactions, get similar content
         if recent:
-            content_id, content_type = recent
+            meal_id, content_type = recent
             
             # Get similar content embedding
             result = db.execute(
                 text("""
                     SELECT embedding
                     FROM content_embeddings
-                    WHERE content_id = :content_id AND content_type = :content_type
+                    WHERE meal_id = :meal_id AND content_type = :content_type
                 """),
-                {"content_id": content_id, "content_type": content_type}
+                {"meal_id": meal_id, "content_type": content_type}
             )
             
             embedding_row = result.fetchone()
@@ -197,7 +197,7 @@ def get_user_recommendations(
                 
                 if existing_ids:
                     placeholder_list = ','.join([f':exclude_{i}' for i in range(len(existing_ids))])
-                    exclude_clause = f"AND ce.content_id NOT IN ({placeholder_list})"
+                    exclude_clause = f"AND ce.meal_id NOT IN ({placeholder_list})"
                     for i, id_val in enumerate(existing_ids):
                         exclude_params[f"exclude_{i}"] = id_val
                 
@@ -207,15 +207,15 @@ def get_user_recommendations(
                 
                 result = db.execute(
                     text(f"""
-                        SELECT ce.content_id, ce.content_type,
+                        SELECT ce.meal_id, ce.content_type,
                                CASE WHEN ce.content_type = 'post' THEN p.title
                                     WHEN ce.content_type = 'community' THEN c.name
                                END as title,
                                1 - (ce.embedding <=> :embedding) AS similarity
                         FROM content_embeddings ce
-                        LEFT JOIN "Post" p ON ce.content_id = p.id AND ce.content_type = 'post'
-                        LEFT JOIN "Community" c ON ce.content_id = c.id AND ce.content_type = 'community'
-                        WHERE ce.content_id != :content_id
+                        LEFT JOIN "Post" p ON ce.meal_id = p.id AND ce.content_type = 'post'
+                        LEFT JOIN "Community" c ON ce.meal_id = c.id AND ce.content_type = 'community'
+                        WHERE ce.meal_id != :meal_id
                         {exclude_clause}
                         {type_filter}
                         ORDER BY similarity DESC
@@ -223,7 +223,7 @@ def get_user_recommendations(
                     """),
                     {
                         "embedding": embedding_row[0], 
-                        "content_id": content_id, 
+                        "meal_id": meal_id, 
                         "content_type": content_type,
                         "limit": remaining,
                         **exclude_params
@@ -248,7 +248,7 @@ def get_user_recommendations(
         
         if existing_ids:
             placeholder_list = ','.join([f':exclude_{i}' for i in range(len(existing_ids))])
-            exclude_clause = f"AND content_id NOT IN ({placeholder_list})"
+            exclude_clause = f"AND meal_id NOT IN ({placeholder_list})"
             for i, id_val in enumerate(existing_ids):
                 exclude_params[f"exclude_{i}"] = id_val
         
@@ -258,18 +258,18 @@ def get_user_recommendations(
             
         result = db.execute(
             text(f"""
-                SELECT ri.content_id, ri.content_type,
+                SELECT ri.meal_id, ri.content_type,
                        CASE WHEN ri.content_type = 'post' THEN p.title
                             WHEN ri.content_type = 'community' THEN c.name
                        END as title,
                        COUNT(*) as popularity
                 FROM recommendation_interactions ri
-                LEFT JOIN "Post" p ON ri.content_id = p.id AND ri.content_type = 'post'
-                LEFT JOIN "Community" c ON ri.content_id = c.id AND ri.content_type = 'community'
+                LEFT JOIN "Post" p ON ri.meal_id = p.id AND ri.content_type = 'post'
+                LEFT JOIN "Community" c ON ri.meal_id = c.id AND ri.content_type = 'community'
                 WHERE 1=1
                 {exclude_clause}
                 {type_filter}
-                GROUP BY ri.content_id, ri.content_type, p.title, c.name
+                GROUP BY ri.meal_id, ri.content_type, p.title, c.name
                 ORDER BY popularity DESC
                 LIMIT :limit
             """),
@@ -287,7 +287,7 @@ def get_user_recommendations(
 
 class Interaction(BaseModel):
     user_id: str
-    content_id: str
+    meal_id: str
     content_type: str
     interaction_type: str
 
@@ -301,12 +301,12 @@ def record_interaction(interaction: Interaction, db = Depends(get_db)):
     db.execute(
         text("""
             INSERT INTO recommendation_interactions
-            (user_id, content_id, content_type, interaction_type)
-            VALUES (:user_id, :content_id, :content_type, :interaction_type)
+            (user_id, meal_id, content_type, interaction_type)
+            VALUES (:user_id, :meal_id, :content_type, :interaction_type)
         """),
         {
             "user_id": interaction.user_id,
-            "content_id": interaction.content_id,
+            "meal_id": interaction.meal_id,
             "content_type": interaction.content_type,
             "interaction_type": interaction.interaction_type
         }
@@ -340,17 +340,17 @@ def get_trending_content(
     # Get trending content based on recent interactions
     result = db.execute(
         text(f"""
-            SELECT ri.content_id, ri.content_type,
+            SELECT ri.meal_id, ri.content_type,
                    CASE WHEN ri.content_type = 'post' THEN p.title
                         WHEN ri.content_type = 'community' THEN c.name
                    END as title,
                    COUNT(*) as popularity
             FROM recommendation_interactions ri
-            LEFT JOIN "Post" p ON ri.content_id = p.id AND ri.content_type = 'post'
-            LEFT JOIN "Community" c ON ri.content_id = c.id AND ri.content_type = 'community'
+            LEFT JOIN "Post" p ON ri.meal_id = p.id AND ri.content_type = 'post'
+            LEFT JOIN "Community" c ON ri.meal_id = c.id AND ri.content_type = 'community'
             WHERE ri.created_at > {time_clause}
             {type_filter}
-            GROUP BY ri.content_id, ri.content_type, p.title, c.name
+            GROUP BY ri.meal_id, ri.content_type, p.title, c.name
             ORDER BY popularity DESC
             LIMIT :limit
         """),

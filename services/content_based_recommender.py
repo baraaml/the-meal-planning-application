@@ -24,7 +24,7 @@ class ContentBasedRecommender(BaseRecommender):
     def get_recommendations(
         self, 
         user_id: Optional[str] = None,
-        content_id: Optional[str] = None,
+        meal_id: Optional[str] = None,
         content_type: Optional[str] = None,
         limit: int = DEFAULT_RECOMMENDATION_LIMIT,
         **kwargs
@@ -34,14 +34,14 @@ class ContentBasedRecommender(BaseRecommender):
         
         Args:
             user_id: Not used for content-based recommendations
-            content_id: The ID of the source content
+            meal_id: The ID of the source content
             content_type: The type of content ('post', 'community')
             limit: Maximum number of recommendations
             
         Returns:
             List of similar content items
         """
-        if not content_id or not content_type:
+        if not meal_id or not content_type:
             logger.warning("Content ID and type required for content-based recommendations")
             return []
         
@@ -50,13 +50,13 @@ class ContentBasedRecommender(BaseRecommender):
             return []
         
         # Get the embedding for the source content
-        embedding = self.repository.get_embedding(content_id, content_type)
+        embedding = self.repository.get_embedding(meal_id, content_type)
         if not embedding:
-            logger.warning(f"No embedding found for {content_type} with ID {content_id}")
+            logger.warning(f"No embedding found for {content_type} with ID {meal_id}")
             return []
         
         # Find similar content
-        exclude_ids = [content_id]  # Exclude the source content
+        exclude_ids = [meal_id]  # Exclude the source content
         similar_items = self.repository.find_similar_content(
             embedding, 
             content_type=content_type,

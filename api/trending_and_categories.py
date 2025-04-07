@@ -5,7 +5,7 @@ Endpoints for trending content and category-based recommendations.
 from fastapi import APIRouter, Depends, Query, HTTPException, status
 from typing import Optional
 
-from api.base import get_db, validate_content_type
+from base import get_db, validate_content_type
 from services.popularity_recommender import PopularityRecommender
 from config.settings import DEFAULT_RECOMMENDATION_LIMIT, ALLOWED_TRENDING_WINDOWS
 
