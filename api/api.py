@@ -1,21 +1,18 @@
 """
 Main FastAPI application module.
-Integrates all API routes and serves as the entry point for the recommendation service.
+Integrates all API routes and serves as the entry point for the meal recommendation service.
 """
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from config.settings import API_HOST, API_PORT, RELOAD
-import user_recommendation_routes
-import similar_content_routes
-import trending_routes
-import interactions_routes
+from api import user_recommendations, similar_meal_routes, trending_routes, interactions
 
 def create_app():
     """Create and configure the FastAPI application."""
     app = FastAPI(
-        title="Recommendation Service",
-        description="API for personalized content recommendations",
+        title="Meal Recommendation Service",
+        description="API for personalized meal recommendations",
         version="1.0.0"
     )
     
@@ -29,15 +26,15 @@ def create_app():
     )
     
     # Include all route modules
-    app.include_router(user_recommendation_routes.router)
-    app.include_router(similar_content_routes.router)
+    app.include_router(user_recommendations.router)
+    app.include_router(similar_meal_routes.router)
     app.include_router(trending_routes.router)
-    app.include_router(interactions_routes.router)
+    app.include_router(interactions.router)
     
     @app.get("/", tags=["status"])
     def read_root():
         """Root endpoint for API status check."""
-        return {"status": "Recommendation service is running"}
+        return {"status": "Meal recommendation service is running"}
     
     return app
 

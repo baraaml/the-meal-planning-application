@@ -1,6 +1,6 @@
 """
 API base module.
-Contains common API dependencies and configurations.
+Contains common API dependencies and configurations for meal recommendations.
 """
 from fastapi import Depends, HTTPException, status
 from sqlalchemy import text
@@ -16,7 +16,7 @@ def get_db():
 
 def validate_content_type(content_type: str, allow_all: bool = False) -> str:
     """
-    Validate content type parameter.
+    Validate meal content type parameter.
     
     Args:
         content_type: The content type to validate

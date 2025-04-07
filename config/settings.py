@@ -1,5 +1,5 @@
 """
-Configuration settings for the recommendation service.
+Configuration settings for the meal recommendation service.
 Centralizes all configuration parameters.
 """
 import os
@@ -22,7 +22,7 @@ EMBEDDING_DIMENSION = int(os.getenv("EMBEDDING_DIMENSION", "768"))
 
 # Recommendation settings
 DEFAULT_RECOMMENDATION_LIMIT = int(os.getenv("DEFAULT_RECOMMENDATION_LIMIT", "10"))
-CONTENT_TYPES = ["post", "community", "comment"]
+CONTENT_TYPES = ["meal", "recipe"]
 ALLOWED_TRENDING_WINDOWS = ["day", "week", "month"]
 
 # Scheduler settings
@@ -31,3 +31,7 @@ SCHEDULER_SLEEP_INTERVAL = int(os.getenv("SCHEDULER_SLEEP_INTERVAL", "60"))  # s
 
 # Client settings
 RECOMMENDATION_API_URL = os.getenv("RECOMMENDATION_API_URL", "http://localhost:8000")
+
+# Meal-specific settings
+CUISINE_TYPES = ["italian", "mexican", "chinese", "indian", "american", "french", "japanese", "mediterranean", "thai", "other"]
+DIETARY_RESTRICTIONS = ["vegetarian", "vegan", "gluten-free", "dairy-free", "keto", "paleo", "low-carb", "low-fat"]

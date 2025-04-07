@@ -1,6 +1,6 @@
 """
 Embedding generator service.
-Generates and stores vector embeddings for different content types.
+Generates and stores vector embeddings for meals and recipes.
 """
 from sentence_transformers import SentenceTransformer
 from typing import List, Dict, Any, Optional
@@ -13,7 +13,7 @@ from data.repositories.content_embedding_repository import ContentEmbeddingRepos
 logger = logging.getLogger(__name__)
 
 class EmbeddingGenerator:
-    """Service for generating and managing content embeddings."""
+    """Service for generating and managing meal embeddings."""
     
     def __init__(self, model_name: str = EMBEDDING_MODEL):
         """
@@ -25,60 +25,68 @@ class EmbeddingGenerator:
         self.model = SentenceTransformer(model_name)
         self.repository = ContentEmbeddingRepository()
     
-    def generate_post_embeddings(self, batch_size: int = 500) -> int:
+    def generate_meal_embeddings(self, batch_size: int = 500) -> int:
         """
-        Generate embeddings for posts that don't have them yet.
+        Generate embeddings for meals that don't have them yet.
         
         Args:
-            batch_size: Maximum number of posts to process at once
+            batch_size: Maximum number of meals to process at once
             
         Returns:
-            Number of posts processed
+            Number of meals processed
         """
-        posts = self.repository.get_content_without_embeddings('post', batch_size)
-        logger.info(f"Processing {len(posts)} posts for embedding generation")
+        meals = self.repository.get_content_without_embeddings('meal', batch_size)
+        logger.info(f"Processing {len(meals)} meals for embedding generation")
         
         count = 0
-        for post_id, title, content in posts:
-            # Generate text for embedding
-            text_for_embedding = f"{title} {content}"
+        for meal_id, title, description in meals:
+            # Get ingredients for this meal
+            ingredients = self.repository.get_meal_ingredients(meal_id)
+            ingredients_text = ", ".join([ing['name'] for ing in ingredients])
+            
+            # Generate text for embedding - include title, description, and ingredients
+            text_for_embedding = f"{title} {description} Ingredients: {ingredients_text}"
             
             # Generate embedding
             embedding = self.model.encode(text_for_embedding)
             
             # Store embedding
-            if self.repository.save_embedding(post_id, 'post', embedding.tolist()):
+            if self.repository.save_embedding(meal_id, 'meal', embedding.tolist()):
                 count += 1
             
-        logger.info(f"Generated embeddings for {count} posts")
+        logger.info(f"Generated embeddings for {count} meals")
         return count
     
-    def generate_community_embeddings(self, batch_size: int = 500) -> int:
+    def generate_recipe_embeddings(self, batch_size: int = 500) -> int:
         """
-        Generate embeddings for communities that don't have them yet.
+        Generate embeddings for recipes that don't have them yet.
         
         Args:
-            batch_size: Maximum number of communities to process at once
+            batch_size: Maximum number of recipes to process at once
             
         Returns:
-            Number of communities processed
+            Number of recipes processed
         """
-        communities = self.repository.get_content_without_embeddings('community', batch_size)
-        logger.info(f"Processing {len(communities)} communities for embedding generation")
+        recipes = self.repository.get_content_without_embeddings('recipe', batch_size)
+        logger.info(f"Processing {len(recipes)} recipes for embedding generation")
         
         count = 0
-        for community_id, name, description in communities:
-            # Generate text for embedding
-            text_for_embedding = f"{name} {description}"
+        for recipe_id, name, instructions in recipes:
+            # Get ingredients for this recipe
+            ingredients = self.repository.get_recipe_ingredients(recipe_id)
+            ingredients_text = ", ".join([ing['name'] for ing in ingredients])
+            
+            # Generate text for embedding - include name, instructions, and ingredients
+            text_for_embedding = f"{name} {instructions} Ingredients: {ingredients_text}"
             
             # Generate embedding
             embedding = self.model.encode(text_for_embedding)
             
             # Store embedding
-            if self.repository.save_embedding(community_id, 'community', embedding.tolist()):
+            if self.repository.save_embedding(recipe_id, 'recipe', embedding.tolist()):
                 count += 1
             
-        logger.info(f"Generated embeddings for {count} communities")
+        logger.info(f"Generated embeddings for {count} recipes")
         return count
     
     def generate_embedding_for_text(self, text: str) -> List[float]:
@@ -94,20 +102,24 @@ class EmbeddingGenerator:
         embedding = self.model.encode(text)
         return embedding.tolist()
     
-    def generate_embedding_for_content(self, meal_id: str, content_type: str, text: str) -> bool:
+    def generate_embedding_for_meal(self, meal_id: str, title: str, description: str, ingredients: List[str]) -> bool:
         """
-        Generate and store an embedding for specific content.
+        Generate and store an embedding for a specific meal.
         
         Args:
-            meal_id: The ID of the content
-            content_type: The type of content
-            text: The text to encode
+            meal_id: The ID of the meal
+            title: The meal title
+            description: The meal description
+            ingredients: List of ingredient names
             
         Returns:
             Success status
         """
-        embedding = self.model.encode(text)
-        return self.repository.save_embedding(meal_id, content_type, embedding.tolist())
+        ingredients_text = ", ".join(ingredients)
+        text_for_embedding = f"{title} {description} Ingredients: {ingredients_text}"
+        
+        embedding = self.model.encode(text_for_embedding)
+        return self.repository.save_embedding(meal_id, 'meal', embedding.tolist())
     
     def generate_all_embeddings(self) -> Dict[str, int]:
         """
@@ -116,12 +128,12 @@ class EmbeddingGenerator:
         Returns:
             Dictionary with counts of processed items by type
         """
-        post_count = self.generate_post_embeddings()
-        community_count = self.generate_community_embeddings()
+        meal_count = self.generate_meal_embeddings()
+        recipe_count = self.generate_recipe_embeddings()
         
         return {
-            "posts": post_count,
-            "communities": community_count
+            "meals": meal_count,
+            "recipes": recipe_count
         }
 
 

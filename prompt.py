@@ -6,8 +6,8 @@ import argparse
 def print_tree(directory, prefix='', output_file=None):
     """
     Recursively print the directory tree and file contents, excluding 'node_modules', 'assets', 'prompt.py', 
-    '.svg', '.js', and 'index.html' files.
-    
+    '.svg', '.js', 'index.html', and '.git' files or folders.
+
     Args:
         directory (str): The directory path to print
         prefix (str): The prefix for the current level of tree
@@ -16,7 +16,8 @@ def print_tree(directory, prefix='', output_file=None):
     try:
         entries = [
             entry for entry in os.listdir(directory)
-            if entry not in ('node_modules', 'assets', 'prompt.py', 'index.html') and not entry.endswith(('.svg', '.js'))
+            if entry not in ('node_modules', 'assets', 'prompt.py', 'index.html', '.git')
+            and not entry.endswith(('.svg', '.js'))
         ]
         entries.sort()  # Sort entries alphabetically
 
