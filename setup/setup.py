@@ -13,14 +13,8 @@ from data.queries import (
     CREATE_EMBEDDINGS_INDEX,
     CREATE_INTERACTIONS_TABLE,
     CREATE_INTERACTIONS_INDEXES,
-    CREATE_CUISINE_TABLE,
-    CREATE_DIETARY_RESTRICTION_TABLE,
     CREATE_USER_DIETARY_PREFERENCE_TABLE,
-    CREATE_MEAL_DIETARY_RESTRICTION_TABLE,
-    CREATE_INGREDIENT_TABLE,
-    CREATE_MEAL_INGREDIENT_TABLE,
-    INSERT_DEFAULT_CUISINES,
-    INSERT_DEFAULT_DIETARY_RESTRICTIONS
+    ENABLE_TRIGRAM
 )
 
 logger = logging.getLogger(__name__)
@@ -33,6 +27,9 @@ def create_recommendation_tables():
         with get_transaction() as conn:
             # Enable pgvector extension
             conn.execute(text(ENABLE_PGVECTOR))
+            
+            # Enable trigram extension for text search
+            conn.execute(text(ENABLE_TRIGRAM))
             
             # Create a separate table for content embeddings
             # Format the query with the embedding dimension
@@ -50,17 +47,8 @@ def create_recommendation_tables():
             # Create indexes for quick lookups
             conn.execute(text(CREATE_INTERACTIONS_INDEXES))
             
-            # Create reference tables
-            conn.execute(text(CREATE_CUISINE_TABLE))
-            conn.execute(text(CREATE_DIETARY_RESTRICTION_TABLE))
+            # Create user dietary preferences table
             conn.execute(text(CREATE_USER_DIETARY_PREFERENCE_TABLE))
-            conn.execute(text(CREATE_MEAL_DIETARY_RESTRICTION_TABLE))
-            conn.execute(text(CREATE_INGREDIENT_TABLE))
-            conn.execute(text(CREATE_MEAL_INGREDIENT_TABLE))
-            
-            # Insert default reference data
-            conn.execute(text(INSERT_DEFAULT_CUISINES))
-            conn.execute(text(INSERT_DEFAULT_DIETARY_RESTRICTIONS))
         
         logger.info("Database tables and indexes created successfully")
         return True

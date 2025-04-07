@@ -46,89 +46,62 @@ def create_tables():
     """Create all necessary tables if they don't exist."""
     logger.info("Creating tables if they don't exist...")
 
-    # Recipe table
-    if not check_table_exists("Recipe"):
-        Recipe = Table(
-            "Recipe", 
-            metadata,
-            Column("id", String, primary_key=True),
-            Column("name", String),
-            Column("cuisine", String),
-            Column("prep_time", Integer),
-            Column("cook_time", Integer),
-            Column("total_time", Integer),
-            Column("servings", Integer),
-            Column("calories", Float),
-            Column("ratings", Float),
-            Column("url", String),
-            Column("region", String),
-            Column("sub_region", String),
-            Column("continent", String),
-            Column("source", String),
-            Column("img_url", String),
-            Column("carbohydrate", Float),
-            Column("energy", Float),
-            Column("protein", Float),
-            Column("fat", Float),
-            Column("utensils", String),
-            Column("processes", String),
-            Column("vegan", Float),
-            Column("pescetarian", Float),
-            Column("ovo_vegetarian", Float),
-            Column("lacto_vegetarian", Float),
-            Column("ovo_lacto_vegetarian", Float)
-        )
-        
-    # Ingredient table
-    if not check_table_exists("Ingredient"):
-        Ingredient = Table(
-            "Ingredient",
-            metadata,
-            Column("id", Integer, primary_key=True),
-            Column("name", String, unique=True),
-            Column("generic_name", String),
-            Column("wiki_link", String),
-            Column("wiki_image", String),
-            Column("flavordb_category", String),
-            Column("dietrx_category", String),
-            Column("flavor_db_link", String),
-            Column("flavordb_id", Integer),
-            Column("diet_rx_link", String)
-        )
-
-    # RecipeIngredient table
-    if not check_table_exists("RecipeIngredient"):
-        RecipeIngredient = Table(
-            "RecipeIngredient",
-            metadata,
-            Column("id", Integer, primary_key=True),
-            Column("recipe_id", String),
-            Column("ingredient_id", Integer),
-            Column("quantity", String),
-            Column("unit", String),
-            Column("preparation_method", String)
-        )
-
-    # Merged table
-    if not check_table_exists("MergedRecipes"):
-        MergedRecipes = Table(
-            "MergedRecipes",
-            metadata,
-            Column("recipe_id", String, primary_key=True),
-            Column("recipe_name", String),
-            Column("cuisine", String),
-            Column("prep_time", Integer),
-            Column("cook_time", Integer),
-            Column("total_time", Integer),
-            Column("servings", Integer),
-            Column("calories", Float),
-            Column("ratings", Float),
-            Column("ingredient_count", Integer),
-            Column("complexity_score", Integer),
-            Column("dietary_flags", String)
-        )
-        
-    # Recipe Instructions table
+    # Tables based directly on the CSV files
+    tables = {
+        "Recipe": {
+            "file": RECIPE_GENERAL_FILE,
+            "id_column": "Recipe_id",
+            "columns": None  # Will be populated from CSV headers
+        },
+        "RecipeIngredient": {
+            "file": RECIPE_INGREDIENT_PHRASE_FILE,
+            "id_column": None,  # Will be auto-generated
+            "columns": None  # Will be populated from CSV headers
+        },
+        "RecipeIngredientFlavor": {
+            "file": RECIPE_INGREDIENT_FLAVOR_FILE,
+            "id_column": "IngID",
+            "columns": None  # Will be populated from CSV headers
+        }
+    }
+    
+    # Create tables based on CSV structure
+    for table_name, table_info in tables.items():
+        if not check_table_exists(table_name):
+            # Read CSV headers to get column names
+            file_path = os.path.join(DATA_DIR, table_info["file"])
+            if os.path.exists(file_path):
+                df = pd.read_csv(file_path, nrows=0)
+                columns = df.columns.tolist()
+                
+                # Create columns for the table
+                table_columns = []
+                for col in columns:
+                    # Use the id column as primary key if specified
+                    if table_info["id_column"] and col == table_info["id_column"]:
+                        table_columns.append(Column(col, String, primary_key=True))
+                    else:
+                        # Determine column type based on CSV column name patterns
+                        if any(substr in col.lower() for substr in ["time", "date", "created", "updated"]):
+                            table_columns.append(Column(col, String))  # Use String for time/date fields
+                        elif any(substr in col.lower() for substr in ["id", "_id", "ingid"]):
+                            table_columns.append(Column(col, String))  # Use String for ID fields
+                        elif any(substr in col.lower() for substr in ["count", "number", "qty", "quantity"]):
+                            table_columns.append(Column(col, Float))  # Use Float for numeric fields
+                        else:
+                            table_columns.append(Column(col, String))  # Default to String
+                
+                # Add auto-increment ID if no primary key
+                if not table_info["id_column"]:
+                    table_columns.insert(0, Column("id", Integer, primary_key=True))
+                
+                # Create the table
+                Table(table_name, metadata, *table_columns)
+                logger.info(f"Created table definition for {table_name}")
+            else:
+                logger.warning(f"File not found: {file_path}. Skipping table {table_name}")
+    
+    # Create the Recipe Instructions table if not already created
     if not check_table_exists("RecipeInstruction"):
         RecipeInstruction = Table(
             "RecipeInstruction",
@@ -137,15 +110,6 @@ def create_tables():
             Column("recipe_id", String),
             Column("step_number", Integer),
             Column("instruction", String)
-        )
-
-    # Cuisine table if not already created
-    if not check_table_exists("Cuisine"):
-        Cuisine = Table(
-            "Cuisine",
-            metadata,
-            Column("id", Integer, primary_key=True),
-            Column("name", String, unique=True)
         )
 
     # Create all tables
@@ -181,12 +145,6 @@ def load_recipe_general():
         df = pd.read_csv(file_path)
         df = clean_dataframe(df)
         
-        # Rename column to match our schema
-        df = df.rename(columns={
-            'Recipe_id': 'id',
-            'Recipe_title': 'name'
-        })
-        
         # Insert data into database in batches
         with engine.begin() as conn:
             for i in range(0, len(df), BATCH_SIZE):
@@ -199,47 +157,6 @@ def load_recipe_general():
         
     except Exception as e:
         logger.error(f"Error loading recipe general data: {e}")
-
-def load_ingredients():
-    """Load ingredient data from CSV."""
-    file_path = os.path.join(DATA_DIR, RECIPE_INGREDIENT_FLAVOR_FILE)
-    logger.info(f"Loading ingredient data from {file_path}")
-    
-    if not os.path.exists(file_path):
-        logger.error(f"File not found: {file_path}")
-        return
-    
-    try:
-        # Read the CSV file
-        df = pd.read_csv(file_path)
-        df = clean_dataframe(df)
-        
-        # Rename columns to match our schema
-        df = df.rename(columns={
-            'IngID': 'id',
-            'ingredient': 'name',
-            'generic_name': 'generic_name',
-            'wikilink': 'wiki_link',
-            'wikiimage': 'wiki_image',
-            'FlavorDB_Category': 'flavordb_category',
-            'Dietrx_Category': 'dietrx_category',
-            'Flavor_DB_Link': 'flavor_db_link',
-            'flavordb_id': 'flavordb_id',
-            'Diet_rx_link': 'diet_rx_link'
-        })
-        
-        # Insert data into database in batches
-        with engine.begin() as conn:
-            for i in range(0, len(df), BATCH_SIZE):
-                batch = df.iloc[i:i+BATCH_SIZE]
-                batch.to_sql('Ingredient', conn, if_exists='append', index=False,
-                            method='multi', chunksize=BATCH_SIZE)
-                logger.info(f"Inserted batch {i//BATCH_SIZE + 1} of {(len(df)//BATCH_SIZE) + 1} into Ingredient table")
-        
-        logger.info(f"Loaded {len(df)} ingredients into Ingredient table")
-        
-    except Exception as e:
-        logger.error(f"Error loading ingredient data: {e}")
 
 def load_recipe_ingredients():
     """Load recipe ingredient relationships from CSV."""
@@ -255,16 +172,6 @@ def load_recipe_ingredients():
         df = pd.read_csv(file_path)
         df = clean_dataframe(df)
         
-        # Rename columns to match our schema
-        df = df.rename(columns={
-            'recipe_no': 'recipe_id',
-            'ing_id': 'ingredient_id',
-            'state': 'preparation_method'
-        })
-        
-        # Select relevant columns
-        df = df[['recipe_id', 'ingredient_id', 'quantity', 'unit', 'preparation_method']]
-        
         # Insert data into database in batches
         with engine.begin() as conn:
             for i in range(0, len(df), BATCH_SIZE):
@@ -278,10 +185,10 @@ def load_recipe_ingredients():
     except Exception as e:
         logger.error(f"Error loading recipe ingredient data: {e}")
 
-def load_merged_recipes():
-    """Load merged recipe data from CSV."""
-    file_path = os.path.join(DATA_DIR, MERGED_RECIPES_FILE)
-    logger.info(f"Loading merged recipe data from {file_path}")
+def load_ingredient_flavors():
+    """Load ingredient flavor data from CSV."""
+    file_path = os.path.join(DATA_DIR, RECIPE_INGREDIENT_FLAVOR_FILE)
+    logger.info(f"Loading ingredient flavor data from {file_path}")
     
     if not os.path.exists(file_path):
         logger.error(f"File not found: {file_path}")
@@ -296,14 +203,14 @@ def load_merged_recipes():
         with engine.begin() as conn:
             for i in range(0, len(df), BATCH_SIZE):
                 batch = df.iloc[i:i+BATCH_SIZE]
-                batch.to_sql('MergedRecipes', conn, if_exists='append', index=False,
+                batch.to_sql('RecipeIngredientFlavor', conn, if_exists='append', index=False,
                             method='multi', chunksize=BATCH_SIZE)
-                logger.info(f"Inserted batch {i//BATCH_SIZE + 1} of {(len(df)//BATCH_SIZE) + 1} into MergedRecipes table")
+                logger.info(f"Inserted batch {i//BATCH_SIZE + 1} of {(len(df)//BATCH_SIZE) + 1} into RecipeIngredientFlavor table")
         
-        logger.info(f"Loaded {len(df)} merged recipes into MergedRecipes table")
+        logger.info(f"Loaded {len(df)} ingredient flavors into RecipeIngredientFlavor table")
         
     except Exception as e:
-        logger.error(f"Error loading merged recipe data: {e}")
+        logger.error(f"Error loading ingredient flavor data: {e}")
 
 def load_recipe_instructions():
     """Load recipe instructions from JSON file."""
@@ -346,60 +253,6 @@ def load_recipe_instructions():
     except Exception as e:
         logger.error(f"Error loading recipe instructions: {e}")
 
-def populate_cuisines():
-    """Extract and populate unique cuisines from recipe data."""
-    logger.info("Populating cuisines from recipe data")
-    
-    try:
-        # Extract unique cuisines from Recipe table
-        query = text("""
-            INSERT INTO "Cuisine" (name)
-            SELECT DISTINCT cuisine FROM "Recipe" WHERE cuisine IS NOT NULL
-            ON CONFLICT (name) DO NOTHING
-        """)
-        
-        with engine.begin() as conn:
-            conn.execute(query)
-        
-        # Count the number of cuisines
-        query = text('SELECT COUNT(*) FROM "Cuisine"')
-        with engine.connect() as conn:
-            count = conn.execute(query).scalar()
-        
-        logger.info(f"Populated {count} cuisines into Cuisine table")
-        
-    except Exception as e:
-        logger.error(f"Error populating cuisines: {e}")
-
-def update_foreign_keys():
-    """Update foreign key references in tables."""
-    logger.info("Updating foreign key references")
-    
-    try:
-        # Add cuisine_id to Recipe table
-        if not check_column_exists("Recipe", "cuisine_id"):
-            query = text("""
-                ALTER TABLE "Recipe" ADD COLUMN cuisine_id INTEGER;
-                UPDATE "Recipe" r
-                SET cuisine_id = c.id
-                FROM "Cuisine" c
-                WHERE r.cuisine = c.name;
-            """)
-            
-            with engine.begin() as conn:
-                conn.execute(query)
-            
-            logger.info("Added and updated cuisine_id in Recipe table")
-        
-    except Exception as e:
-        logger.error(f"Error updating foreign keys: {e}")
-
-def check_column_exists(table_name: str, column_name: str) -> bool:
-    """Check if a column exists in a table."""
-    inspector = inspect(engine)
-    columns = [c['name'] for c in inspector.get_columns(table_name)]
-    return column_name in columns
-
 def main():
     """Main execution function."""
     start_time = time.time()
@@ -410,14 +263,9 @@ def main():
     
     # Load data
     load_recipe_general()
-    load_ingredients()
     load_recipe_ingredients()
-    load_merged_recipes()
+    load_ingredient_flavors()
     load_recipe_instructions()
-    
-    # Post-processing
-    populate_cuisines()
-    update_foreign_keys()
     
     elapsed_time = time.time() - start_time
     logger.info(f"Data import completed in {elapsed_time:.2f} seconds")

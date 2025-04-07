@@ -1,6 +1,223 @@
 Directory Tree: ./
 ================================================================================
 
+├── .env
+
+////////////////////////////////////////////////////////////////////////////////
+# Database settings
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/mealflow
+
+# API settings
+API_HOST=0.0.0.0
+API_PORT=8000
+RELOAD=True
+
+# Embedding model settings
+EMBEDDING_MODEL=all-MiniLM-L6-v2
+EMBEDDING_DIMENSION=384
+
+# Recommendation settings
+DEFAULT_RECOMMENDATION_LIMIT=10
+CONTENT_TYPES=meal,recipe
+ALLOWED_TRENDING_WINDOWS=day,week,month
+INTERACTION_TYPES=view,like,save,cook,comment
+
+# Scheduler settings
+EMBEDDING_GENERATION_INTERVAL=60
+SCHEDULER_SLEEP_INTERVAL=60
+
+# Client settings
+RECOMMENDATION_API_URL=http://localhost:8000
+
+# Cache settings
+ENABLE_CACHE=False
+CACHE_EXPIRATION=300
+
+# Similarity thresholds
+MIN_SIMILARITY_SCORE=0.6
+MIN_COMMON_ITEMS=2
+
+# Logging configuration
+LOG_LEVEL=INFO
+LOG_FORMAT=%(asctime)s - %(name)s - %(levelname)s - %(message)s
+
+# Data import settings
+DATA_DIR=data
+RECIPE_GENERAL_FILE=RecipeDB_general.csv
+RECIPE_INGREDIENT_PHRASE_FILE=RecipeDB_ingredient_phrase.csv
+RECIPE_INGREDIENT_FLAVOR_FILE=RecipeDB_ingredient_flavor.csv
+RECIPE_INSTRUCTIONS_FILE=RecipeDB_instructions.json
+MERGED_RECIPES_FILE=merged.csv
+BATCH_SIZE=1000
+////////////////////////////////////////////////////////////////////////////////
+
+├── .env.example
+
+////////////////////////////////////////////////////////////////////////////////
+# Database settings
+DATABASE_URL=postgresql://username:password@localhost:5432/database_name
+
+# API settings
+API_HOST=0.0.0.0
+API_PORT=8000
+RELOAD=True
+
+# Embedding model settings
+EMBEDDING_MODEL=all-MiniLM-L6-v2
+EMBEDDING_DIMENSION=384
+
+# Recommendation settings
+DEFAULT_RECOMMENDATION_LIMIT=10
+CONTENT_TYPES=meal,recipe
+ALLOWED_TRENDING_WINDOWS=day,week,month
+INTERACTION_TYPES=view,like,save,cook,comment
+
+# Scheduler settings
+EMBEDDING_GENERATION_INTERVAL=60
+SCHEDULER_SLEEP_INTERVAL=60
+
+# Client settings
+RECOMMENDATION_API_URL=http://localhost:8000
+
+# Cache settings
+ENABLE_CACHE=False
+CACHE_EXPIRATION=300
+
+# Similarity thresholds
+MIN_SIMILARITY_SCORE=0.6
+MIN_COMMON_ITEMS=2
+
+# Logging configuration
+LOG_LEVEL=INFO
+LOG_FORMAT=%(asctime)s - %(name)s - %(levelname)s - %(message)s
+
+# Data import settings
+DATA_DIR=data
+RECIPE_GENERAL_FILE=RecipeDB_general.csv
+RECIPE_INGREDIENT_PHRASE_FILE=RecipeDB_ingredient_phrase.csv
+RECIPE_INGREDIENT_FLAVOR_FILE=RecipeDB_ingredient_flavor.csv
+RECIPE_INSTRUCTIONS_FILE=RecipeDB_instructions.json
+MERGED_RECIPES_FILE=merged.csv
+BATCH_SIZE=1000
+////////////////////////////////////////////////////////////////////////////////
+
+├── Makefile
+
+////////////////////////////////////////////////////////////////////////////////
+.PHONY: setup install clean run test lint load-data setup-db init-embeddings
+
+# Default Python interpreter
+PYTHON = python3
+PIP = pip3
+
+# Default environment file
+ENV_FILE = .env
+
+# Check if environment file exists
+ifeq (,$(wildcard $(ENV_FILE)))
+    $(warning $(ENV_FILE) file not found. Using default values.)
+endif
+
+# Load environment variables if file exists
+ifneq (,$(wildcard $(ENV_FILE)))
+    include $(ENV_FILE)
+    export
+endif
+
+# Default variables
+DATABASE_URL ?= postgresql://postgres:postgres@localhost:5432/mealflow
+API_PORT ?= 8000
+API_HOST ?= 0.0.0.0
+
+# Setup the development environment
+setup: install setup-db load-data init-embeddings
+
+# Install required packages
+install:
+	@echo "Installing required packages..."
+	$(PIP) install -r requirements.txt
+
+# Clean up temporary files and artifacts
+clean:
+	@echo "Cleaning up temporary files and artifacts..."
+	find . -type d -name __pycache__ -exec rm -rf {} +
+	find . -type f -name "*.pyc" -delete
+	find . -type f -name "*.pyo" -delete
+	find . -type f -name "*.pyd" -delete
+	find . -type f -name ".DS_Store" -delete
+	find . -type d -name "*.egg-info" -exec rm -rf {} +
+	find . -type d -name "*.egg" -exec rm -rf {} +
+	find . -type d -name ".pytest_cache" -exec rm -rf {} +
+	find . -type d -name ".coverage" -exec rm -rf {} +
+	find . -type d -name "htmlcov" -exec rm -rf {} +
+	find . -type d -name ".mypy_cache" -exec rm -rf {} +
+
+# Run the service
+run:
+	@echo "Starting the meal recommendation service..."
+	uvicorn main:app --host $(API_HOST) --port $(API_PORT) --reload
+
+# Run tests
+test:
+	@echo "Running tests..."
+	pytest -xvs tests/
+
+# Run linter
+lint:
+	@echo "Running linter..."
+	flake8 .
+
+# Load data from CSV and JSON files
+load-data:
+	@echo "Loading data from CSV and JSON files..."
+	$(PYTHON) -m data.loader
+
+# Setup database tables for recommendation system
+setup-db:
+	@echo "Setting up database tables for recommendation system..."
+	$(PYTHON) -m setup
+
+# Generate initial embeddings
+init-embeddings:
+	@echo "Generating initial embeddings..."
+	$(PYTHON) -c "from embeddings.generator import EmbeddingGenerator; \
+				  generator = EmbeddingGenerator(); \
+				  result = generator.generate_all_embeddings(); \
+				  print(f'Initial embeddings generated: {result}')"
+
+# Test database connection
+test-db:
+	@echo "Testing database connection..."
+	$(PYTHON) -c "from data.database import test_connection; test_connection()"
+
+# Setup database schema only (no data import)
+schema-only:
+	@echo "Setting up database schema only..."
+	$(PYTHON) -m setup
+
+# Generate requirements.txt file
+freeze:
+	@echo "Generating requirements.txt file..."
+	$(PIP) freeze > requirements.txt
+
+# Help
+help:
+	@echo "Available targets:"
+	@echo "  setup          - Set up development environment (install, setup-db, load-data, init-embeddings)"
+	@echo "  install        - Install required packages"
+	@echo "  clean          - Clean up temporary files and artifacts"
+	@echo "  run            - Run the meal recommendation service"
+	@echo "  test           - Run tests"
+	@echo "  lint           - Run linter"
+	@echo "  load-data      - Load data from CSV and JSON files"
+	@echo "  setup-db       - Setup database tables for recommendation system"
+	@echo "  init-embeddings - Generate initial embeddings"
+	@echo "  test-db        - Test database connection"
+	@echo "  schema-only    - Setup database schema only (no data import)"
+	@echo "  freeze         - Generate requirements.txt file"
+	@echo "  help           - Show this help"
+////////////////////////////////////////////////////////////////////////////////
+
 ├── __init__.py
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -104,7 +321,7 @@ def read_root():
     """Root endpoint for API status check."""
     return {"status": "Meal recommendation service is running"}
 
-@router.get("/recommend/user/{user_id}", response_model=RecommendationResponse, tags=["recommendations"])
+@router.get("/recommend/user/{user_id}", response_model=RecommendationResponse)
 def get_user_recommendations(
     user_id: str,
     content_type: Optional[str] = Query(None, description="Filter by content type (meal, recipe)"),
@@ -114,25 +331,7 @@ def get_user_recommendations(
     dietary_restriction: Optional[str] = Query(None, description="Filter by dietary restriction"),
     db = Depends(get_db)
 ):
-    """
-    Get personalized meal recommendations for a user.
-    
-    Uses a hybrid approach with multiple recommendation strategies:
-    1. Collaborative filtering based on similar users
-    2. Content-based recommendations using recent interactions
-    3. Popularity-based recommendations as fallback
-    
-    Parameters:
-    - user_id: The ID of the user
-    - content_type: Optional filter by content type ('meal', 'recipe')
-    - limit: Maximum number of recommendations to return
-    - recommendation_type: Algorithm to use (hybrid, item-based, user-based)
-    - cuisine: Optional filter by cuisine type
-    - dietary_restriction: Optional filter by dietary restriction
-    
-    Returns:
-    - List of recommended meals
-    """
+    """Get personalized meal recommendations for a user."""
     start_time = time.time()
     
     # Validate content type if provided
@@ -179,7 +378,7 @@ def get_user_recommendations(
         "execution_time_ms": round(execution_time, 2)
     }
 
-@router.get("/recommend/similar/{content_type}/{meal_id}", response_model=RecommendationResponse, tags=["recommendations"])
+@router.get("/recommend/similar/{content_type}/{meal_id}", response_model=RecommendationResponse)
 def get_similar_meals(
     content_type: str,
     meal_id: str,
@@ -187,23 +386,7 @@ def get_similar_meals(
     similarity_method: str = Query("content", description="Method to determine similarity (content, interaction, ingredient)"),
     db = Depends(get_db)
 ):
-    """
-    Get meals similar to the specified item.
-    
-    Supports three similarity methods:
-    - content: Uses vector embeddings to find similar meals based on textual features
-    - interaction: Uses co-occurrence patterns to find meals that users interact with together
-    - ingredient: Uses common ingredients to find similar meals
-    
-    Parameters:
-    - content_type: Type of content ('meal' or 'recipe')
-    - meal_id: ID of the meal
-    - limit: Maximum number of similar meals to return
-    - similarity_method: Method to determine similarity (content, interaction, ingredient)
-    
-    Returns:
-    - List of similar meals with similarity scores
-    """
+    """Get meals similar to the specified item."""
     start_time = time.time()
     
     # Validate content type
@@ -273,24 +456,14 @@ def get_similar_meals(
         "execution_time_ms": round(execution_time, 2)
     }
 
-@router.get("/trending/{content_type}", response_model=RecommendationResponse, tags=["recommendations"])
+@router.get("/trending/{content_type}", response_model=RecommendationResponse)
 def get_trending_meals(
     content_type: str,
     time_window: str = Query("day", description="Time window for trending meals"),
     limit: int = Query(DEFAULT_RECOMMENDATION_LIMIT, description="Maximum number of items"),
     db = Depends(get_db)
 ):
-    """
-    Get trending meals based on recent interactions.
-    
-    Parameters:
-    - content_type: Type of content ('meal', 'recipe', or 'all')
-    - time_window: Time window to consider ('day', 'week', 'month')
-    - limit: Maximum number of meals to return
-    
-    Returns:
-    - List of trending meals with popularity scores
-    """
+    """Get trending meals based on recent interactions."""
     start_time = time.time()
     
     # Validate content type (allowing 'all' as a valid option)
@@ -329,22 +502,13 @@ def get_trending_meals(
         "execution_time_ms": round(execution_time, 2)
     }
 
-@router.get("/recommend/cuisine/{cuisine_id}", response_model=RecommendationResponse, tags=["recommendations"])
+@router.get("/recommend/cuisine/{cuisine_id}", response_model=RecommendationResponse)
 def get_cuisine_recommendations(
     cuisine_id: str,
     limit: int = Query(DEFAULT_RECOMMENDATION_LIMIT, description="Maximum number of items"),
     db = Depends(get_db)
 ):
-    """
-    Get meal recommendations based on cuisine.
-    
-    Parameters:
-    - cuisine_id: ID of the cuisine
-    - limit: Maximum number of meals to return
-    
-    Returns:
-    - List of meals in the specified cuisine
-    """
+    """Get meal recommendations based on cuisine."""
     start_time = time.time()
     
     recommender = PopularityRecommender()
@@ -371,22 +535,13 @@ def get_cuisine_recommendations(
         "execution_time_ms": round(execution_time, 2)
     }
 
-@router.get("/recommend/dietary/{dietary_restriction_id}", response_model=RecommendationResponse, tags=["recommendations"])
+@router.get("/recommend/dietary/{dietary_restriction_id}", response_model=RecommendationResponse)
 def get_dietary_recommendations(
     dietary_restriction_id: str,
     limit: int = Query(DEFAULT_RECOMMENDATION_LIMIT, description="Maximum number of items"),
     db = Depends(get_db)
 ):
-    """
-    Get meal recommendations based on dietary restrictions.
-    
-    Parameters:
-    - dietary_restriction_id: ID of the dietary restriction
-    - limit: Maximum number of meals to return
-    
-    Returns:
-    - List of meals that match the dietary restriction
-    """
+    """Get meal recommendations based on dietary restrictions."""
     start_time = time.time()
     
     recommender = PopularityRecommender()
@@ -413,20 +568,9 @@ def get_dietary_recommendations(
         "execution_time_ms": round(execution_time, 2)
     }
 
-@router.post("/interactions", tags=["interactions"])
+@router.post("/interactions")
 def record_interaction(interaction: InteractionCreate, db = Depends(get_db)):
-    """
-    Record a user interaction with a meal.
-    
-    Parameters:
-    - user_id: ID of the user
-    - meal_id: ID of the meal
-    - content_type: Type of content ('meal' or 'recipe')
-    - interaction_type: Type of interaction ('view', 'like', 'save', 'cook')
-    
-    Returns:
-    - Status confirmation
-    """
+    """Record a user interaction with a meal."""
     start_time = time.time()
     
     # Validate content type
@@ -459,24 +603,14 @@ def record_interaction(interaction: InteractionCreate, db = Depends(get_db)):
         "execution_time_ms": round(execution_time, 2)
     }
 
-@router.get("/user/{user_id}/history", tags=["interactions"])
+@router.get("/user/{user_id}/history")
 def get_user_meal_history(
     user_id: str,
     content_type: Optional[str] = None,
     limit: int = 10,
     db = Depends(get_db)
 ):
-    """
-    Get a user's meal interaction history.
-    
-    Parameters:
-    - user_id: ID of the user
-    - content_type: Optional filter by content type ('meal' or 'recipe')
-    - limit: Maximum number of history items to return
-    
-    Returns:
-    - List of user's recent meal interactions
-    """
+    """Get a user's meal interaction history."""
     start_time = time.time()
     
     # Validate content type if provided
@@ -500,20 +634,12 @@ def get_user_meal_history(
         "execution_time_ms": round(execution_time, 2)
     }
 
-@router.get("/user/{user_id}/dietary-preferences", tags=["user"])
+@router.get("/user/{user_id}/dietary-preferences")
 def get_user_dietary_preferences(
     user_id: str,
     db = Depends(get_db)
 ):
-    """
-    Get a user's dietary preferences.
-    
-    Parameters:
-    - user_id: ID of the user
-    
-    Returns:
-    - List of user's dietary preferences
-    """
+    """Get a user's dietary preferences."""
     start_time = time.time()
     
     from data.repositories import InteractionRepository
@@ -529,22 +655,13 @@ def get_user_dietary_preferences(
         "execution_time_ms": round(execution_time, 2)
     }
 
-@router.post("/user/{user_id}/dietary-preferences", tags=["user"])
+@router.post("/user/{user_id}/dietary-preferences")
 def set_user_dietary_preference(
     user_id: str,
     dietary_restriction_id: int,
     db = Depends(get_db)
 ):
-    """
-    Add a dietary preference for a user.
-    
-    Parameters:
-    - user_id: ID of the user
-    - dietary_restriction_id: ID of the dietary restriction
-    
-    Returns:
-    - Status confirmation
-    """
+    """Add a dietary preference for a user."""
     start_time = time.time()
     
     from data.repositories import InteractionRepository
@@ -692,6 +809,223 @@ def setup_middleware(app):
 Directory Tree: ./
 ================================================================================
 
+├── .env
+
+////////////////////////////////////////////////////////////////////////////////
+# Database settings
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/mealflow
+
+# API settings
+API_HOST=0.0.0.0
+API_PORT=8000
+RELOAD=True
+
+# Embedding model settings
+EMBEDDING_MODEL=all-MiniLM-L6-v2
+EMBEDDING_DIMENSION=384
+
+# Recommendation settings
+DEFAULT_RECOMMENDATION_LIMIT=10
+CONTENT_TYPES=meal,recipe
+ALLOWED_TRENDING_WINDOWS=day,week,month
+INTERACTION_TYPES=view,like,save,cook,comment
+
+# Scheduler settings
+EMBEDDING_GENERATION_INTERVAL=60
+SCHEDULER_SLEEP_INTERVAL=60
+
+# Client settings
+RECOMMENDATION_API_URL=http://localhost:8000
+
+# Cache settings
+ENABLE_CACHE=False
+CACHE_EXPIRATION=300
+
+# Similarity thresholds
+MIN_SIMILARITY_SCORE=0.6
+MIN_COMMON_ITEMS=2
+
+# Logging configuration
+LOG_LEVEL=INFO
+LOG_FORMAT=%(asctime)s - %(name)s - %(levelname)s - %(message)s
+
+# Data import settings
+DATA_DIR=data
+RECIPE_GENERAL_FILE=RecipeDB_general.csv
+RECIPE_INGREDIENT_PHRASE_FILE=RecipeDB_ingredient_phrase.csv
+RECIPE_INGREDIENT_FLAVOR_FILE=RecipeDB_ingredient_flavor.csv
+RECIPE_INSTRUCTIONS_FILE=RecipeDB_instructions.json
+MERGED_RECIPES_FILE=merged.csv
+BATCH_SIZE=1000
+////////////////////////////////////////////////////////////////////////////////
+
+├── .env.example
+
+////////////////////////////////////////////////////////////////////////////////
+# Database settings
+DATABASE_URL=postgresql://username:password@localhost:5432/database_name
+
+# API settings
+API_HOST=0.0.0.0
+API_PORT=8000
+RELOAD=True
+
+# Embedding model settings
+EMBEDDING_MODEL=all-MiniLM-L6-v2
+EMBEDDING_DIMENSION=384
+
+# Recommendation settings
+DEFAULT_RECOMMENDATION_LIMIT=10
+CONTENT_TYPES=meal,recipe
+ALLOWED_TRENDING_WINDOWS=day,week,month
+INTERACTION_TYPES=view,like,save,cook,comment
+
+# Scheduler settings
+EMBEDDING_GENERATION_INTERVAL=60
+SCHEDULER_SLEEP_INTERVAL=60
+
+# Client settings
+RECOMMENDATION_API_URL=http://localhost:8000
+
+# Cache settings
+ENABLE_CACHE=False
+CACHE_EXPIRATION=300
+
+# Similarity thresholds
+MIN_SIMILARITY_SCORE=0.6
+MIN_COMMON_ITEMS=2
+
+# Logging configuration
+LOG_LEVEL=INFO
+LOG_FORMAT=%(asctime)s - %(name)s - %(levelname)s - %(message)s
+
+# Data import settings
+DATA_DIR=data
+RECIPE_GENERAL_FILE=RecipeDB_general.csv
+RECIPE_INGREDIENT_PHRASE_FILE=RecipeDB_ingredient_phrase.csv
+RECIPE_INGREDIENT_FLAVOR_FILE=RecipeDB_ingredient_flavor.csv
+RECIPE_INSTRUCTIONS_FILE=RecipeDB_instructions.json
+MERGED_RECIPES_FILE=merged.csv
+BATCH_SIZE=1000
+////////////////////////////////////////////////////////////////////////////////
+
+├── Makefile
+
+////////////////////////////////////////////////////////////////////////////////
+.PHONY: setup install clean run test lint load-data setup-db init-embeddings
+
+# Default Python interpreter
+PYTHON = python3
+PIP = pip3
+
+# Default environment file
+ENV_FILE = .env
+
+# Check if environment file exists
+ifeq (,$(wildcard $(ENV_FILE)))
+    $(warning $(ENV_FILE) file not found. Using default values.)
+endif
+
+# Load environment variables if file exists
+ifneq (,$(wildcard $(ENV_FILE)))
+    include $(ENV_FILE)
+    export
+endif
+
+# Default variables
+DATABASE_URL ?= postgresql://postgres:postgres@localhost:5432/mealflow
+API_PORT ?= 8000
+API_HOST ?= 0.0.0.0
+
+# Setup the development environment
+setup: install setup-db load-data init-embeddings
+
+# Install required packages
+install:
+	@echo "Installing required packages..."
+	$(PIP) install -r requirements.txt
+
+# Clean up temporary files and artifacts
+clean:
+	@echo "Cleaning up temporary files and artifacts..."
+	find . -type d -name __pycache__ -exec rm -rf {} +
+	find . -type f -name "*.pyc" -delete
+	find . -type f -name "*.pyo" -delete
+	find . -type f -name "*.pyd" -delete
+	find . -type f -name ".DS_Store" -delete
+	find . -type d -name "*.egg-info" -exec rm -rf {} +
+	find . -type d -name "*.egg" -exec rm -rf {} +
+	find . -type d -name ".pytest_cache" -exec rm -rf {} +
+	find . -type d -name ".coverage" -exec rm -rf {} +
+	find . -type d -name "htmlcov" -exec rm -rf {} +
+	find . -type d -name ".mypy_cache" -exec rm -rf {} +
+
+# Run the service
+run:
+	@echo "Starting the meal recommendation service..."
+	uvicorn main:app --host $(API_HOST) --port $(API_PORT) --reload
+
+# Run tests
+test:
+	@echo "Running tests..."
+	pytest -xvs tests/
+
+# Run linter
+lint:
+	@echo "Running linter..."
+	flake8 .
+
+# Load data from CSV and JSON files
+load-data:
+	@echo "Loading data from CSV and JSON files..."
+	$(PYTHON) -m data.loader
+
+# Setup database tables for recommendation system
+setup-db:
+	@echo "Setting up database tables for recommendation system..."
+	$(PYTHON) -m setup
+
+# Generate initial embeddings
+init-embeddings:
+	@echo "Generating initial embeddings..."
+	$(PYTHON) -c "from embeddings.generator import EmbeddingGenerator; \
+				  generator = EmbeddingGenerator(); \
+				  result = generator.generate_all_embeddings(); \
+				  print(f'Initial embeddings generated: {result}')"
+
+# Test database connection
+test-db:
+	@echo "Testing database connection..."
+	$(PYTHON) -c "from data.database import test_connection; test_connection()"
+
+# Setup database schema only (no data import)
+schema-only:
+	@echo "Setting up database schema only..."
+	$(PYTHON) -m setup
+
+# Generate requirements.txt file
+freeze:
+	@echo "Generating requirements.txt file..."
+	$(PIP) freeze > requirements.txt
+
+# Help
+help:
+	@echo "Available targets:"
+	@echo "  setup          - Set up development environment (install, setup-db, load-data, init-embeddings)"
+	@echo "  install        - Install required packages"
+	@echo "  clean          - Clean up temporary files and artifacts"
+	@echo "  run            - Run the meal recommendation service"
+	@echo "  test           - Run tests"
+	@echo "  lint           - Run linter"
+	@echo "  load-data      - Load data from CSV and JSON files"
+	@echo "  setup-db       - Setup database tables for recommendation system"
+	@echo "  init-embeddings - Generate initial embeddings"
+	@echo "  test-db        - Test database connection"
+	@echo "  schema-only    - Setup database schema only (no data import)"
+	@echo "  freeze         - Generate requirements.txt file"
+	@echo "  help           - Show this help"
+////////////////////////////////////////////////////////////////////////////////
+
 ├── __init__.py
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -795,7 +1129,7 @@ def read_root():
     """Root endpoint for API status check."""
     return {"status": "Meal recommendation service is running"}
 
-@router.get("/recommend/user/{user_id}", response_model=RecommendationResponse, tags=["recommendations"])
+@router.get("/recommend/user/{user_id}", response_model=RecommendationResponse)
 def get_user_recommendations(
     user_id: str,
     content_type: Optional[str] = Query(None, description="Filter by content type (meal, recipe)"),
@@ -805,25 +1139,7 @@ def get_user_recommendations(
     dietary_restriction: Optional[str] = Query(None, description="Filter by dietary restriction"),
     db = Depends(get_db)
 ):
-    """
-    Get personalized meal recommendations for a user.
-    
-    Uses a hybrid approach with multiple recommendation strategies:
-    1. Collaborative filtering based on similar users
-    2. Content-based recommendations using recent interactions
-    3. Popularity-based recommendations as fallback
-    
-    Parameters:
-    - user_id: The ID of the user
-    - content_type: Optional filter by content type ('meal', 'recipe')
-    - limit: Maximum number of recommendations to return
-    - recommendation_type: Algorithm to use (hybrid, item-based, user-based)
-    - cuisine: Optional filter by cuisine type
-    - dietary_restriction: Optional filter by dietary restriction
-    
-    Returns:
-    - List of recommended meals
-    """
+    """Get personalized meal recommendations for a user."""
     start_time = time.time()
     
     # Validate content type if provided
@@ -870,7 +1186,7 @@ def get_user_recommendations(
         "execution_time_ms": round(execution_time, 2)
     }
 
-@router.get("/recommend/similar/{content_type}/{meal_id}", response_model=RecommendationResponse, tags=["recommendations"])
+@router.get("/recommend/similar/{content_type}/{meal_id}", response_model=RecommendationResponse)
 def get_similar_meals(
     content_type: str,
     meal_id: str,
@@ -878,23 +1194,7 @@ def get_similar_meals(
     similarity_method: str = Query("content", description="Method to determine similarity (content, interaction, ingredient)"),
     db = Depends(get_db)
 ):
-    """
-    Get meals similar to the specified item.
-    
-    Supports three similarity methods:
-    - content: Uses vector embeddings to find similar meals based on textual features
-    - interaction: Uses co-occurrence patterns to find meals that users interact with together
-    - ingredient: Uses common ingredients to find similar meals
-    
-    Parameters:
-    - content_type: Type of content ('meal' or 'recipe')
-    - meal_id: ID of the meal
-    - limit: Maximum number of similar meals to return
-    - similarity_method: Method to determine similarity (content, interaction, ingredient)
-    
-    Returns:
-    - List of similar meals with similarity scores
-    """
+    """Get meals similar to the specified item."""
     start_time = time.time()
     
     # Validate content type
@@ -964,24 +1264,14 @@ def get_similar_meals(
         "execution_time_ms": round(execution_time, 2)
     }
 
-@router.get("/trending/{content_type}", response_model=RecommendationResponse, tags=["recommendations"])
+@router.get("/trending/{content_type}", response_model=RecommendationResponse)
 def get_trending_meals(
     content_type: str,
     time_window: str = Query("day", description="Time window for trending meals"),
     limit: int = Query(DEFAULT_RECOMMENDATION_LIMIT, description="Maximum number of items"),
     db = Depends(get_db)
 ):
-    """
-    Get trending meals based on recent interactions.
-    
-    Parameters:
-    - content_type: Type of content ('meal', 'recipe', or 'all')
-    - time_window: Time window to consider ('day', 'week', 'month')
-    - limit: Maximum number of meals to return
-    
-    Returns:
-    - List of trending meals with popularity scores
-    """
+    """Get trending meals based on recent interactions."""
     start_time = time.time()
     
     # Validate content type (allowing 'all' as a valid option)
@@ -1020,22 +1310,13 @@ def get_trending_meals(
         "execution_time_ms": round(execution_time, 2)
     }
 
-@router.get("/recommend/cuisine/{cuisine_id}", response_model=RecommendationResponse, tags=["recommendations"])
+@router.get("/recommend/cuisine/{cuisine_id}", response_model=RecommendationResponse)
 def get_cuisine_recommendations(
     cuisine_id: str,
     limit: int = Query(DEFAULT_RECOMMENDATION_LIMIT, description="Maximum number of items"),
     db = Depends(get_db)
 ):
-    """
-    Get meal recommendations based on cuisine.
-    
-    Parameters:
-    - cuisine_id: ID of the cuisine
-    - limit: Maximum number of meals to return
-    
-    Returns:
-    - List of meals in the specified cuisine
-    """
+    """Get meal recommendations based on cuisine."""
     start_time = time.time()
     
     recommender = PopularityRecommender()
@@ -1062,22 +1343,13 @@ def get_cuisine_recommendations(
         "execution_time_ms": round(execution_time, 2)
     }
 
-@router.get("/recommend/dietary/{dietary_restriction_id}", response_model=RecommendationResponse, tags=["recommendations"])
+@router.get("/recommend/dietary/{dietary_restriction_id}", response_model=RecommendationResponse)
 def get_dietary_recommendations(
     dietary_restriction_id: str,
     limit: int = Query(DEFAULT_RECOMMENDATION_LIMIT, description="Maximum number of items"),
     db = Depends(get_db)
 ):
-    """
-    Get meal recommendations based on dietary restrictions.
-    
-    Parameters:
-    - dietary_restriction_id: ID of the dietary restriction
-    - limit: Maximum number of meals to return
-    
-    Returns:
-    - List of meals that match the dietary restriction
-    """
+    """Get meal recommendations based on dietary restrictions."""
     start_time = time.time()
     
     recommender = PopularityRecommender()
@@ -1104,20 +1376,9 @@ def get_dietary_recommendations(
         "execution_time_ms": round(execution_time, 2)
     }
 
-@router.post("/interactions", tags=["interactions"])
+@router.post("/interactions")
 def record_interaction(interaction: InteractionCreate, db = Depends(get_db)):
-    """
-    Record a user interaction with a meal.
-    
-    Parameters:
-    - user_id: ID of the user
-    - meal_id: ID of the meal
-    - content_type: Type of content ('meal' or 'recipe')
-    - interaction_type: Type of interaction ('view', 'like', 'save', 'cook')
-    
-    Returns:
-    - Status confirmation
-    """
+    """Record a user interaction with a meal."""
     start_time = time.time()
     
     # Validate content type
@@ -1150,24 +1411,14 @@ def record_interaction(interaction: InteractionCreate, db = Depends(get_db)):
         "execution_time_ms": round(execution_time, 2)
     }
 
-@router.get("/user/{user_id}/history", tags=["interactions"])
+@router.get("/user/{user_id}/history")
 def get_user_meal_history(
     user_id: str,
     content_type: Optional[str] = None,
     limit: int = 10,
     db = Depends(get_db)
 ):
-    """
-    Get a user's meal interaction history.
-    
-    Parameters:
-    - user_id: ID of the user
-    - content_type: Optional filter by content type ('meal' or 'recipe')
-    - limit: Maximum number of history items to return
-    
-    Returns:
-    - List of user's recent meal interactions
-    """
+    """Get a user's meal interaction history."""
     start_time = time.time()
     
     # Validate content type if provided
@@ -1191,20 +1442,12 @@ def get_user_meal_history(
         "execution_time_ms": round(execution_time, 2)
     }
 
-@router.get("/user/{user_id}/dietary-preferences", tags=["user"])
+@router.get("/user/{user_id}/dietary-preferences")
 def get_user_dietary_preferences(
     user_id: str,
     db = Depends(get_db)
 ):
-    """
-    Get a user's dietary preferences.
-    
-    Parameters:
-    - user_id: ID of the user
-    
-    Returns:
-    - List of user's dietary preferences
-    """
+    """Get a user's dietary preferences."""
     start_time = time.time()
     
     from data.repositories import InteractionRepository
@@ -1220,22 +1463,13 @@ def get_user_dietary_preferences(
         "execution_time_ms": round(execution_time, 2)
     }
 
-@router.post("/user/{user_id}/dietary-preferences", tags=["user"])
+@router.post("/user/{user_id}/dietary-preferences")
 def set_user_dietary_preference(
     user_id: str,
     dietary_restriction_id: int,
     db = Depends(get_db)
 ):
-    """
-    Add a dietary preference for a user.
-    
-    Parameters:
-    - user_id: ID of the user
-    - dietary_restriction_id: ID of the dietary restriction
-    
-    Returns:
-    - Status confirmation
-    """
+    """Add a dietary preference for a user."""
     start_time = time.time()
     
     from data.repositories import InteractionRepository
@@ -1271,69 +1505,51 @@ def set_user_dietary_preference(
 
 ////////////////////////////////////////////////////////////////////////////////
 """
-Configuration settings for the meal recommendation service.
-Centralizes all configuration parameters in a single file.
+Configuration module for the meal recommendation service.
+Exports all configuration values from settings.py.
 """
-import os
-from dotenv import load_dotenv
-
-# Load environment variables
-load_dotenv()
-
-# Database settings
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/postgres")
-
-# API settings
-API_HOST = os.getenv("API_HOST", "0.0.0.0")
-API_PORT = int(os.getenv("API_PORT", "8000"))
-RELOAD = os.getenv("RELOAD", "True").lower() == "true"
-
-# Embedding model settings
-EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "all-MiniLM-L6-v2")
-EMBEDDING_DIMENSION = int(os.getenv("EMBEDDING_DIMENSION", "384"))  # Dimension depends on model
-
-# Recommendation settings
-DEFAULT_RECOMMENDATION_LIMIT = int(os.getenv("DEFAULT_RECOMMENDATION_LIMIT", "10"))
-CONTENT_TYPES = ["meal", "recipe"]
-ALLOWED_TRENDING_WINDOWS = ["day", "week", "month"]
-INTERACTION_TYPES = ["view", "like", "save", "cook", "comment"]
-
-# Scheduler settings
-EMBEDDING_GENERATION_INTERVAL = int(os.getenv("EMBEDDING_GENERATION_INTERVAL", "60"))  # minutes
-SCHEDULER_SLEEP_INTERVAL = int(os.getenv("SCHEDULER_SLEEP_INTERVAL", "60"))  # seconds
-
-# Client settings
-RECOMMENDATION_API_URL = os.getenv("RECOMMENDATION_API_URL", "http://localhost:8000")
-
-# Cache settings
-ENABLE_CACHE = os.getenv("ENABLE_CACHE", "False").lower() == "true"
-CACHE_EXPIRATION = int(os.getenv("CACHE_EXPIRATION", "300"))  # seconds
-
-# Meal-specific settings
-CUISINE_TYPES = [
-    "italian", "mexican", "chinese", "indian", "american",
-    "french", "japanese", "mediterranean", "thai", "other"
-]
-
-DIETARY_RESTRICTIONS = [
-    "vegetarian", "vegan", "gluten-free", "dairy-free", 
-    "keto", "paleo", "low-carb", "low-fat"
-]
-
-# Similarity thresholds
-MIN_SIMILARITY_SCORE = float(os.getenv("MIN_SIMILARITY_SCORE", "0.6"))
-MIN_COMMON_ITEMS = int(os.getenv("MIN_COMMON_ITEMS", "2"))
-
-# Logging configuration
-LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
-LOG_FORMAT = os.getenv(
-    "LOG_FORMAT", 
-    "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+from config.settings import (
+    # Database settings
+    DATABASE_URL,
+    
+    # API settings
+    API_HOST,
+    API_PORT,
+    RELOAD,
+    
+    # Embedding model settings
+    EMBEDDING_MODEL,
+    EMBEDDING_DIMENSION,
+    
+    # Recommendation settings
+    DEFAULT_RECOMMENDATION_LIMIT,
+    CONTENT_TYPES,
+    ALLOWED_TRENDING_WINDOWS,
+    INTERACTION_TYPES,
+    
+    # Scheduler settings
+    EMBEDDING_GENERATION_INTERVAL,
+    SCHEDULER_SLEEP_INTERVAL,
+    
+    # Client settings
+    RECOMMENDATION_API_URL,
+    
+    # Cache settings
+    ENABLE_CACHE,
+    CACHE_EXPIRATION,
+    
+    # Meal-specific settings
+    CUISINE_TYPES,
+    DIETARY_RESTRICTIONS,
+    
+    # Similarity thresholds
+    MIN_SIMILARITY_SCORE,
+    MIN_COMMON_ITEMS,
+    
+    # Logging configuration
+    LOG_LEVEL,
+    LOG_FORMAT
 )
-
-# Setup logging
-import logging
-logging.basicConfig(level=getattr(logging, LOG_LEVEL), format=LOG_FORMAT)
 ////////////////////////////////////////////////////////////////////////////////
 
 ├── data
@@ -1419,12 +1635,443 @@ print("Meals File Path:", file_path)
 
 ////////////////////////////////////////////////////////////////////////////////
 
+│   ├── loader.py
+
+////////////////////////////////////////////////////////////////////////////////
+"""
+Data loader for MealFlow recommendation system.
+Imports datasets from CSV and JSON files into the PostgreSQL database.
+"""
+import os
+import json
+import pandas as pd
+import logging
+import time
+from typing import Dict, List, Optional, Any
+from dotenv import load_dotenv
+from sqlalchemy import create_engine, text, Table, Column, Integer, String, Float, MetaData, inspect
+
+# Setup logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+# Load environment variables
+load_dotenv()
+
+# Get database connection string
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/mealflow")
+
+# Get data file paths
+DATA_DIR = os.getenv("DATA_DIR", "data")
+RECIPE_GENERAL_FILE = os.getenv("RECIPE_GENERAL_FILE", "RecipeDB_general.csv")
+RECIPE_INGREDIENT_PHRASE_FILE = os.getenv("RECIPE_INGREDIENT_PHRASE_FILE", "RecipeDB_ingredient_phrase.csv")
+RECIPE_INGREDIENT_FLAVOR_FILE = os.getenv("RECIPE_INGREDIENT_FLAVOR_FILE", "RecipeDB_ingredient_flavor.csv")
+RECIPE_INSTRUCTIONS_FILE = os.getenv("RECIPE_INSTRUCTIONS_FILE", "RecipeDB_instructions.json")
+MERGED_RECIPES_FILE = os.getenv("MERGED_RECIPES_FILE", "merged.csv")
+BATCH_SIZE = int(os.getenv("BATCH_SIZE", 1000))
+
+# Connect to database
+engine = create_engine(DATABASE_URL)
+metadata = MetaData()
+
+def check_table_exists(table_name: str) -> bool:
+    """Check if a table exists in the database."""
+    inspector = inspect(engine)
+    return table_name in inspector.get_table_names()
+
+def create_tables():
+    """Create all necessary tables if they don't exist."""
+    logger.info("Creating tables if they don't exist...")
+
+    # Recipe table
+    if not check_table_exists("Recipe"):
+        Recipe = Table(
+            "Recipe", 
+            metadata,
+            Column("id", String, primary_key=True),
+            Column("name", String),
+            Column("cuisine", String),
+            Column("prep_time", Integer),
+            Column("cook_time", Integer),
+            Column("total_time", Integer),
+            Column("servings", Integer),
+            Column("calories", Float),
+            Column("ratings", Float),
+            Column("url", String),
+            Column("region", String),
+            Column("sub_region", String),
+            Column("continent", String),
+            Column("source", String),
+            Column("img_url", String),
+            Column("carbohydrate", Float),
+            Column("energy", Float),
+            Column("protein", Float),
+            Column("fat", Float),
+            Column("utensils", String),
+            Column("processes", String),
+            Column("vegan", Float),
+            Column("pescetarian", Float),
+            Column("ovo_vegetarian", Float),
+            Column("lacto_vegetarian", Float),
+            Column("ovo_lacto_vegetarian", Float)
+        )
+        
+    # Ingredient table
+    if not check_table_exists("Ingredient"):
+        Ingredient = Table(
+            "Ingredient",
+            metadata,
+            Column("id", Integer, primary_key=True),
+            Column("name", String, unique=True),
+            Column("generic_name", String),
+            Column("wiki_link", String),
+            Column("wiki_image", String),
+            Column("flavordb_category", String),
+            Column("dietrx_category", String),
+            Column("flavor_db_link", String),
+            Column("flavordb_id", Integer),
+            Column("diet_rx_link", String)
+        )
+
+    # RecipeIngredient table
+    if not check_table_exists("RecipeIngredient"):
+        RecipeIngredient = Table(
+            "RecipeIngredient",
+            metadata,
+            Column("id", Integer, primary_key=True),
+            Column("recipe_id", String),
+            Column("ingredient_id", Integer),
+            Column("quantity", String),
+            Column("unit", String),
+            Column("preparation_method", String)
+        )
+
+    # Merged table
+    if not check_table_exists("MergedRecipes"):
+        MergedRecipes = Table(
+            "MergedRecipes",
+            metadata,
+            Column("recipe_id", String, primary_key=True),
+            Column("recipe_name", String),
+            Column("cuisine", String),
+            Column("prep_time", Integer),
+            Column("cook_time", Integer),
+            Column("total_time", Integer),
+            Column("servings", Integer),
+            Column("calories", Float),
+            Column("ratings", Float),
+            Column("ingredient_count", Integer),
+            Column("complexity_score", Integer),
+            Column("dietary_flags", String)
+        )
+        
+    # Recipe Instructions table
+    if not check_table_exists("RecipeInstruction"):
+        RecipeInstruction = Table(
+            "RecipeInstruction",
+            metadata,
+            Column("id", Integer, primary_key=True),
+            Column("recipe_id", String),
+            Column("step_number", Integer),
+            Column("instruction", String)
+        )
+
+    # Cuisine table if not already created
+    if not check_table_exists("Cuisine"):
+        Cuisine = Table(
+            "Cuisine",
+            metadata,
+            Column("id", Integer, primary_key=True),
+            Column("name", String, unique=True)
+        )
+
+    # Create all tables
+    metadata.create_all(engine)
+    logger.info("Tables created successfully")
+
+def clean_dataframe(df: pd.DataFrame) -> pd.DataFrame:
+    """Clean a dataframe by stripping whitespace, removing quotes, handling NaN values."""
+    # Replace missing values with None
+    df = df.where(pd.notnull(df), None)
+    
+    # Strip whitespace from string columns
+    for col in df.select_dtypes(include=['object']).columns:
+        if df[col].dtype == 'object':
+            df[col] = df[col].str.strip() if df[col].dtype == 'object' else df[col]
+            
+            # Remove quotes from string columns
+            df[col] = df[col].str.replace('"', '') if df[col].dtype == 'object' else df[col]
+            
+    return df
+
+def load_recipe_general():
+    """Load recipe general data from CSV."""
+    file_path = os.path.join(DATA_DIR, RECIPE_GENERAL_FILE)
+    logger.info(f"Loading recipe general data from {file_path}")
+    
+    if not os.path.exists(file_path):
+        logger.error(f"File not found: {file_path}")
+        return
+    
+    try:
+        # Read the CSV file
+        df = pd.read_csv(file_path)
+        df = clean_dataframe(df)
+        
+        # Rename column to match our schema
+        df = df.rename(columns={
+            'Recipe_id': 'id',
+            'Recipe_title': 'name'
+        })
+        
+        # Insert data into database in batches
+        with engine.begin() as conn:
+            for i in range(0, len(df), BATCH_SIZE):
+                batch = df.iloc[i:i+BATCH_SIZE]
+                batch.to_sql('Recipe', conn, if_exists='append', index=False, 
+                            method='multi', chunksize=BATCH_SIZE)
+                logger.info(f"Inserted batch {i//BATCH_SIZE + 1} of {(len(df)//BATCH_SIZE) + 1} into Recipe table")
+        
+        logger.info(f"Loaded {len(df)} recipes into Recipe table")
+        
+    except Exception as e:
+        logger.error(f"Error loading recipe general data: {e}")
+
+def load_ingredients():
+    """Load ingredient data from CSV."""
+    file_path = os.path.join(DATA_DIR, RECIPE_INGREDIENT_FLAVOR_FILE)
+    logger.info(f"Loading ingredient data from {file_path}")
+    
+    if not os.path.exists(file_path):
+        logger.error(f"File not found: {file_path}")
+        return
+    
+    try:
+        # Read the CSV file
+        df = pd.read_csv(file_path)
+        df = clean_dataframe(df)
+        
+        # Rename columns to match our schema
+        df = df.rename(columns={
+            'IngID': 'id',
+            'ingredient': 'name',
+            'generic_name': 'generic_name',
+            'wikilink': 'wiki_link',
+            'wikiimage': 'wiki_image',
+            'FlavorDB_Category': 'flavordb_category',
+            'Dietrx_Category': 'dietrx_category',
+            'Flavor_DB_Link': 'flavor_db_link',
+            'flavordb_id': 'flavordb_id',
+            'Diet_rx_link': 'diet_rx_link'
+        })
+        
+        # Insert data into database in batches
+        with engine.begin() as conn:
+            for i in range(0, len(df), BATCH_SIZE):
+                batch = df.iloc[i:i+BATCH_SIZE]
+                batch.to_sql('Ingredient', conn, if_exists='append', index=False,
+                            method='multi', chunksize=BATCH_SIZE)
+                logger.info(f"Inserted batch {i//BATCH_SIZE + 1} of {(len(df)//BATCH_SIZE) + 1} into Ingredient table")
+        
+        logger.info(f"Loaded {len(df)} ingredients into Ingredient table")
+        
+    except Exception as e:
+        logger.error(f"Error loading ingredient data: {e}")
+
+def load_recipe_ingredients():
+    """Load recipe ingredient relationships from CSV."""
+    file_path = os.path.join(DATA_DIR, RECIPE_INGREDIENT_PHRASE_FILE)
+    logger.info(f"Loading recipe ingredient data from {file_path}")
+    
+    if not os.path.exists(file_path):
+        logger.error(f"File not found: {file_path}")
+        return
+    
+    try:
+        # Read the CSV file
+        df = pd.read_csv(file_path)
+        df = clean_dataframe(df)
+        
+        # Rename columns to match our schema
+        df = df.rename(columns={
+            'recipe_no': 'recipe_id',
+            'ing_id': 'ingredient_id',
+            'state': 'preparation_method'
+        })
+        
+        # Select relevant columns
+        df = df[['recipe_id', 'ingredient_id', 'quantity', 'unit', 'preparation_method']]
+        
+        # Insert data into database in batches
+        with engine.begin() as conn:
+            for i in range(0, len(df), BATCH_SIZE):
+                batch = df.iloc[i:i+BATCH_SIZE]
+                batch.to_sql('RecipeIngredient', conn, if_exists='append', index=True,
+                            method='multi', chunksize=BATCH_SIZE)
+                logger.info(f"Inserted batch {i//BATCH_SIZE + 1} of {(len(df)//BATCH_SIZE) + 1} into RecipeIngredient table")
+        
+        logger.info(f"Loaded {len(df)} recipe-ingredient relationships into RecipeIngredient table")
+        
+    except Exception as e:
+        logger.error(f"Error loading recipe ingredient data: {e}")
+
+def load_merged_recipes():
+    """Load merged recipe data from CSV."""
+    file_path = os.path.join(DATA_DIR, MERGED_RECIPES_FILE)
+    logger.info(f"Loading merged recipe data from {file_path}")
+    
+    if not os.path.exists(file_path):
+        logger.error(f"File not found: {file_path}")
+        return
+    
+    try:
+        # Read the CSV file
+        df = pd.read_csv(file_path)
+        df = clean_dataframe(df)
+        
+        # Insert data into database in batches
+        with engine.begin() as conn:
+            for i in range(0, len(df), BATCH_SIZE):
+                batch = df.iloc[i:i+BATCH_SIZE]
+                batch.to_sql('MergedRecipes', conn, if_exists='append', index=False,
+                            method='multi', chunksize=BATCH_SIZE)
+                logger.info(f"Inserted batch {i//BATCH_SIZE + 1} of {(len(df)//BATCH_SIZE) + 1} into MergedRecipes table")
+        
+        logger.info(f"Loaded {len(df)} merged recipes into MergedRecipes table")
+        
+    except Exception as e:
+        logger.error(f"Error loading merged recipe data: {e}")
+
+def load_recipe_instructions():
+    """Load recipe instructions from JSON file."""
+    file_path = os.path.join(DATA_DIR, RECIPE_INSTRUCTIONS_FILE)
+    logger.info(f"Loading recipe instructions from {file_path}")
+    
+    if not os.path.exists(file_path):
+        logger.error(f"File not found: {file_path}")
+        return
+    
+    try:
+        # Read the JSON file
+        with open(file_path, 'r') as f:
+            data = json.load(f)
+        
+        # Extract instructions
+        instructions = []
+        for recipe in data.get('recipes', []):
+            recipe_id = recipe.get('recipe_id')
+            for step in recipe.get('steps', []):
+                instructions.append({
+                    'recipe_id': recipe_id,
+                    'step_number': step.get('step_number'),
+                    'instruction': step.get('instruction')
+                })
+        
+        # Convert to dataframe
+        df = pd.DataFrame(instructions)
+        
+        # Insert data into database in batches
+        with engine.begin() as conn:
+            for i in range(0, len(df), BATCH_SIZE):
+                batch = df.iloc[i:i+BATCH_SIZE]
+                batch.to_sql('RecipeInstruction', conn, if_exists='append', index=True,
+                            method='multi', chunksize=BATCH_SIZE)
+                logger.info(f"Inserted batch {i//BATCH_SIZE + 1} of {(len(df)//BATCH_SIZE) + 1} into RecipeInstruction table")
+        
+        logger.info(f"Loaded {len(df)} recipe instructions into RecipeInstruction table")
+        
+    except Exception as e:
+        logger.error(f"Error loading recipe instructions: {e}")
+
+def populate_cuisines():
+    """Extract and populate unique cuisines from recipe data."""
+    logger.info("Populating cuisines from recipe data")
+    
+    try:
+        # Extract unique cuisines from Recipe table
+        query = text("""
+            INSERT INTO "Cuisine" (name)
+            SELECT DISTINCT cuisine FROM "Recipe" WHERE cuisine IS NOT NULL
+            ON CONFLICT (name) DO NOTHING
+        """)
+        
+        with engine.begin() as conn:
+            conn.execute(query)
+        
+        # Count the number of cuisines
+        query = text('SELECT COUNT(*) FROM "Cuisine"')
+        with engine.connect() as conn:
+            count = conn.execute(query).scalar()
+        
+        logger.info(f"Populated {count} cuisines into Cuisine table")
+        
+    except Exception as e:
+        logger.error(f"Error populating cuisines: {e}")
+
+def update_foreign_keys():
+    """Update foreign key references in tables."""
+    logger.info("Updating foreign key references")
+    
+    try:
+        # Add cuisine_id to Recipe table
+        if not check_column_exists("Recipe", "cuisine_id"):
+            query = text("""
+                ALTER TABLE "Recipe" ADD COLUMN cuisine_id INTEGER;
+                UPDATE "Recipe" r
+                SET cuisine_id = c.id
+                FROM "Cuisine" c
+                WHERE r.cuisine = c.name;
+            """)
+            
+            with engine.begin() as conn:
+                conn.execute(query)
+            
+            logger.info("Added and updated cuisine_id in Recipe table")
+        
+    except Exception as e:
+        logger.error(f"Error updating foreign keys: {e}")
+
+def check_column_exists(table_name: str, column_name: str) -> bool:
+    """Check if a column exists in a table."""
+    inspector = inspect(engine)
+    columns = [c['name'] for c in inspector.get_columns(table_name)]
+    return column_name in columns
+
+def main():
+    """Main execution function."""
+    start_time = time.time()
+    logger.info("Starting data import...")
+    
+    # Create tables
+    create_tables()
+    
+    # Load data
+    load_recipe_general()
+    load_ingredients()
+    load_recipe_ingredients()
+    load_merged_recipes()
+    load_recipe_instructions()
+    
+    # Post-processing
+    populate_cuisines()
+    update_foreign_keys()
+    
+    elapsed_time = time.time() - start_time
+    logger.info(f"Data import completed in {elapsed_time:.2f} seconds")
+
+if __name__ == "__main__":
+    main()
+////////////////////////////////////////////////////////////////////////////////
+
 │   ├── query.py
 
 ////////////////////////////////////////////////////////////////////////////////
 """
 SQL Queries for the meal recommendation service.
-All queries are consolidated in this module for easier maintenance.
+Optimized for production use with improved indexing and query performance.
 """
 from config import EMBEDDING_DIMENSION
 
@@ -1437,7 +2084,7 @@ ENABLE_PGVECTOR = """
 CREATE EXTENSION IF NOT EXISTS vector
 """
 
-# Query to create meal embeddings table
+# Query to create meal embeddings table with optimized index
 CREATE_CONTENT_EMBEDDINGS_TABLE = """
 CREATE TABLE IF NOT EXISTS content_embeddings (
     id SERIAL PRIMARY KEY,
@@ -1450,13 +2097,20 @@ CREATE TABLE IF NOT EXISTS content_embeddings (
 )
 """
 
-# Query to create index for vector search
+# Create optimized index for vector search with IVFFlat indexing
+# This offers better performance for larger databases compared to simple index
 CREATE_EMBEDDINGS_INDEX = """
-CREATE INDEX IF NOT EXISTS content_embeddings_idx 
-ON content_embeddings USING ivfflat (embedding vector_cosine_ops)
+CREATE INDEX IF NOT EXISTS content_embeddings_vector_idx 
+ON content_embeddings USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
+
+CREATE INDEX IF NOT EXISTS content_embeddings_content_type_idx
+ON content_embeddings (content_type);
+
+CREATE INDEX IF NOT EXISTS content_embeddings_meal_id_idx
+ON content_embeddings (meal_id);
 """
 
-# Query to create meal interactions table
+# Optimized interactions table with partitioning hints for high-volume data
 CREATE_INTERACTIONS_TABLE = """
 CREATE TABLE IF NOT EXISTS recommendation_interactions (
     id SERIAL PRIMARY KEY,
@@ -1468,12 +2122,29 @@ CREATE TABLE IF NOT EXISTS recommendation_interactions (
 )
 """
 
-# Query to create indexes for quick lookups
+# Create optimized indexes for interactions
 CREATE_INTERACTIONS_INDEXES = """
+-- Index for user lookups (most common query pattern)
 CREATE INDEX IF NOT EXISTS rec_interactions_user_idx ON recommendation_interactions(user_id);
-CREATE INDEX IF NOT EXISTS rec_interactions_meal_idx ON recommendation_interactions(meal_id, content_type);
+
+-- Composite index for meal+content lookups
+CREATE INDEX IF NOT EXISTS rec_interactions_meal_content_idx 
+ON recommendation_interactions(meal_id, content_type);
+
+-- Index for filtering by interaction type
 CREATE INDEX IF NOT EXISTS rec_interactions_type_idx ON recommendation_interactions(interaction_type);
-CREATE INDEX IF NOT EXISTS rec_interactions_created_idx ON recommendation_interactions(created_at);
+
+-- Index for time-based queries with BRIN for better performance on timestamp data
+CREATE INDEX IF NOT EXISTS rec_interactions_created_brin_idx 
+ON recommendation_interactions USING BRIN (created_at);
+
+-- Composite index for user history queries
+CREATE INDEX IF NOT EXISTS rec_interactions_user_created_idx
+ON recommendation_interactions(user_id, created_at DESC);
+
+-- Composite index for trending content queries
+CREATE INDEX IF NOT EXISTS rec_interactions_content_created_idx
+ON recommendation_interactions(content_type, created_at DESC);
 """
 
 # Query to create cuisine reference table
@@ -1499,7 +2170,10 @@ CREATE TABLE IF NOT EXISTS "UserDietaryPreference" (
     user_id TEXT NOT NULL,
     dietary_restriction_id INTEGER NOT NULL REFERENCES "DietaryRestriction"(id),
     UNIQUE(user_id, dietary_restriction_id)
-)
+);
+
+CREATE INDEX IF NOT EXISTS user_dietary_pref_user_idx
+ON "UserDietaryPreference"(user_id);
 """
 
 # Query to create meal dietary restrictions table
@@ -1509,7 +2183,13 @@ CREATE TABLE IF NOT EXISTS "MealDietaryRestriction" (
     meal_id TEXT NOT NULL,
     dietary_restriction_id INTEGER NOT NULL REFERENCES "DietaryRestriction"(id),
     UNIQUE(meal_id, dietary_restriction_id)
-)
+);
+
+CREATE INDEX IF NOT EXISTS meal_dietary_meal_idx
+ON "MealDietaryRestriction"(meal_id);
+
+CREATE INDEX IF NOT EXISTS meal_dietary_restriction_idx
+ON "MealDietaryRestriction"(dietary_restriction_id);
 """
 
 # Query to create ingredients table
@@ -1517,7 +2197,10 @@ CREATE_INGREDIENT_TABLE = """
 CREATE TABLE IF NOT EXISTS "Ingredient" (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL UNIQUE
-)
+);
+
+CREATE INDEX IF NOT EXISTS ingredient_name_idx
+ON "Ingredient" USING gin(name gin_trgm_ops);
 """
 
 # Query to create meal ingredients table
@@ -1528,14 +2211,27 @@ CREATE TABLE IF NOT EXISTS "MealIngredient" (
     ingredient_id INTEGER NOT NULL REFERENCES "Ingredient"(id),
     amount TEXT,
     UNIQUE(meal_id, ingredient_id)
-)
+);
+
+CREATE INDEX IF NOT EXISTS meal_ingredient_meal_idx
+ON "MealIngredient"(meal_id);
+
+CREATE INDEX IF NOT EXISTS meal_ingredient_ingredient_idx
+ON "MealIngredient"(ingredient_id);
+"""
+
+# Query to enable trigram indexing for text search
+ENABLE_TRIGRAM = """
+CREATE EXTENSION IF NOT EXISTS pg_trgm
 """
 
 # Query to insert default cuisines
 INSERT_DEFAULT_CUISINES = """
 INSERT INTO "Cuisine" (name) VALUES
 ('italian'), ('mexican'), ('chinese'), ('indian'), ('american'),
-('french'), ('japanese'), ('mediterranean'), ('thai'), ('other')
+('french'), ('japanese'), ('mediterranean'), ('thai'), ('other'),
+('middle eastern'), ('korean'), ('vietnamese'), ('spanish'), ('greek'),
+('caribbean'), ('brazilian'), ('german'), ('british'), ('african')
 ON CONFLICT (name) DO NOTHING
 """
 
@@ -1543,7 +2239,8 @@ ON CONFLICT (name) DO NOTHING
 INSERT_DEFAULT_DIETARY_RESTRICTIONS = """
 INSERT INTO "DietaryRestriction" (name) VALUES
 ('vegetarian'), ('vegan'), ('gluten-free'), ('dairy-free'),
-('keto'), ('paleo'), ('low-carb'), ('low-fat')
+('keto'), ('paleo'), ('low-carb'), ('low-fat'), ('pescatarian'),
+('nut-free'), ('egg-free'), ('soy-free'), ('halal'), ('kosher')
 ON CONFLICT (name) DO NOTHING
 """
 
@@ -1551,12 +2248,14 @@ ON CONFLICT (name) DO NOTHING
 # EMBEDDING QUERIES   #
 #######################
 
-# Query to save or update a meal embedding
+# Query to save or update a meal embedding with optimized upsert
 SAVE_EMBEDDING = """
 INSERT INTO content_embeddings (meal_id, content_type, embedding)
 VALUES (:meal_id, :content_type, :embedding)
 ON CONFLICT (meal_id, content_type) 
-DO UPDATE SET embedding = :embedding, updated_at = CURRENT_TIMESTAMP
+DO UPDATE SET 
+    embedding = :embedding, 
+    updated_at = CURRENT_TIMESTAMP
 """
 
 # Query to get the embedding for specific meal
@@ -1566,24 +2265,31 @@ FROM content_embeddings
 WHERE meal_id = :meal_id AND content_type = :content_type
 """
 
-# Base query for finding similar meals (without filter clauses)
+# Base query for finding similar meals (optimized with CTE)
 FIND_SIMILAR_CONTENT_BASE = """
-SELECT ce.meal_id, ce.content_type,
-       CASE WHEN ce.content_type = 'meal' THEN m.title
-            WHEN ce.content_type = 'recipe' THEN r.name
-       END as title,
-       1 - (ce.embedding <=> :embedding) AS similarity
-FROM content_embeddings ce
-LEFT JOIN "Meal" m ON ce.meal_id = m.id AND ce.content_type = 'meal'
-LEFT JOIN "Recipe" r ON ce.meal_id = r.id AND ce.content_type = 'recipe'
-WHERE 1=1
-{type_filter}
-{exclude_clause}
+WITH candidate_embeddings AS (
+    SELECT ce.meal_id, ce.content_type,
+           CASE WHEN ce.content_type = 'meal' THEN m.title
+                WHEN ce.content_type = 'recipe' THEN r.name
+           END as title,
+           1 - (ce.embedding <=> :embedding) AS similarity
+    FROM content_embeddings ce
+    LEFT JOIN "Meal" m ON ce.meal_id = m.id AND ce.content_type = 'meal'
+    LEFT JOIN "Recipe" r ON ce.meal_id = r.id AND ce.content_type = 'recipe'
+    WHERE 1=1
+    {type_filter}
+    {exclude_clause}
+    ORDER BY similarity DESC
+    LIMIT :limit * 2
+)
+SELECT meal_id, content_type, title, similarity
+FROM candidate_embeddings
+WHERE similarity > 0.5
 ORDER BY similarity DESC
 LIMIT :limit
 """
 
-# Query to get meals that don't have embeddings yet
+# Query to get meals that don't have embeddings yet (optimized with limit)
 GET_MEALS_WITHOUT_EMBEDDINGS = """
 SELECT m.id, m.title, m.description
 FROM "Meal" m
@@ -1592,7 +2298,7 @@ WHERE ce.id IS NULL
 LIMIT :limit
 """
 
-# Query to get recipes that don't have embeddings yet
+# Query to get recipes that don't have embeddings yet (optimized with limit)
 GET_RECIPES_WITHOUT_EMBEDDINGS = """
 SELECT r.id, r.name, r.instructions
 FROM "Recipe" r
@@ -1615,11 +2321,13 @@ LIMIT :limit
 # Query to get total counts of items without embeddings
 GET_EMBEDDING_STATS = """
 SELECT 
-    (SELECT COUNT(*) FROM "Meal" m LEFT JOIN content_embeddings ce 
-     ON ce.meal_id = m.id AND ce.content_type = 'meal' WHERE ce.id IS NULL) as meals_without_embeddings,
+    (SELECT COUNT(*) FROM "Meal" m 
+     LEFT JOIN content_embeddings ce ON ce.meal_id = m.id AND ce.content_type = 'meal' 
+     WHERE ce.id IS NULL) as meals_without_embeddings,
      
-    (SELECT COUNT(*) FROM "Recipe" r LEFT JOIN content_embeddings ce 
-     ON ce.meal_id = r.id AND ce.content_type = 'recipe' WHERE ce.id IS NULL) as recipes_without_embeddings,
+    (SELECT COUNT(*) FROM "Recipe" r 
+     LEFT JOIN content_embeddings ce ON ce.meal_id = r.id AND ce.content_type = 'recipe' 
+     WHERE ce.id IS NULL) as recipes_without_embeddings,
      
     (SELECT COUNT(*) FROM content_embeddings) as total_embeddings
 """
@@ -1635,8 +2343,9 @@ INSERT INTO recommendation_interactions
 VALUES (:user_id, :meal_id, :content_type, :interaction_type)
 """
 
-# Query to get recent interactions for a user
+# Query to get recent interactions for a user (optimized with index hint)
 GET_USER_RECENT_INTERACTIONS_BASE = """
+/*+ INDEX(recommendation_interactions rec_interactions_user_created_idx) */
 SELECT meal_id, content_type, interaction_type, created_at
 FROM recommendation_interactions
 WHERE user_id = :user_id
@@ -1645,55 +2354,75 @@ ORDER BY created_at DESC
 LIMIT :limit
 """
 
-# Base query for getting trending meals
+# Base query for getting trending meals (optimized with window function)
 GET_TRENDING_MEALS_BASE = """
-SELECT ri.meal_id, ri.content_type,
-       CASE WHEN ri.content_type = 'meal' THEN m.title
-            WHEN ri.content_type = 'recipe' THEN r.name
-       END as title,
-       COUNT(*) as popularity
-FROM recommendation_interactions ri
-LEFT JOIN "Meal" m ON ri.meal_id = m.id AND ri.content_type = 'meal'
-LEFT JOIN "Recipe" r ON ri.meal_id = r.id AND ri.content_type = 'recipe'
-WHERE ri.created_at > {time_clause}
-{type_filter}
-GROUP BY ri.meal_id, ri.content_type, m.title, r.name
-ORDER BY popularity DESC
-LIMIT :limit
-"""
-
-# Query to find users with similar meal preferences
-FIND_SIMILAR_USERS = """
-SELECT DISTINCT ri2.user_id
-FROM recommendation_interactions ri1
-JOIN recommendation_interactions ri2 ON ri1.meal_id = ri2.meal_id 
-                                  AND ri1.content_type = ri2.content_type
-WHERE ri1.user_id = :user_id
-AND ri2.user_id != :user_id
-GROUP BY ri2.user_id
-HAVING COUNT(DISTINCT ri1.meal_id) > :min_common_items
-LIMIT :limit
-"""
-
-# Base query for getting meals from similar users
-GET_MEALS_FROM_SIMILAR_USERS_BASE = """
-SELECT DISTINCT ri.meal_id, ri.content_type, COUNT(*) as interaction_count,
-       CASE WHEN ri.content_type = 'meal' THEN m.title
-            WHEN ri.content_type = 'recipe' THEN r.name
-       END as title
-FROM recommendation_interactions ri
-LEFT JOIN "Meal" m ON ri.meal_id = m.id AND ri.content_type = 'meal'
-LEFT JOIN "Recipe" r ON ri.meal_id = r.id AND ri.content_type = 'recipe'
-WHERE ri.user_id IN ({user_placeholders})
-AND ri.meal_id NOT IN (
-    SELECT meal_id 
-    FROM recommendation_interactions 
-    WHERE user_id = :user_id
+WITH trending AS (
+    SELECT ri.meal_id, ri.content_type,
+           CASE WHEN ri.content_type = 'meal' THEN m.title
+                WHEN ri.content_type = 'recipe' THEN r.name
+           END as title,
+           COUNT(*) as popularity,
+           ROW_NUMBER() OVER (PARTITION BY ri.content_type ORDER BY COUNT(*) DESC) as rank
+    FROM recommendation_interactions ri
+    LEFT JOIN "Meal" m ON ri.meal_id = m.id AND ri.content_type = 'meal'
+    LEFT JOIN "Recipe" r ON ri.meal_id = r.id AND ri.content_type = 'recipe'
+    WHERE ri.created_at > {time_clause}
+    {type_filter}
+    GROUP BY ri.meal_id, ri.content_type, m.title, r.name
 )
-{type_filter}
-GROUP BY ri.meal_id, ri.content_type, m.title, r.name
-ORDER BY interaction_count DESC
-LIMIT :limit
+SELECT meal_id, content_type, title, popularity
+FROM trending
+WHERE rank <= :limit
+ORDER BY popularity DESC
+"""
+
+# Query to find users with similar meal preferences (optimized with CTE)
+FIND_SIMILAR_USERS = """
+WITH user_items AS (
+    SELECT meal_id, content_type
+    FROM recommendation_interactions
+    WHERE user_id = :user_id
+),
+similar_users AS (
+    SELECT ri.user_id,
+           COUNT(DISTINCT ri.meal_id) as common_items,
+           ROW_NUMBER() OVER (ORDER BY COUNT(DISTINCT ri.meal_id) DESC) as rank
+    FROM recommendation_interactions ri
+    JOIN user_items ui ON ri.meal_id = ui.meal_id AND ri.content_type = ui.content_type
+    WHERE ri.user_id != :user_id
+    GROUP BY ri.user_id
+    HAVING COUNT(DISTINCT ri.meal_id) > :min_common_items
+)
+SELECT user_id
+FROM similar_users
+WHERE rank <= :limit
+"""
+
+# Base query for getting meals from similar users (optimized with NOT EXISTS)
+GET_MEALS_FROM_SIMILAR_USERS_BASE = """
+WITH user_recommendations AS (
+    SELECT ri.meal_id, ri.content_type, COUNT(*) as interaction_count,
+           CASE WHEN ri.content_type = 'meal' THEN m.title
+                WHEN ri.content_type = 'recipe' THEN r.name
+           END as title,
+           ROW_NUMBER() OVER (ORDER BY COUNT(*) DESC) as rank
+    FROM recommendation_interactions ri
+    LEFT JOIN "Meal" m ON ri.meal_id = m.id AND ri.content_type = 'meal'
+    LEFT JOIN "Recipe" r ON ri.meal_id = r.id AND ri.content_type = 'recipe'
+    WHERE ri.user_id IN ({user_placeholders})
+    AND NOT EXISTS (
+        SELECT 1 
+        FROM recommendation_interactions ri2
+        WHERE ri2.user_id = :user_id
+        AND ri2.meal_id = ri.meal_id
+        AND ri2.content_type = ri.content_type
+    )
+    {type_filter}
+    GROUP BY ri.meal_id, ri.content_type, m.title, r.name
+)
+SELECT meal_id, content_type, interaction_count, title
+FROM user_recommendations
+WHERE rank <= :limit
 """
 
 # Query to get user interaction statistics
@@ -1723,42 +2452,54 @@ GROUP BY content_type
 # RECOMMENDATION QUERIES #
 #######################
 
-# Query for finding similar meals based on co-occurrence patterns
+# Query for finding similar meals based on co-occurrence patterns (optimized with window function)
 FIND_SIMILAR_ITEMS = """
 WITH users_who_interacted AS (
     SELECT DISTINCT user_id
     FROM recommendation_interactions
     WHERE meal_id = :meal_id
+),
+similar_items AS (
+    SELECT ri2.meal_id, ri2.content_type,
+           CASE WHEN ri2.content_type = 'meal' THEN m.title
+                WHEN ri2.content_type = 'recipe' THEN r.name
+           END as title,
+           COUNT(DISTINCT ri2.user_id) as co_occurrence_count,
+           ROW_NUMBER() OVER (ORDER BY COUNT(DISTINCT ri2.user_id) DESC) as rank
+    FROM recommendation_interactions ri2
+    JOIN users_who_interacted uwi ON ri2.user_id = uwi.user_id
+    LEFT JOIN "Meal" m ON ri2.meal_id = m.id AND ri2.content_type = 'meal'
+    LEFT JOIN "Recipe" r ON ri2.meal_id = r.id AND ri2.content_type = 'recipe'
+    WHERE ri2.meal_id != :meal_id
+    {type_filter}
+    GROUP BY ri2.meal_id, ri2.content_type, m.title, r.name
 )
-SELECT ri2.meal_id, ri2.content_type,
-       CASE WHEN ri2.content_type = 'meal' THEN m.title
-            WHEN ri2.content_type = 'recipe' THEN r.name
-       END as title,
-       COUNT(DISTINCT ri2.user_id) as co_occurrence_count
-FROM recommendation_interactions ri2
-JOIN users_who_interacted uwi ON ri2.user_id = uwi.user_id
-LEFT JOIN "Meal" m ON ri2.meal_id = m.id AND ri2.content_type = 'meal'
-LEFT JOIN "Recipe" r ON ri2.meal_id = r.id AND ri2.content_type = 'recipe'
-WHERE ri2.meal_id != :meal_id
-{type_filter}
-GROUP BY ri2.meal_id, ri2.content_type, m.title, r.name
-ORDER BY co_occurrence_count DESC
-LIMIT :limit
+SELECT meal_id, content_type, title, co_occurrence_count
+FROM similar_items
+WHERE rank <= :limit
 """
 
-# Query for finding meals with similar ingredients
+# Query for finding meals with similar ingredients (optimized with CTE and Jaccard similarity)
 FIND_MEALS_WITH_SIMILAR_INGREDIENTS = """
 WITH meal_ingredients AS (
     SELECT ingredient_id
     FROM "MealIngredient"
     WHERE meal_id = :meal_id
 ),
+source_count AS (
+    SELECT COUNT(*) AS count
+    FROM meal_ingredients
+),
 ingredient_counts AS (
     SELECT 
         m.id, 
         m.title, 
         COUNT(mi.ingredient_id) AS common_ingredients,
-        (SELECT COUNT(*) FROM "MealIngredient" WHERE meal_id = :meal_id) AS source_ingredient_count
+        (SELECT count FROM source_count) AS source_ingredient_count,
+        COUNT(mi.ingredient_id)::float / 
+        ((SELECT count FROM source_count) + 
+         (SELECT COUNT(*) FROM "MealIngredient" WHERE meal_id = m.id) - 
+         COUNT(mi.ingredient_id))::float AS jaccard_similarity
     FROM "Meal" m
     JOIN "MealIngredient" mi ON m.id = mi.meal_id
     JOIN meal_ingredients src ON mi.ingredient_id = src.ingredient_id
@@ -1769,26 +2510,29 @@ SELECT
     id, 
     title, 
     common_ingredients,
-    common_ingredients::float / source_ingredient_count::float AS similarity_score
+    jaccard_similarity AS similarity_score
 FROM ingredient_counts
-ORDER BY similarity_score DESC, common_ingredients DESC
+ORDER BY jaccard_similarity DESC, common_ingredients DESC
 LIMIT :limit
 """
 
-# Query for getting meals by cuisine
+# Query for getting meals by cuisine (with improved joining)
 GET_CUISINE_MEALS = """
 SELECT m.id, m.title
 FROM "Meal" m
-WHERE m.cuisine_id = :cuisine_id
+JOIN "Cuisine" c ON m.cuisine_id = c.id
+WHERE c.id = :cuisine_id
+ORDER BY m.ratings DESC NULLS LAST
 LIMIT :limit
 """
 
-# Query for getting meals by dietary preference
+# Query for getting meals by dietary preference (optimized with direct join)
 GET_DIETARY_PREFERENCE_MEALS = """
 SELECT m.id, m.title
 FROM "Meal" m
 JOIN "MealDietaryRestriction" mdr ON m.id = mdr.meal_id
 WHERE mdr.dietary_restriction_id = :dietary_restriction_id
+ORDER BY m.ratings DESC NULLS LAST
 LIMIT :limit
 """
 
@@ -1800,16 +2544,30 @@ JOIN "DietaryRestriction" dr ON udp.dietary_restriction_id = dr.id
 WHERE udp.user_id = :user_id
 """
 
-# Query for getting similar meals based on ingredients
+# Query for getting similar meals based on ingredients (with normalized similarity score)
 GET_SIMILAR_MEALS_BY_INGREDIENTS = """
-SELECT m1.id, m1.title, COUNT(mi1.ingredient_id) as ingredient_match_count
-FROM "Meal" m1
-JOIN "MealIngredient" mi1 ON m1.id = mi1.meal_id
-JOIN "MealIngredient" mi2 ON mi1.ingredient_id = mi2.ingredient_id
-WHERE mi2.meal_id = :meal_id
-AND m1.id != :meal_id
-GROUP BY m1.id, m1.title
-ORDER BY ingredient_match_count DESC
+WITH meal_ingredients AS (
+    SELECT ingredient_id
+    FROM "MealIngredient"
+    WHERE meal_id = :meal_id
+),
+similarity_scores AS (
+    SELECT 
+        m1.id, 
+        m1.title, 
+        COUNT(mi1.ingredient_id) as ingredient_match_count,
+        COUNT(mi1.ingredient_id)::float / 
+        (SELECT COUNT(*) FROM "MealIngredient" WHERE meal_id = :meal_id)::float as similarity
+    FROM "Meal" m1
+    JOIN "MealIngredient" mi1 ON m1.id = mi1.meal_id
+    JOIN meal_ingredients mi2 ON mi1.ingredient_id = mi2.ingredient_id
+    WHERE m1.id != :meal_id
+    GROUP BY m1.id, m1.title
+)
+SELECT id, title, ingredient_match_count, similarity
+FROM similarity_scores
+WHERE similarity > 0.2
+ORDER BY similarity DESC, ingredient_match_count DESC
 LIMIT :limit
 """
 
@@ -1829,81 +2587,537 @@ JOIN "Ingredient" i ON ri.ingredient_id = i.id
 WHERE ri.recipe_id = :recipe_id
 """
 
-# Query for getting personalized meal recommendations based on dietary preferences
+# Query for getting personalized meal recommendations based on dietary preferences (optimized)
 GET_MEALS_BY_USER_DIETARY_PREFERENCES = """
-SELECT DISTINCT m.id, m.title, m.description
-FROM "Meal" m
-JOIN "MealDietaryRestriction" mdr ON m.id = mdr.meal_id
-JOIN "UserDietaryPreference" udp ON mdr.dietary_restriction_id = udp.dietary_restriction_id
-WHERE udp.user_id = :user_id
-ORDER BY RANDOM()
-LIMIT :limit
+WITH user_restrictions AS (
+    SELECT dietary_restriction_id
+    FROM "UserDietaryPreference"
+    WHERE user_id = :user_id
+),
+eligible_meals AS (
+    SELECT 
+        m.id, 
+        m.title, 
+        m.description,
+        COUNT(DISTINCT mdr.dietary_restriction_id) as matching_restrictions,
+        ROW_NUMBER() OVER (ORDER BY COUNT(DISTINCT mdr.dietary_restriction_id) DESC, RANDOM()) as rank
+    FROM "Meal" m
+    JOIN "MealDietaryRestriction" mdr ON m.id = mdr.meal_id
+    JOIN user_restrictions ur ON mdr.dietary_restriction_id = ur.dietary_restriction_id
+    GROUP BY m.id, m.title, m.description
+)
+SELECT id, title, description
+FROM eligible_meals
+WHERE rank <= :limit
 """
 
-# Query for getting meals with high popularity
+# Query for getting meals with high popularity (optimized with window function)
 GET_POPULAR_MEALS = """
-SELECT m.id, m.title, COUNT(ri.id) as popularity
-FROM "Meal" m
-JOIN recommendation_interactions ri ON m.id = ri.meal_id AND ri.content_type = 'meal'
-WHERE ri.created_at > NOW() - INTERVAL :time_window
-GROUP BY m.id, m.title
-HAVING COUNT(ri.id) > :min_interactions
-ORDER BY popularity DESC
-LIMIT :limit
+WITH popular AS (
+    SELECT 
+        m.id, 
+        m.title, 
+        COUNT(ri.id) as popularity,
+        ROW_NUMBER() OVER (ORDER BY COUNT(ri.id) DESC) as rank
+    FROM "Meal" m
+    JOIN recommendation_interactions ri ON m.id = ri.meal_id AND ri.content_type = 'meal'
+    WHERE ri.created_at > NOW() - INTERVAL :time_window
+    GROUP BY m.id, m.title
+    HAVING COUNT(ri.id) > :min_interactions
+)
+SELECT id, title, popularity
+FROM popular
+WHERE rank <= :limit
 """
 
-# Query for getting meals by time of day
+# Query for getting meals by time of day (optimized with user preferences)
 GET_MEALS_BY_TIME_OF_DAY = """
-SELECT m.id, m.title, m.description
-FROM "Meal" m
-WHERE m.meal_type = :meal_type
-ORDER BY 
-    CASE WHEN m.cuisine_id = :preferred_cuisine_id THEN 0 ELSE 1 END,
-    RANDOM()
-LIMIT :limit
-"""
-
-# Query for getting low-carb or low-calorie meals
-GET_HEALTHY_MEALS = """
-SELECT m.id, m.title, m.calories
-FROM "Meal" m
-WHERE 
-    (m.calories IS NULL OR m.calories < :max_calories)
-    AND (:low_carb = FALSE OR m.id IN (
-        SELECT meal_id FROM "MealDietaryRestriction" 
-        WHERE dietary_restriction_id IN (
-            SELECT id FROM "DietaryRestriction" WHERE name IN ('low-carb', 'keto')
-        )
-    ))
-ORDER BY RANDOM()
-LIMIT :limit
-"""
-
-# Query for finding meals suitable for meal planning
-GET_MEAL_PLAN_RECOMMENDATIONS = """
-WITH user_favorite_cuisines AS (
-    SELECT DISTINCT m.cuisine_id
+WITH user_preferred_cuisines AS (
+    SELECT m.cuisine_id, COUNT(*) as interaction_count
     FROM recommendation_interactions ri
     JOIN "Meal" m ON ri.meal_id = m.id AND ri.content_type = 'meal'
     WHERE ri.user_id = :user_id
     GROUP BY m.cuisine_id
-    ORDER BY COUNT(*) DESC
+    ORDER BY interaction_count DESC
     LIMIT 3
+),
+meals_by_type AS (
+    SELECT 
+        m.id, 
+        m.title, 
+        m.description,
+        CASE 
+            WHEN m.cuisine_id IN (SELECT cuisine_id FROM user_preferred_cuisines) THEN 0
+            ELSE 1
+        END as preference_rank,
+        ROW_NUMBER() OVER (
+            PARTITION BY (CASE WHEN m.cuisine_id IN (SELECT cuisine_id FROM user_preferred_cuisines) THEN 0 ELSE 1 END)
+            ORDER BY RANDOM()
+        ) as rand_rank
+    FROM "Meal" m
+    WHERE m.meal_type = :meal_type
 )
-SELECT m.id, m.title, m.meal_type, m.prep_time, m.cuisine_id
-FROM "Meal" m
-LEFT JOIN "MealDietaryRestriction" mdr ON m.id = mdr.meal_id
-LEFT JOIN "UserDietaryPreference" udp ON mdr.dietary_restriction_id = udp.dietary_restriction_id AND udp.user_id = :user_id
-WHERE 
-    (m.meal_type = :meal_type OR :meal_type IS NULL)
-    AND (m.cuisine_id IN (SELECT cuisine_id FROM user_favorite_cuisines) OR :ignore_cuisine = TRUE)
-    AND (udp.id IS NOT NULL OR :ignore_preferences = TRUE)
-    AND (m.prep_time <= :max_prep_time OR :max_prep_time IS NULL)
-ORDER BY 
-    CASE WHEN udp.id IS NOT NULL THEN 0 ELSE 1 END,
-    CASE WHEN m.cuisine_id IN (SELECT cuisine_id FROM user_favorite_cuisines) THEN 0 ELSE 1 END,
-    RANDOM()
+SELECT id, title, description
+FROM meals_by_type
+ORDER BY preference_rank, rand_rank
 LIMIT :limit
+"""
+
+# Query for getting low-carb or low-calorie meals (optimized)
+GET_HEALTHY_MEALS = """
+WITH healthy_meals AS (
+    SELECT 
+        m.id, 
+        m.title, 
+        m.calories,
+        CASE 
+            WHEN m.id IN (
+                SELECT meal_id FROM "MealDietaryRestriction" 
+                WHERE dietary_restriction_id IN (
+                    SELECT id FROM "DietaryRestriction" WHERE name IN ('low-carb', 'keto')
+                )
+            ) THEN 0
+            ELSE 1
+        END as diet_rank,
+        ROW_NUMBER() OVER (
+            PARTITION BY (CASE 
+                WHEN m.id IN (
+                    SELECT meal_id FROM "MealDietaryRestriction" 
+                    WHERE dietary_restriction_id IN (
+                        SELECT id FROM "DietaryRestriction" WHERE name IN ('low-carb', 'keto')
+                    )
+                ) THEN 0
+                ELSE 1
+            END)
+            ORDER BY COALESCE(m.calories, 9999)
+        ) as calorie_rank
+    FROM "Meal" m
+    WHERE 
+        (m.calories IS NULL OR m.calories < :max_calories)
+        AND (:low_carb = FALSE OR m.id IN (
+            SELECT meal_id FROM "MealDietaryRestriction" 
+            WHERE dietary_restriction_id IN (
+                SELECT id FROM "DietaryRestriction" WHERE name IN ('low-carb', 'keto')
+            )
+        ))
+)
+SELECT id, title, calories
+FROM healthy_meals
+ORDER BY diet_rank, calorie_rank
+LIMIT :limit
+"""
+
+# Query for finding meals suitable for meal planning (optimized with CTEs)
+GET_MEAL_PLAN_RECOMMENDATIONS = """
+WITH user_favorite_cuisines AS (
+    SELECT m.cuisine_id, COUNT(*) as interaction_count
+    FROM recommendation_interactions ri
+    JOIN "Meal" m ON ri.meal_id = m.id AND ri.content_type = 'meal'
+    WHERE ri.user_id = :user_id
+    GROUP BY m.cuisine_id
+    ORDER BY interaction_count DESC
+    LIMIT 3
+),
+user_diet_restrictions AS (
+    SELECT dietary_restriction_id
+    FROM "UserDietaryPreference"
+    WHERE user_id = :user_id
+),
+eligible_meals AS (
+    SELECT 
+        m.id, 
+        m.title, 
+        m.meal_type, 
+        m.prep_time, 
+        m.cuisine_id,
+        CASE 
+            WHEN EXISTS (
+                SELECT 1 
+                FROM "MealDietaryRestriction" mdr
+                JOIN user_diet_restrictions udr ON mdr.dietary_restriction_id = udr.dietary_restriction_id
+                WHERE mdr.meal_id = m.id
+            ) THEN 0
+            ELSE 1
+        END as diet_match,
+        CASE 
+            WHEN m.cuisine_id IN (SELECT cuisine_id FROM user_favorite_cuisines) THEN 0
+            ELSE 1
+        END as cuisine_match,
+        ROW_NUMBER() OVER (
+            PARTITION BY CASE 
+                WHEN EXISTS (
+                    SELECT 1 
+                    FROM "MealDietaryRestriction" mdr
+                    JOIN user_diet_restrictions udr ON mdr.dietary_restriction_id = udr.dietary_restriction_id
+                    WHERE mdr.meal_id = m.id
+                ) THEN 0
+                ELSE 1
+            END,
+            CASE 
+                WHEN m.cuisine_id IN (SELECT cuisine_id FROM user_favorite_cuisines) THEN 0
+                ELSE 1
+            END
+            ORDER BY RANDOM()
+        ) as rank
+    FROM "Meal" m
+    WHERE 
+        (m.meal_type = :meal_type OR :meal_type IS NULL)
+        AND (m.cuisine_id IN (SELECT cuisine_id FROM user_favorite_cuisines) OR :ignore_cuisine = TRUE)
+        AND (EXISTS (
+            SELECT 1 
+            FROM "MealDietaryRestriction" mdr
+            JOIN user_diet_restrictions udr ON mdr.dietary_restriction_id = udr.dietary_restriction_id
+            WHERE mdr.meal_id = m.id
+        ) OR :ignore_preferences = TRUE)
+        AND (m.prep_time <= :max_prep_time OR :max_prep_time IS NULL)
+)
+SELECT id, title, meal_type, prep_time, cuisine_id
+FROM eligible_meals
+WHERE rank <= :limit
+ORDER BY diet_match, cuisine_match, rank
+"""
+
+# Query for optimized meal search with multiple criteria
+SEARCH_MEALS = """
+WITH search_results AS (
+    SELECT 
+        m.id, 
+        m.title, 
+        m.description, 
+        m.cuisine_id,
+        c.name as cuisine_name,
+        m.ratings,
+        m.calories,
+        m.prep_time,
+        m.cook_time,
+        m.total_time,
+        CASE 
+            WHEN m.title ILIKE :search_term THEN 3
+            WHEN m.description ILIKE :search_term THEN 2
+            ELSE 1
+        END as relevance_score,
+        ts_rank(
+            to_tsvector('english', COALESCE(m.title, '') || ' ' || COALESCE(m.description, '')), 
+            plainto_tsquery('english', :search_term)
+        ) as text_rank,
+        ROW_NUMBER() OVER (
+            ORDER BY 
+                CASE WHEN m.title ILIKE :search_term THEN 3
+                     WHEN m.description ILIKE :search_term THEN 2
+                     ELSE 1
+                END DESC,
+                ts_rank(
+                    to_tsvector('english', COALESCE(m.title, '') || ' ' || COALESCE(m.description, '')), 
+                    plainto_tsquery('english', :search_term)
+                ) DESC,
+                m.ratings DESC NULLS LAST
+        ) as rank
+    FROM "Meal" m
+    LEFT JOIN "Cuisine" c ON m.cuisine_id = c.id
+    WHERE 
+        (
+            m.title ILIKE '%' || :search_term || '%' OR 
+            m.description ILIKE '%' || :search_term || '%' OR
+            c.name ILIKE '%' || :search_term || '%'
+        )
+        AND (:cuisine_id IS NULL OR m.cuisine_id = :cuisine_id)
+        AND (:max_prep_time IS NULL OR m.prep_time <= :max_prep_time)
+        AND (:min_rating IS NULL OR m.ratings >= :min_rating)
+        AND (
+            :dietary_restriction_id IS NULL OR 
+            m.id IN (
+                SELECT meal_id 
+                FROM "MealDietaryRestriction" 
+                WHERE dietary_restriction_id = :dietary_restriction_id
+            )
+        )
+)
+SELECT 
+    id, 
+    title, 
+    description, 
+    cuisine_id, 
+    cuisine_name, 
+    ratings, 
+    calories, 
+    prep_time, 
+    cook_time,
+    total_time
+FROM search_results
+WHERE rank <= :limit
+ORDER BY relevance_score DESC, text_rank DESC, ratings DESC NULLS LAST
+"""
+
+# Query for retrieving detailed meal information
+GET_MEAL_DETAILS = """
+SELECT 
+    m.id,
+    m.title,
+    m.description,
+    m.prep_time,
+    m.cook_time,
+    m.total_time,
+    m.servings,
+    m.calories,
+    m.ratings,
+    c.id as cuisine_id,
+    c.name as cuisine_name,
+    (
+        SELECT json_agg(json_build_object(
+            'id', dr.id,
+            'name', dr.name
+        ))
+        FROM "MealDietaryRestriction" mdr
+        JOIN "DietaryRestriction" dr ON mdr.dietary_restriction_id = dr.id
+        WHERE mdr.meal_id = m.id
+    ) as dietary_restrictions,
+    (
+        SELECT json_agg(json_build_object(
+            'id', i.id,
+            'name', i.name,
+            'amount', mi.amount
+        ))
+        FROM "MealIngredient" mi
+        JOIN "Ingredient" i ON mi.ingredient_id = i.id
+        WHERE mi.meal_id = m.id
+    ) as ingredients,
+    (
+        SELECT COUNT(*) 
+        FROM recommendation_interactions 
+        WHERE meal_id = m.id AND content_type = 'meal'
+    ) as interaction_count
+FROM "Meal" m
+LEFT JOIN "Cuisine" c ON m.cuisine_id = c.id
+WHERE m.id = :meal_id
+"""
+
+# Query for getting user recommendations with advanced personalization
+GET_PERSONALIZED_RECOMMENDATIONS = """
+WITH user_interactions AS (
+    SELECT meal_id, content_type, interaction_type, created_at,
+        ROW_NUMBER() OVER (PARTITION BY meal_id, content_type ORDER BY created_at DESC) as row_num
+    FROM recommendation_interactions
+    WHERE user_id = :user_id
+),
+recent_interactions AS (
+    SELECT meal_id, content_type, interaction_type, created_at
+    FROM user_interactions
+    WHERE row_num = 1
+),
+user_dietary_preferences AS (
+    SELECT dietary_restriction_id
+    FROM "UserDietaryPreference"
+    WHERE user_id = :user_id
+),
+user_cuisine_preferences AS (
+    SELECT 
+        m.cuisine_id, 
+        COUNT(*) as interaction_count,
+        ROW_NUMBER() OVER (ORDER BY COUNT(*) DESC) as rank
+    FROM recommendation_interactions ri
+    JOIN "Meal" m ON ri.meal_id = m.id AND ri.content_type = 'meal'
+    WHERE ri.user_id = :user_id
+    GROUP BY m.cuisine_id
+    HAVING COUNT(*) > 1
+),
+content_based_candidates AS (
+    SELECT 
+        ce2.meal_id,
+        ce2.content_type,
+        1 - (ce2.embedding <=> ce1.embedding) as similarity_score,
+        ROW_NUMBER() OVER (PARTITION BY ce1.meal_id ORDER BY 1 - (ce2.embedding <=> ce1.embedding) DESC) as rank
+    FROM recent_interactions ri
+    JOIN content_embeddings ce1 ON ri.meal_id = ce1.meal_id AND ri.content_type = ce1.content_type
+    JOIN content_embeddings ce2 ON ce1.content_type = ce2.content_type
+    WHERE ce2.meal_id != ri.meal_id
+    AND NOT EXISTS (
+        SELECT 1 FROM user_interactions ui 
+        WHERE ui.meal_id = ce2.meal_id AND ui.content_type = ce2.content_type
+    )
+),
+collaborative_candidates AS (
+    SELECT 
+        ri2.meal_id,
+        ri2.content_type,
+        COUNT(DISTINCT ri2.user_id) as user_count,
+        ROW_NUMBER() OVER (ORDER BY COUNT(DISTINCT ri2.user_id) DESC) as rank
+    FROM recent_interactions ri
+    JOIN recommendation_interactions ri2 ON ri.meal_id = ri2.meal_id AND ri.content_type = ri2.content_type
+    JOIN recommendation_interactions ri3 ON ri3.user_id = ri2.user_id AND ri3.user_id != :user_id
+    WHERE NOT EXISTS (
+        SELECT 1 FROM user_interactions ui 
+        WHERE ui.meal_id = ri3.meal_id AND ui.content_type = ri3.content_type
+    )
+    AND ri3.meal_id != ri.meal_id
+    GROUP BY ri3.meal_id, ri3.content_type
+),
+final_candidates AS (
+    -- Content-based candidates
+    SELECT 
+        c.meal_id,
+        c.content_type,
+        CASE 
+            WHEN c.content_type = 'meal' THEN m.title
+            WHEN c.content_type = 'recipe' THEN r.name
+        END as title,
+        c.similarity_score * 0.8 as score,
+        1 as source_type
+    FROM content_based_candidates c
+    LEFT JOIN "Meal" m ON c.meal_id = m.id AND c.content_type = 'meal'
+    LEFT JOIN "Recipe" r ON c.meal_id = r.id AND c.content_type = 'recipe'
+    WHERE c.rank <= :limit * 2
+    
+    UNION ALL
+    
+    -- Collaborative candidates
+    SELECT 
+        c.meal_id,
+        c.content_type,
+        CASE 
+            WHEN c.content_type = 'meal' THEN m.title
+            WHEN c.content_type = 'recipe' THEN r.name
+        END as title,
+        c.user_count / (SELECT MAX(user_count) FROM collaborative_candidates) * 0.7 as score,
+        2 as source_type
+    FROM collaborative_candidates c
+    LEFT JOIN "Meal" m ON c.meal_id = m.id AND c.content_type = 'meal'
+    LEFT JOIN "Recipe" r ON c.meal_id = r.id AND c.content_type = 'recipe'
+    WHERE c.rank <= :limit * 2
+    
+    UNION ALL
+    
+    -- Popular items from user's preferred cuisines
+    SELECT 
+        m.id as meal_id,
+        'meal' as content_type,
+        m.title,
+        0.6 - (0.1 * ucp.rank) as score,
+        3 as source_type
+    FROM "Meal" m
+    JOIN user_cuisine_preferences ucp ON m.cuisine_id = ucp.cuisine_id
+    WHERE NOT EXISTS (
+        SELECT 1 FROM user_interactions ui 
+        WHERE ui.meal_id = m.id AND ui.content_type = 'meal'
+    )
+    AND ucp.rank <= 3
+    
+    UNION ALL
+    
+    -- Items matching user's dietary preferences
+    SELECT 
+        m.id as meal_id,
+        'meal' as content_type,
+        m.title,
+        0.5 as score,
+        4 as source_type
+    FROM "Meal" m
+    JOIN "MealDietaryRestriction" mdr ON m.id = mdr.meal_id
+    JOIN user_dietary_preferences udp ON mdr.dietary_restriction_id = udp.dietary_restriction_id
+    WHERE NOT EXISTS (
+        SELECT 1 FROM user_interactions ui 
+        WHERE ui.meal_id = m.id AND ui.content_type = 'meal'
+    )
+    
+    UNION ALL
+    
+    -- Generally popular items as fallback
+    SELECT 
+        m.id as meal_id,
+        'meal' as content_type,
+        m.title,
+        0.4 as score,
+        5 as source_type
+    FROM "Meal" m
+    JOIN (
+        SELECT meal_id, COUNT(*) as count
+        FROM recommendation_interactions
+        WHERE content_type = 'meal'
+        GROUP BY meal_id
+        ORDER BY count DESC
+        LIMIT :limit
+    ) popular ON m.id = popular.meal_id
+    WHERE NOT EXISTS (
+        SELECT 1 FROM user_interactions ui 
+        WHERE ui.meal_id = m.id AND ui.content_type = 'meal'
+    )
+),
+ranked_candidates AS (
+    SELECT 
+        meal_id,
+        content_type,
+        title,
+        score,
+        source_type,
+        ROW_NUMBER() OVER (
+            PARTITION BY meal_id, content_type 
+            ORDER BY score DESC
+        ) as dedupe_rank
+    FROM final_candidates
+    WHERE (:content_type IS NULL OR content_type = :content_type)
+)
+SELECT meal_id as id, content_type, title, score
+FROM ranked_candidates
+WHERE dedupe_rank = 1
+ORDER BY score DESC
+LIMIT :limit
+"""
+
+# Query for getting trending content by category
+GET_TRENDING_BY_CATEGORY = """
+WITH trending_by_category AS (
+    SELECT 
+        ri.meal_id,
+        ri.content_type,
+        c.name as category,
+        CASE 
+            WHEN ri.content_type = 'meal' THEN m.title
+            WHEN ri.content_type = 'recipe' THEN r.name
+        END as title,
+        COUNT(*) as interaction_count,
+        ROW_NUMBER() OVER (
+            PARTITION BY c.name
+            ORDER BY COUNT(*) DESC
+        ) as category_rank
+    FROM recommendation_interactions ri
+    JOIN "Meal" m ON ri.meal_id = m.id AND ri.content_type = 'meal'
+    LEFT JOIN "Recipe" r ON ri.meal_id = r.id AND ri.content_type = 'recipe'
+    JOIN "Cuisine" c ON m.cuisine_id = c.id
+    WHERE ri.created_at > CURRENT_TIMESTAMP - INTERVAL :time_window
+    GROUP BY ri.meal_id, ri.content_type, c.name, m.title, r.name
+)
+SELECT meal_id as id, content_type, category, title, interaction_count as popularity
+FROM trending_by_category
+WHERE category_rank <= :items_per_category
+ORDER BY category, category_rank
+"""
+
+# Query for getting recently added content
+GET_RECENTLY_ADDED = """
+WITH recent_content AS (
+    SELECT 
+        id as meal_id,
+        'meal' as content_type,
+        title,
+        created_at,
+        ROW_NUMBER() OVER (ORDER BY created_at DESC) as rank
+    FROM "Meal" 
+    WHERE created_at IS NOT NULL
+    
+    UNION ALL
+    
+    SELECT 
+        id as meal_id,
+        'recipe' as content_type,
+        name as title,
+        created_at,
+        ROW_NUMBER() OVER (ORDER BY created_at DESC) as rank
+    FROM "Recipe"
+    WHERE created_at IS NOT NULL
+)
+SELECT meal_id as id, content_type, title
+FROM recent_content
+WHERE rank <= :limit
+ORDER BY created_at DESC
 """
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -2800,46 +4014,87 @@ Meal Recommendation Service main application.
 This is the entry point for the service.
 """
 import uvicorn
+import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.openapi.docs import get_swagger_ui_html
 from contextlib import asynccontextmanager
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
+import time
 
 from api.endpoints import router as api_router
 from utils.scheduler import start_scheduler
-from config import API_HOST, API_PORT, RELOAD
 from setup import create_recommendation_tables
 from embeddings.generator import EmbeddingGenerator
+from config import API_HOST, API_PORT, RELOAD
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+# Request timing middleware
+class TimingMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        start_time = time.time()
+        response = await call_next(request)
+        process_time = time.time() - start_time
+        
+        # Add timing header
+        response.headers["X-Process-Time"] = f"{process_time:.4f}"
+        
+        return response
 
 # Startup and shutdown events
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup: Initialize database and run embedding generation
-    create_recommendation_tables()
+    logger.info("Starting application initialization...")
     
-    # Run initial embedding generation
-    generator = EmbeddingGenerator()
-    generator.generate_all_embeddings()
+    try:
+        # Setup database tables if needed
+        create_recommendation_tables()
+        logger.info("Database tables created/verified successfully")
+        
+        # Run initial embedding generation
+        logger.info("Starting initial embedding generation...")
+        generator = EmbeddingGenerator()
+        result = generator.generate_all_embeddings()
+        logger.info(f"Initial embedding generation complete: {result}")
+        
+        # Start the scheduler for background tasks
+        logger.info("Starting background scheduler...")
+        scheduler_thread = start_scheduler()
+        logger.info("Background scheduler started successfully")
+        
+    except Exception as e:
+        logger.error(f"Error during application initialization: {e}")
+        # Continue startup even if there are errors to allow for troubleshooting
     
-    # Start the scheduler
-    scheduler_thread = start_scheduler()
+    logger.info("Application initialization complete")
     
     yield
     
     # Shutdown: Nothing to clean up as scheduler runs in daemon thread
+    logger.info("Application shutting down...")
 
-# Create FastAPI app
+# Create FastAPI app with docs disabled
 app = FastAPI(
-    title="Meal Recommendation Service",
+    title="MealFlow Recommendation Service",
     description="API for personalized meal recommendations",
     version="1.0.0",
+    docs_url=None,  # Disable Swagger UI
+    redoc_url=None,  # Disable ReDoc
     lifespan=lifespan
 )
 
-# Add CORS middleware
+# Add middleware
+app.add_middleware(TimingMiddleware)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins in development
+    allow_origins=["*"],  # In production, replace with specific origins
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -2847,16 +4102,6 @@ app.add_middleware(
 
 # Include API router
 app.include_router(api_router)
-
-# Custom Swagger UI
-@app.get("/docs", include_in_schema=False)
-async def custom_swagger_ui_html():
-    return get_swagger_ui_html(
-        openapi_url=app.openapi_url,
-        title=app.title + " - API Documentation",
-        swagger_js_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.9.0/swagger-ui-bundle.js",
-        swagger_css_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.9.0/swagger-ui.css",
-    )
 
 if __name__ == "__main__":
     uvicorn.run(
@@ -2870,9 +4115,9 @@ if __name__ == "__main__":
 ├── readme.md
 
 ////////////////////////////////////////////////////////////////////////////////
-# Meal Recommendation Service
+# MealFlow Recommendation Service
 
-A streamlined, comprehensive meal recommendation service built with FastAPI and PostgreSQL with pgvector for efficient similarity searches. This service provides personalized meal recommendations using multiple recommendation strategies.
+A comprehensive meal recommendation service built with FastAPI and PostgreSQL with pgvector for efficient similarity searches. This service provides personalized meal and recipe recommendations using multiple recommendation strategies.
 
 ## Features
 
@@ -2896,75 +4141,51 @@ A streamlined, comprehensive meal recommendation service built with FastAPI and 
 ### Efficient Architecture
 
 - Simplified folder structure for better maintainability
-- Consolidated modules (no deep nesting of folders)
+- Consolidated modules for easier updates
 - Optimized database queries
 - Background processing for embedding generation
 - Consistent error handling and response formats
 
 ## System Architecture
 
-The service is built with FastAPI and uses PostgreSQL with pgvector extension for vector similarity search. It stores embeddings and interaction data in separate tables without modifying your existing database schema.
+The service is built with FastAPI and uses PostgreSQL with pgvector extension for vector similarity search. It stores embeddings and interaction data in separate tables to work alongside your existing database schema.
 
 ## Setup Instructions
 
 ### Prerequisites
 
 - Python 3.8+
-- PostgreSQL with pgvector extension
-- Node.js (for client integration, optional)
+- PostgreSQL 13+ with pgvector extension
+- Make (optional, for using the Makefile)
 
 ### Installation
 
 1. Clone this repository:
 
 ```bash
-git clone https://github.com/yourusername/meal-recommendation-service.git
-cd meal-recommendation-service
+git clone https://github.com/yourusername/mealflow-recommendation-service.git
+cd mealflow-recommendation-service
 ```
 
 2. Create a virtual environment (recommended):
 
 ```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
-
-3. Install required Python packages:
-
-```bash
-pip install fastapi uvicorn sqlalchemy psycopg2-binary sentence-transformers pandas scikit-learn numpy python-dotenv schedule
-```
-
-4. Make the startup script executable:
-
-```bash
-chmod +x start.sh
-```
-
-5. Create a `.env` file with your database connection string:
-
-```
-DATABASE_URL=postgresql://username:password@localhost:5432/yourdb
-```
-
-### Starting the Service
-
-Use the provided startup script:
-
-```bash
-./start.sh
-```
+python -m data.loader
 
 This will:
-- Check for and install required packages
 - Create necessary database tables if they don't exist
-- Generate initial embeddings for content
-- Start the background scheduler
-- Start the FastAPI server
+- Import all recipe data from CSV and JSON files
+- Extract and populate cuisine information
+- Update foreign key references
+
+You can customize the import settings in your `.env` file, including:
+- Data directory path
+- File names
+- Batch size for efficient imports
 
 ## API Documentation
 
-Once the service is running, you can access the API documentation at:
+Once the service is running, you can access the interactive API documentation at:
 
 ```
 http://localhost:8000/docs
@@ -2975,140 +4196,145 @@ http://localhost:8000/docs
 #### User Recommendations
 
 ```
-GET /recommend/user/{user_id}?content_type=meal&limit=10&recommendation_type=hybrid
+GET /recommend/user/{user_id}
 ```
 
-Get personalized meal recommendations for a user with options to use hybrid, user-based, or item-based algorithms.
+Get personalized meal recommendations for a user with options to filter by content type, cuisine, dietary restrictions, and more.
 
 #### Similar Meals
 
 ```
-GET /recommend/similar/{content_type}/{meal_id}?limit=10&similarity_method=content
+GET /recommend/similar/{content_type}/{meal_id}
 ```
 
-Get meals similar to the specified item. Choose between content-based similarity (using embeddings), interaction-based similarity (based on co-occurrence patterns), or ingredient-based similarity.
+Get meals similar to the specified item with various similarity methods (content-based, interaction-based, ingredient-based).
 
 #### Trending Meals
 
 ```
-GET /trending/{content_type}?time_window=day&limit=10
+GET /trending/{content_type}
 ```
 
-Get trending meals based on recent interactions.
+Get trending meals based on recent interactions, with adjustable time windows.
 
 #### Cuisine Recommendations
 
 ```
-GET /recommend/cuisine/{cuisine_id}?limit=10
+GET /recommend/cuisine/{cuisine_id}
 ```
 
-Get meals in the specified cuisine.
+Get recommended meals from a specific cuisine.
 
 #### Dietary Restriction Recommendations
 
 ```
-GET /recommend/dietary/{dietary_restriction_id}?limit=10
+GET /recommend/dietary/{dietary_restriction_id}
 ```
 
-Get meals that conform to specific dietary restrictions.
+Get meal recommendations that match specific dietary requirements.
 
 #### Record Interactions
 
 ```
 POST /interactions
-
-{
-  "user_id": "123",
-  "meal_id": "456",
-  "content_type": "meal",
-  "interaction_type": "view"
-}
 ```
 
-Record user interactions with meals.
+Record user interactions with meals (views, likes, saves, etc.) to improve future recommendations.
 
-## Postman Collection
+## Project Structure
 
-A Postman collection is included in the repository for testing the API. To use it:
-
-1. Import `meal-recommendations.postman_collection.json` into Postman
-2. Set the `baseUrl` environment variable to your API server (default: http://localhost:8000)
-3. Use the test data IDs or replace them with your own data
-
-## Customization
-
-### Configuration Settings
-
-Edit `config.py` to customize:
-
-- Database connection parameters
-- API settings
-- Embedding model and dimension
-- Default recommendation limits
-- Scheduler intervals
-
-### Recommendation Algorithms
-
-You can customize the recommendation algorithms by:
-
-1. Adjusting parameters in the API requests
-2. Modifying the implementation in the respective strategy files
-3. Creating new recommender classes that implement the BaseRecommender interface
-
-### Embedding Model
-
-You can change the embedding model in `config.py`:
-
-```python
-# Default model (lightweight)
-EMBEDDING_MODEL = "all-MiniLM-L6-v2"
-
-# For better multilingual support
-# EMBEDDING_MODEL = "paraphrase-multilingual-MiniLM-L12-v2"
-
-# For better semantic understanding but slower processing
-# EMBEDDING_MODEL = "all-mpnet-base-v2"
+```
+mealflow-recommendation-service/
+├── api/                   # API endpoints and middleware
+├── config/                # Configuration settings
+├── data/                  # Data access and management
+│   ├── loader.py          # Data import script
+│   ├── database.py        # Database connection utilities
+│   ├── queries.py         # SQL queries
+│   └── repositories.py    # Data access repositories
+├── embeddings/            # Vector embedding generation
+├── services/              # Recommendation services
+│   ├── base_recommender.py        # Base interface
+│   ├── collaborative_recommender.py
+│   ├── content_based_recommender.py
+│   ├── hybrid_recommender.py
+│   ├── item_based_recommender.py
+│   └── popularity_recommender.py
+├── setup/                 # Database setup scripts
+├── utils/                 # Utility functions
+├── main.py                # Application entry point
+├── .env                   # Environment variables (not in version control)
+├── .env.example           # Example environment file
+├── Makefile               # Task automation
+└── requirements.txt       # Python dependencies
 ```
 
-## Performance Considerations
+## Production Deployment Considerations
 
-- The vector index is essential for fast similarity search
-- Background embedding generation prevents API slowdowns
-- Queries include appropriate indexes and limits
-- Connection pooling ensures efficient database usage
-- Caching can be enabled for frequently accessed data
+When deploying to production, consider the following:
+
+1. **Database Optimization**:
+   - Create appropriate indexes for frequent queries
+   - Consider partitioning large tables
+   - Set up regular database maintenance
+
+2. **Security**:
+   - Use proper authentication for API endpoints
+   - Restrict CORS settings to allowed domains
+   - Use environment variables for sensitive information
+
+3. **Performance**:
+   - Run embedding generation as a separate background process
+   - Implement caching for frequent queries
+   - Consider using a connection pool for database access
+
+4. **Scalability**:
+   - Deploy behind a load balancer
+   - Set up multiple worker processes
+   - Consider containerization with Docker
+
+5. **Monitoring**:
+   - Add detailed logging
+   - Set up performance monitoring
+   - Implement health check endpoints
+
+## Maintenance and Updates
+
+### Adding New Recommendation Strategies
+
+1. Create a new class that implements the `BaseRecommender` interface
+2. Implement the `get_recommendations` method
+3. Add the new strategy to the `HybridRecommender` if needed
+
+### Updating Data Models
+
+If you need to update data models:
+
+1. Modify the corresponding repository class
+2. Update the database tables as needed
+3. Update any affected queries
 
 ## Troubleshooting
 
-### Connection Issues
+### Common Issues
 
-If you encounter database connection issues:
+1. **Missing pgvector Extension**:
+   - Error: "extension 'vector' does not exist"
+   - Solution: Install the pgvector extension in your database
 
-```bash
-python -c "from data.database import test_connection; test_connection()"
-```
+2. **Embedding Generation Errors**:
+   - Check that the `sentence-transformers` package is properly installed
+   - Ensure you have enough memory for the embedding model
 
-This will test the database connection and report any errors.
+3. **Database Connection Issues**:
+   - Verify your DATABASE_URL in the .env file
+   - Check that PostgreSQL is running
+   - Test connection with `make test-db`
 
-### Missing Embeddings
-
-If meals aren't showing up in recommendations:
-
-```bash
-python -c "from embeddings.generator import EmbeddingGenerator; generator = EmbeddingGenerator(); generator.generate_all_embeddings()"
-```
-
-This will generate embeddings for any missing meals.
-
-### API Issues
-
-You can check the API documentation at:
-
-```
-http://localhost:8000/docs
-```
-
-This provides an interactive OpenAPI interface for testing endpoints.
+4. **Dataset Import Errors**:
+   - Ensure your CSV files have the expected format
+   - Check for encoding issues in your data files
+   - Try importing with smaller batch sizes
 
 ## License
 
@@ -3116,11 +4342,126 @@ MIT License
 
 ## Acknowledgments
 
-- Thanks to the SentenceTransformers project for the embedding models
-- Thanks to the pgvector extension for PostgreSQL for vector similarity search
+- SentenceTransformers for the embedding models
+- pgvector for PostgreSQL vector similarity search
+- FastAPI for the API framework venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
 
+3. Install required Python packages:
 
-dataset 
+```bash
+pip install -r requirements.txt
+```
+
+4. Configure your environment by creating a `.env` file based on `.env.example`:
+
+```bash
+cp .env.example .env
+# Edit .env with your database credentials and settings
+```
+
+5. Install the pgvector extension in your PostgreSQL database:
+
+```sql
+CREATE EXTENSION IF NOT EXISTS vector;
+```
+
+### Using the Makefile
+
+The project includes a Makefile to simplify common tasks:
+
+```bash
+# Set up the complete development environment
+make setup
+
+# Test database connection
+make test-db
+
+# Load data from CSV and JSON files
+make load-data
+
+# Set up database tables only (without data import)
+make schema-only
+
+# Generate initial embeddings
+make init-embeddings
+
+# Run the service
+make run
+
+# Clean up temporary files
+make clean
+
+# Show available make commands
+make help
+```
+
+### Manual Setup
+
+If you prefer not to use the Makefile, you can perform each step manually:
+
+1. Set up database tables:
+
+```bash
+python -m setup
+```
+
+2. Load data from CSV and JSON files:
+
+```bash
+python -m data.loader
+```
+
+3. Generate initial embeddings:
+
+```bash
+python -c "from embeddings.generator import EmbeddingGenerator; generator = EmbeddingGenerator(); generator.generate_all_embeddings()"
+```
+
+4. Start the server:
+
+```bash
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+## Importing Data
+
+The system includes a data loader script that imports the following datasets:
+
+- `RecipeDB_general.csv`: Basic recipe metadata
+- `RecipeDB_ingredient_phrase.csv`: Recipe-ingredient relationships
+- `RecipeDB_ingredient_flavor.csv`: Ingredient metadata and flavor profiles
+- `RecipeDB_instructions.json`: Step-by-step recipe instructions
+- `merged.csv`: Merged recipe data with additional metrics
+
+To import your data:
+
+1. Place your data files in the `data` directory
+2. Run the data loader:
+
+```bash
+python -m
+////////////////////////////////////////////////////////////////////////////////
+
+├── requirement.txt
+
+////////////////////////////////////////////////////////////////////////////////
+fastapi==0.103.1
+uvicorn==0.23.2
+sqlalchemy==2.0.20
+psycopg2-binary==2.9.7
+sentence-transformers==2.2.2
+python-dotenv==1.0.0
+pandas==2.1.0
+numpy==1.25.2
+scikit-learn==1.3.0
+schedule==1.2.0
+pydantic==2.3.0
+pytest==7.4.2
+flake8==6.1.0
+python-multipart==0.0.6
+httpx==0.24.1
 ////////////////////////////////////////////////////////////////////////////////
 
 ├── services
