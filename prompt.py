@@ -3,27 +3,37 @@ import os
 import sys
 import argparse
 
-def print_tree(directory, prefix='', output_file=None):
-    """
-    Recursively print the directory tree and file contents, excluding certain folders and file types.
+# Exclude these directories entirely
+EXCLUDED_DIRS = {'.git', 'node_modules', 'assets', 'venv'}
 
-    Excludes:
-    - Folders: .git, node_modules, assets, venv
-    - Files: prompt.py, index.html, meals.csv
-    - Extensions: .svg, .js, .csv
-    """
+# Exclude these exact filenames
+EXCLUDED_FILES = {'prompt.py', 'index.html', 'meals.csv'}
+
+# Exclude files with these extensions
+EXCLUDED_EXTENSIONS = {'.svg', '.js', '.csv', '.json'}
+
+def should_exclude(entry_name, entry_path):
+    """Return True if the file or folder should be excluded."""
+    if entry_name in EXCLUDED_FILES:
+        return True
+    if os.path.isdir(entry_path) and entry_name in EXCLUDED_DIRS:
+        return True
+    if os.path.isfile(entry_path) and any(entry_name.endswith(ext) for ext in EXCLUDED_EXTENSIONS):
+        return True
+    return False
+
+def print_tree(directory, prefix='', output_file=None):
+    """Recursively print directory tree and include readable file contents."""
     try:
-        entries = [
-            entry for entry in os.listdir(directory)
-            if entry not in ('node_modules', 'assets', 'venv', '.git', 'prompt.py', 'index.html', 'meals.csv')
-            and not entry.endswith(('.svg', '.js', '.csv'))
-        ]
-        entries.sort()  # Sort entries alphabetically
+        entries = os.listdir(directory)
+        entries.sort()
+
+        # Filter out excluded items
+        entries = [e for e in entries if not should_exclude(e, os.path.join(directory, e))]
 
         for i, entry in enumerate(entries):
             entry_path = os.path.join(directory, entry)
             is_last = (i == len(entries) - 1)
-
             connector = "└── " if is_last else "├── "
 
             if output_file:
@@ -35,9 +45,6 @@ def print_tree(directory, prefix='', output_file=None):
                 new_prefix = prefix + ("    " if is_last else "│   ")
                 print_tree(entry_path, new_prefix, output_file)
             else:
-                # Skip reading files with .csv extension
-                if entry.endswith('.csv'):
-                    continue
                 try:
                     with open(entry_path, 'r', encoding='utf-8') as file:
                         content = file.read()

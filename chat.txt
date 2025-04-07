@@ -573,75 +573,117 @@ def set_user_dietary_preference(
 
 ////////////////////////////////////////////////////////////////////////////////
 """
-Meal Recommendation Service main application.
-This is the entry point for the service.
+API middleware for the meal recommendation service.
+Includes CORS, request timing, and error handling middleware.
 """
-import uvicorn
-from fastapi import FastAPI
+from fastapi import Request, Response
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.openapi.docs import get_swagger_ui_html
-from contextlib import asynccontextmanager
+from fastapi.middleware.gzip import GZipMiddleware
+import time
+import json
+import logging
+from typing import Callable
 
-from api.endpoints import router as api_router
-from utils.scheduler import start_scheduler
-from config import API_HOST, API_PORT, RELOAD
-from setup import create_recommendation_tables
-from embeddings.generator import EmbeddingGenerator
+logger = logging.getLogger(__name__)
 
-# Startup and shutdown events
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # Startup: Initialize database and run embedding generation
-    create_recommendation_tables()
+def setup_middleware(app):
+    """
+    Set up middleware for the FastAPI application.
     
-    # Run initial embedding generation
-    generator = EmbeddingGenerator()
-    generator.generate_all_embeddings()
-    
-    # Start the scheduler
-    scheduler_thread = start_scheduler()
-    
-    yield
-    
-    # Shutdown: Nothing to clean up as scheduler runs in daemon thread
-
-# Create FastAPI app
-app = FastAPI(
-    title="Meal Recommendation Service",
-    description="API for personalized meal recommendations",
-    version="1.0.0",
-    lifespan=lifespan
-)
-
-# Add CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins in development
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# Include API router
-app.include_router(api_router)
-
-# Custom Swagger UI
-@app.get("/docs", include_in_schema=False)
-async def custom_swagger_ui_html():
-    return get_swagger_ui_html(
-        openapi_url=app.openapi_url,
-        title=app.title + " - API Documentation",
-        swagger_js_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.9.0/swagger-ui-bundle.js",
-        swagger_css_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.9.0/swagger-ui.css",
+    Args:
+        app: The FastAPI application
+    """
+    # Add CORS middleware
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],  # Replace with specific origins in production
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
     )
-
-if __name__ == "__main__":
-    uvicorn.run(
-        "main:app", 
-        host=API_HOST, 
-        port=API_PORT,
-        reload=RELOAD
-    )
+    
+    # Add GZip compression middleware
+    app.add_middleware(GZipMiddleware, minimum_size=1000)
+    
+    # Add request timing middleware
+    @app.middleware("http")
+    async def add_process_time_header(request: Request, call_next: Callable):
+        start_time = time.time()
+        
+        # Add request ID for tracking
+        request_id = f"req-{int(start_time * 1000)}"
+        request.state.request_id = request_id
+        
+        # Process the request
+        try:
+            response = await call_next(request)
+            process_time = time.time() - start_time
+            
+            # Add timing headers
+            response.headers["X-Process-Time"] = str(round(process_time * 1000, 2))
+            response.headers["X-Request-ID"] = request_id
+            
+            # Add timing to JSON response
+            if (
+                response.headers.get("content-type") == "application/json" 
+                and isinstance(response, JSONResponse)
+            ):
+                content = response.body.decode()
+                try:
+                    data = json.loads(content)
+                    if isinstance(data, dict):
+                        data["execution_time_ms"] = round(process_time * 1000, 2)
+                        data["request_id"] = request_id
+                        response.body = json.dumps(data).encode()
+                except Exception as e:
+                    logger.error(f"Error updating response: {e}")
+            
+            # Log request completion
+            logger.info(
+                f"Request {request_id} completed: {request.method} {request.url.path} "
+                f"- {response.status_code} in {process_time:.3f}s"
+            )
+            
+            return response
+            
+        except Exception as e:
+            # Log any unhandled exceptions
+            process_time = time.time() - start_time
+            logger.error(
+                f"Request {request_id} error: {request.method} {request.url.path} "
+                f"- {str(e)} in {process_time:.3f}s"
+            )
+            
+            # Create error response
+            error_response = JSONResponse(
+                status_code=500,
+                content={
+                    "detail": "Internal server error",
+                    "request_id": request_id,
+                    "execution_time_ms": round(process_time * 1000, 2)
+                }
+            )
+            return error_response
+    
+    # Add error logging middleware
+    @app.middleware("http")
+    async def log_errors(request: Request, call_next: Callable):
+        try:
+            return await call_next(request)
+        except Exception as e:
+            # Log the error
+            logger.exception(f"Unhandled exception: {str(e)}")
+            
+            # Return a consistent error response
+            return JSONResponse(
+                status_code=500,
+                content={
+                    "detail": "Internal server error",
+                    "type": type(e).__name__,
+                    "request_id": getattr(request.state, "request_id", "unknown")
+                }
+            )
 ////////////////////////////////////////////////////////////////////////////////
 
 ├── chat.txt
@@ -1218,472 +1260,6 @@ def set_user_dietary_preference(
     }
 ////////////////////////////////////////////////////////////////////////////////
 
-├── client
-│   └── __init__.py
-
-////////////////////////////////////////////////////////////////////////////////
-
-////////////////////////////////////////////////////////////////////////////////
-
-├── collection.json
-
-////////////////////////////////////////////////////////////////////////////////
-{
-    "info": {
-      "name": "Meal Recommendation API",
-      "description": "Collection of API endpoints for the Meal Recommendation Service",
-      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-      "_exporter_id": "12345678"
-    },
-    "item": [
-      {
-        "name": "Status",
-        "request": {
-          "method": "GET",
-          "header": [],
-          "url": {
-            "raw": "{{baseUrl}}/",
-            "host": ["{{baseUrl}}"],
-            "path": [""]
-          },
-          "description": "Check if the API is running"
-        },
-        "response": []
-      },
-      {
-        "name": "User Recommendations",
-        "item": [
-          {
-            "name": "Get User Recommendations",
-            "request": {
-              "method": "GET",
-              "header": [],
-              "url": {
-                "raw": "{{baseUrl}}/recommend/user/{{userId}}?limit=10&recommendation_type=hybrid&content_type=meal",
-                "host": ["{{baseUrl}}"],
-                "path": ["recommend", "user", "{{userId}}"],
-                "query": [
-                  {
-                    "key": "limit",
-                    "value": "10",
-                    "description": "Maximum number of recommendations to return"
-                  },
-                  {
-                    "key": "recommendation_type",
-                    "value": "hybrid",
-                    "description": "Recommendation algorithm (hybrid, user-based, item-based)"
-                  },
-                  {
-                    "key": "content_type",
-                    "value": "meal",
-                    "description": "Content type (meal, recipe)"
-                  },
-                  {
-                    "key": "cuisine",
-                    "value": "",
-                    "description": "Filter by cuisine ID",
-                    "disabled": true
-                  },
-                  {
-                    "key": "dietary_restriction",
-                    "value": "",
-                    "description": "Filter by dietary restriction ID",
-                    "disabled": true
-                  }
-                ]
-              },
-              "description": "Get personalized meal recommendations for a user"
-            },
-            "response": []
-          },
-          {
-            "name": "Get User History",
-            "request": {
-              "method": "GET",
-              "header": [],
-              "url": {
-                "raw": "{{baseUrl}}/user/{{userId}}/history?limit=10&content_type=meal",
-                "host": ["{{baseUrl}}"],
-                "path": ["user", "{{userId}}", "history"],
-                "query": [
-                  {
-                    "key": "limit",
-                    "value": "10",
-                    "description": "Maximum number of history items to return"
-                  },
-                  {
-                    "key": "content_type",
-                    "value": "meal",
-                    "description": "Content type (meal, recipe)",
-                    "disabled": false
-                  }
-                ]
-              },
-              "description": "Get a user's meal interaction history"
-            },
-            "response": []
-          },
-          {
-            "name": "Get User Dietary Preferences",
-            "request": {
-              "method": "GET",
-              "header": [],
-              "url": {
-                "raw": "{{baseUrl}}/user/{{userId}}/dietary-preferences",
-                "host": ["{{baseUrl}}"],
-                "path": ["user", "{{userId}}", "dietary-preferences"]
-              },
-              "description": "Get a user's dietary preferences"
-            },
-            "response": []
-          }
-        ],
-        "description": "Endpoints for user-specific recommendations and preferences"
-      },
-      {
-        "name": "Similar Meals",
-        "item": [
-          {
-            "name": "Get Similar Meals (Content-Based)",
-            "request": {
-              "method": "GET",
-              "header": [],
-              "url": {
-                "raw": "{{baseUrl}}/recommend/similar/meal/{{mealId}}?limit=10&similarity_method=content",
-                "host": ["{{baseUrl}}"],
-                "path": ["recommend", "similar", "meal", "{{mealId}}"],
-                "query": [
-                  {
-                    "key": "limit",
-                    "value": "10",
-                    "description": "Maximum number of similar meals to return"
-                  },
-                  {
-                    "key": "similarity_method",
-                    "value": "content",
-                    "description": "Method to determine similarity (content, interaction, ingredient)"
-                  }
-                ]
-              },
-              "description": "Get similar meals using content-based similarity (vector embeddings)"
-            },
-            "response": []
-          },
-          {
-            "name": "Get Similar Meals (Interaction-Based)",
-            "request": {
-              "method": "GET",
-              "header": [],
-              "url": {
-                "raw": "{{baseUrl}}/recommend/similar/meal/{{mealId}}?limit=10&similarity_method=interaction",
-                "host": ["{{baseUrl}}"],
-                "path": ["recommend", "similar", "meal", "{{mealId}}"],
-                "query": [
-                  {
-                    "key": "limit",
-                    "value": "10",
-                    "description": "Maximum number of similar meals to return"
-                  },
-                  {
-                    "key": "similarity_method",
-                    "value": "interaction",
-                    "description": "Method to determine similarity (content, interaction, ingredient)"
-                  }
-                ]
-              },
-              "description": "Get similar meals using interaction-based similarity (co-occurrence patterns)"
-            },
-            "response": []
-          },
-          {
-            "name": "Get Similar Meals (Ingredient-Based)",
-            "request": {
-              "method": "GET",
-              "header": [],
-              "url": {
-                "raw": "{{baseUrl}}/recommend/similar/meal/{{mealId}}?limit=10&similarity_method=ingredient",
-                "host": ["{{baseUrl}}"],
-                "path": ["recommend", "similar", "meal", "{{mealId}}"],
-                "query": [
-                  {
-                    "key": "limit",
-                    "value": "10",
-                    "description": "Maximum number of similar meals to return"
-                  },
-                  {
-                    "key": "similarity_method",
-                    "value": "ingredient",
-                    "description": "Method to determine similarity (content, interaction, ingredient)"
-                  }
-                ]
-              },
-              "description": "Get similar meals using ingredient-based similarity (common ingredients)"
-            },
-            "response": []
-          }
-        ],
-        "description": "Endpoints for finding meals similar to a specific meal"
-      },
-      {
-        "name": "Trending Meals",
-        "item": [
-          {
-            "name": "Get Trending Meals (Day)",
-            "request": {
-              "method": "GET",
-              "header": [],
-              "url": {
-                "raw": "{{baseUrl}}/trending/meal?limit=10&time_window=day",
-                "host": ["{{baseUrl}}"],
-                "path": ["trending", "meal"],
-                "query": [
-                  {
-                    "key": "limit",
-                    "value": "10",
-                    "description": "Maximum number of trending meals to return"
-                  },
-                  {
-                    "key": "time_window",
-                    "value": "day",
-                    "description": "Time window (day, week, month)"
-                  }
-                ]
-              },
-              "description": "Get trending meals based on interactions in the last 24 hours"
-            },
-            "response": []
-          },
-          {
-            "name": "Get Trending Meals (Week)",
-            "request": {
-              "method": "GET",
-              "header": [],
-              "url": {
-                "raw": "{{baseUrl}}/trending/meal?limit=10&time_window=week",
-                "host": ["{{baseUrl}}"],
-                "path": ["trending", "meal"],
-                "query": [
-                  {
-                    "key": "limit",
-                    "value": "10",
-                    "description": "Maximum number of trending meals to return"
-                  },
-                  {
-                    "key": "time_window",
-                    "value": "week",
-                    "description": "Time window (day, week, month)"
-                  }
-                ]
-              },
-              "description": "Get trending meals based on interactions in the last 7 days"
-            },
-            "response": []
-          },
-          {
-            "name": "Get Trending Recipes",
-            "request": {
-              "method": "GET",
-              "header": [],
-              "url": {
-                "raw": "{{baseUrl}}/trending/recipe?limit=10&time_window=week",
-                "host": ["{{baseUrl}}"],
-                "path": ["trending", "recipe"],
-                "query": [
-                  {
-                    "key": "limit",
-                    "value": "10",
-                    "description": "Maximum number of trending recipes to return"
-                  },
-                  {
-                    "key": "time_window",
-                    "value": "week",
-                    "description": "Time window (day, week, month)"
-                  }
-                ]
-              },
-              "description": "Get trending recipes based on interactions in the specified time window"
-            },
-            "response": []
-          },
-          {
-            "name": "Get All Trending Content",
-            "request": {
-              "method": "GET",
-              "header": [],
-              "url": {
-                "raw": "{{baseUrl}}/trending/all?limit=10&time_window=week",
-                "host": ["{{baseUrl}}"],
-                "path": ["trending", "all"],
-                "query": [
-                  {
-                    "key": "limit",
-                    "value": "10",
-                    "description": "Maximum number of trending items to return"
-                  },
-                  {
-                    "key": "time_window",
-                    "value": "week",
-                    "description": "Time window (day, week, month)"
-                  }
-                ]
-              },
-              "description": "Get trending content (meals and recipes) based on interactions"
-            },
-            "response": []
-          }
-        ],
-        "description": "Endpoints for getting trending meals based on recent interactions"
-      },
-      {
-        "name": "Category-Based Recommendations",
-        "item": [
-          {
-            "name": "Get Meals by Cuisine",
-            "request": {
-              "method": "GET",
-              "header": [],
-              "url": {
-                "raw": "{{baseUrl}}/recommend/cuisine/{{cuisineId}}?limit=10",
-                "host": ["{{baseUrl}}"],
-                "path": ["recommend", "cuisine", "{{cuisineId}}"],
-                "query": [
-                  {
-                    "key": "limit",
-                    "value": "10",
-                    "description": "Maximum number of meals to return"
-                  }
-                ]
-              },
-              "description": "Get meal recommendations based on cuisine"
-            },
-            "response": []
-          },
-          {
-            "name": "Get Meals by Dietary Restriction",
-            "request": {
-              "method": "GET",
-              "header": [],
-              "url": {
-                "raw": "{{baseUrl}}/recommend/dietary/{{dietaryRestrictionId}}?limit=10",
-                "host": ["{{baseUrl}}"],
-                "path": ["recommend", "dietary", "{{dietaryRestrictionId}}"],
-                "query": [
-                  {
-                    "key": "limit",
-                    "value": "10",
-                    "description": "Maximum number of meals to return"
-                  }
-                ]
-              },
-              "description": "Get meal recommendations based on dietary restrictions"
-            },
-            "response": []
-          }
-        ],
-        "description": "Endpoints for category-based recommendations (cuisine, dietary preferences)"
-      },
-      {
-        "name": "Interactions",
-        "item": [
-          {
-            "name": "Record Interaction",
-            "request": {
-              "method": "POST",
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json"
-                }
-              ],
-              "body": {
-                "mode": "raw",
-                "raw": "{\n    \"user_id\": \"{{userId}}\",\n    \"meal_id\": \"{{mealId}}\",\n    \"content_type\": \"meal\",\n    \"interaction_type\": \"view\"\n}"
-              },
-              "url": {
-                "raw": "{{baseUrl}}/interactions",
-                "host": ["{{baseUrl}}"],
-                "path": ["interactions"]
-              },
-              "description": "Record a user interaction with a meal"
-            },
-            "response": []
-          },
-          {
-            "name": "Add Dietary Preference",
-            "request": {
-              "method": "POST",
-              "header": [],
-              "url": {
-                "raw": "{{baseUrl}}/user/{{userId}}/dietary-preferences?dietary_restriction_id=1",
-                "host": ["{{baseUrl}}"],
-                "path": ["user", "{{userId}}", "dietary-preferences"],
-                "query": [
-                  {
-                    "key": "dietary_restriction_id",
-                    "value": "1",
-                    "description": "ID of the dietary restriction"
-                  }
-                ]
-              },
-              "description": "Add a dietary preference for a user"
-            },
-            "response": []
-          }
-        ],
-        "description": "Endpoints for recording user interactions and preferences"
-      }
-    ],
-    "event": [
-      {
-        "listen": "prerequest",
-        "script": {
-          "type": "text/javascript",
-          "exec": [""]
-        }
-      },
-      {
-        "listen": "test",
-        "script": {
-          "type": "text/javascript",
-          "exec": [""]
-        }
-      }
-    ],
-    "variable": [
-      {
-        "key": "baseUrl",
-        "value": "http://localhost:8000",
-        "type": "string",
-        "description": "Base URL for the meal recommendation API"
-      },
-      {
-        "key": "userId",
-        "value": "user-123",
-        "type": "string",
-        "description": "Sample user ID for testing"
-      },
-      {
-        "key": "mealId",
-        "value": "meal-456",
-        "type": "string",
-        "description": "Sample meal ID for testing"
-      },
-      {
-        "key": "cuisineId",
-        "value": "1",
-        "type": "string",
-        "description": "Sample cuisine ID for testing (1=Italian)"
-      },
-      {
-        "key": "dietaryRestrictionId",
-        "value": "1",
-        "type": "string",
-        "description": "Sample dietary restriction ID for testing (1=Vegetarian)"
-      }
-    ]
-  }
-////////////////////////////////////////////////////////////////////////////////
-
 ├── config
 │   ├── __init__.py
 
@@ -1826,7 +1402,512 @@ def test_connection():
         return False
 ////////////////////////////////////////////////////////////////////////////////
 
-│   └── repo.py
+│   ├── kaggle.py
+
+////////////////////////////////////////////////////////////////////////////////
+import kagglehub
+import os
+
+# Download the dataset
+path = kagglehub.dataset_download("kriishukla/recipe-db")
+
+# Access meals.csv
+file_path = os.path.join(path, "meals.csv")
+
+print("Dataset Path:", path)
+print("Meals File Path:", file_path)
+
+////////////////////////////////////////////////////////////////////////////////
+
+│   ├── query.py
+
+////////////////////////////////////////////////////////////////////////////////
+"""
+SQL Queries for the meal recommendation service.
+All queries are consolidated in this module for easier maintenance.
+"""
+from config import EMBEDDING_DIMENSION
+
+#######################
+# SETUP QUERIES       #
+#######################
+
+# Query to enable pgvector extension
+ENABLE_PGVECTOR = """
+CREATE EXTENSION IF NOT EXISTS vector
+"""
+
+# Query to create meal embeddings table
+CREATE_CONTENT_EMBEDDINGS_TABLE = """
+CREATE TABLE IF NOT EXISTS content_embeddings (
+    id SERIAL PRIMARY KEY,
+    meal_id TEXT NOT NULL,
+    content_type TEXT NOT NULL,  -- 'meal' or 'recipe'
+    embedding vector({embedding_dimension}),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(meal_id, content_type)
+)
+"""
+
+# Query to create index for vector search
+CREATE_EMBEDDINGS_INDEX = """
+CREATE INDEX IF NOT EXISTS content_embeddings_idx 
+ON content_embeddings USING ivfflat (embedding vector_cosine_ops)
+"""
+
+# Query to create meal interactions table
+CREATE_INTERACTIONS_TABLE = """
+CREATE TABLE IF NOT EXISTS recommendation_interactions (
+    id SERIAL PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    meal_id TEXT NOT NULL,
+    content_type TEXT NOT NULL,  -- 'meal', 'recipe'
+    interaction_type TEXT NOT NULL,  -- 'view', 'like', 'save', 'cook'
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)
+"""
+
+# Query to create indexes for quick lookups
+CREATE_INTERACTIONS_INDEXES = """
+CREATE INDEX IF NOT EXISTS rec_interactions_user_idx ON recommendation_interactions(user_id);
+CREATE INDEX IF NOT EXISTS rec_interactions_meal_idx ON recommendation_interactions(meal_id, content_type);
+CREATE INDEX IF NOT EXISTS rec_interactions_type_idx ON recommendation_interactions(interaction_type);
+CREATE INDEX IF NOT EXISTS rec_interactions_created_idx ON recommendation_interactions(created_at);
+"""
+
+# Query to create cuisine reference table
+CREATE_CUISINE_TABLE = """
+CREATE TABLE IF NOT EXISTS "Cuisine" (
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE
+)
+"""
+
+# Query to create dietary restriction reference table
+CREATE_DIETARY_RESTRICTION_TABLE = """
+CREATE TABLE IF NOT EXISTS "DietaryRestriction" (
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE
+)
+"""
+
+# Query to create user dietary preferences table
+CREATE_USER_DIETARY_PREFERENCE_TABLE = """
+CREATE TABLE IF NOT EXISTS "UserDietaryPreference" (
+    id SERIAL PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    dietary_restriction_id INTEGER NOT NULL REFERENCES "DietaryRestriction"(id),
+    UNIQUE(user_id, dietary_restriction_id)
+)
+"""
+
+# Query to create meal dietary restrictions table
+CREATE_MEAL_DIETARY_RESTRICTION_TABLE = """
+CREATE TABLE IF NOT EXISTS "MealDietaryRestriction" (
+    id SERIAL PRIMARY KEY,
+    meal_id TEXT NOT NULL,
+    dietary_restriction_id INTEGER NOT NULL REFERENCES "DietaryRestriction"(id),
+    UNIQUE(meal_id, dietary_restriction_id)
+)
+"""
+
+# Query to create ingredients table
+CREATE_INGREDIENT_TABLE = """
+CREATE TABLE IF NOT EXISTS "Ingredient" (
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE
+)
+"""
+
+# Query to create meal ingredients table
+CREATE_MEAL_INGREDIENT_TABLE = """
+CREATE TABLE IF NOT EXISTS "MealIngredient" (
+    id SERIAL PRIMARY KEY,
+    meal_id TEXT NOT NULL,
+    ingredient_id INTEGER NOT NULL REFERENCES "Ingredient"(id),
+    amount TEXT,
+    UNIQUE(meal_id, ingredient_id)
+)
+"""
+
+# Query to insert default cuisines
+INSERT_DEFAULT_CUISINES = """
+INSERT INTO "Cuisine" (name) VALUES
+('italian'), ('mexican'), ('chinese'), ('indian'), ('american'),
+('french'), ('japanese'), ('mediterranean'), ('thai'), ('other')
+ON CONFLICT (name) DO NOTHING
+"""
+
+# Query to insert default dietary restrictions
+INSERT_DEFAULT_DIETARY_RESTRICTIONS = """
+INSERT INTO "DietaryRestriction" (name) VALUES
+('vegetarian'), ('vegan'), ('gluten-free'), ('dairy-free'),
+('keto'), ('paleo'), ('low-carb'), ('low-fat')
+ON CONFLICT (name) DO NOTHING
+"""
+
+#######################
+# EMBEDDING QUERIES   #
+#######################
+
+# Query to save or update a meal embedding
+SAVE_EMBEDDING = """
+INSERT INTO content_embeddings (meal_id, content_type, embedding)
+VALUES (:meal_id, :content_type, :embedding)
+ON CONFLICT (meal_id, content_type) 
+DO UPDATE SET embedding = :embedding, updated_at = CURRENT_TIMESTAMP
+"""
+
+# Query to get the embedding for specific meal
+GET_EMBEDDING = """
+SELECT embedding
+FROM content_embeddings
+WHERE meal_id = :meal_id AND content_type = :content_type
+"""
+
+# Base query for finding similar meals (without filter clauses)
+FIND_SIMILAR_CONTENT_BASE = """
+SELECT ce.meal_id, ce.content_type,
+       CASE WHEN ce.content_type = 'meal' THEN m.title
+            WHEN ce.content_type = 'recipe' THEN r.name
+       END as title,
+       1 - (ce.embedding <=> :embedding) AS similarity
+FROM content_embeddings ce
+LEFT JOIN "Meal" m ON ce.meal_id = m.id AND ce.content_type = 'meal'
+LEFT JOIN "Recipe" r ON ce.meal_id = r.id AND ce.content_type = 'recipe'
+WHERE 1=1
+{type_filter}
+{exclude_clause}
+ORDER BY similarity DESC
+LIMIT :limit
+"""
+
+# Query to get meals that don't have embeddings yet
+GET_MEALS_WITHOUT_EMBEDDINGS = """
+SELECT m.id, m.title, m.description
+FROM "Meal" m
+LEFT JOIN content_embeddings ce ON ce.meal_id = m.id AND ce.content_type = 'meal'
+WHERE ce.id IS NULL
+LIMIT :limit
+"""
+
+# Query to get recipes that don't have embeddings yet
+GET_RECIPES_WITHOUT_EMBEDDINGS = """
+SELECT r.id, r.name, r.instructions
+FROM "Recipe" r
+LEFT JOIN content_embeddings ce ON ce.meal_id = r.id AND ce.content_type = 'recipe'
+WHERE ce.id IS NULL
+LIMIT :limit
+"""
+
+# Query to find meals by cuisine for embedding
+FIND_MEALS_BY_CUISINE_FOR_EMBEDDING = """
+SELECT m.id, m.title, m.description
+FROM "Meal" m
+WHERE m.cuisine_id = :cuisine_id
+AND m.id NOT IN (
+    SELECT meal_id FROM content_embeddings WHERE content_type = 'meal'
+)
+LIMIT :limit
+"""
+
+# Query to get total counts of items without embeddings
+GET_EMBEDDING_STATS = """
+SELECT 
+    (SELECT COUNT(*) FROM "Meal" m LEFT JOIN content_embeddings ce 
+     ON ce.meal_id = m.id AND ce.content_type = 'meal' WHERE ce.id IS NULL) as meals_without_embeddings,
+     
+    (SELECT COUNT(*) FROM "Recipe" r LEFT JOIN content_embeddings ce 
+     ON ce.meal_id = r.id AND ce.content_type = 'recipe' WHERE ce.id IS NULL) as recipes_without_embeddings,
+     
+    (SELECT COUNT(*) FROM content_embeddings) as total_embeddings
+"""
+
+#######################
+# INTERACTION QUERIES #
+#######################
+
+# Query to record a user interaction with a meal
+RECORD_INTERACTION = """
+INSERT INTO recommendation_interactions
+(user_id, meal_id, content_type, interaction_type)
+VALUES (:user_id, :meal_id, :content_type, :interaction_type)
+"""
+
+# Query to get recent interactions for a user
+GET_USER_RECENT_INTERACTIONS_BASE = """
+SELECT meal_id, content_type, interaction_type, created_at
+FROM recommendation_interactions
+WHERE user_id = :user_id
+{type_filter}
+ORDER BY created_at DESC
+LIMIT :limit
+"""
+
+# Base query for getting trending meals
+GET_TRENDING_MEALS_BASE = """
+SELECT ri.meal_id, ri.content_type,
+       CASE WHEN ri.content_type = 'meal' THEN m.title
+            WHEN ri.content_type = 'recipe' THEN r.name
+       END as title,
+       COUNT(*) as popularity
+FROM recommendation_interactions ri
+LEFT JOIN "Meal" m ON ri.meal_id = m.id AND ri.content_type = 'meal'
+LEFT JOIN "Recipe" r ON ri.meal_id = r.id AND ri.content_type = 'recipe'
+WHERE ri.created_at > {time_clause}
+{type_filter}
+GROUP BY ri.meal_id, ri.content_type, m.title, r.name
+ORDER BY popularity DESC
+LIMIT :limit
+"""
+
+# Query to find users with similar meal preferences
+FIND_SIMILAR_USERS = """
+SELECT DISTINCT ri2.user_id
+FROM recommendation_interactions ri1
+JOIN recommendation_interactions ri2 ON ri1.meal_id = ri2.meal_id 
+                                  AND ri1.content_type = ri2.content_type
+WHERE ri1.user_id = :user_id
+AND ri2.user_id != :user_id
+GROUP BY ri2.user_id
+HAVING COUNT(DISTINCT ri1.meal_id) > :min_common_items
+LIMIT :limit
+"""
+
+# Base query for getting meals from similar users
+GET_MEALS_FROM_SIMILAR_USERS_BASE = """
+SELECT DISTINCT ri.meal_id, ri.content_type, COUNT(*) as interaction_count,
+       CASE WHEN ri.content_type = 'meal' THEN m.title
+            WHEN ri.content_type = 'recipe' THEN r.name
+       END as title
+FROM recommendation_interactions ri
+LEFT JOIN "Meal" m ON ri.meal_id = m.id AND ri.content_type = 'meal'
+LEFT JOIN "Recipe" r ON ri.meal_id = r.id AND ri.content_type = 'recipe'
+WHERE ri.user_id IN ({user_placeholders})
+AND ri.meal_id NOT IN (
+    SELECT meal_id 
+    FROM recommendation_interactions 
+    WHERE user_id = :user_id
+)
+{type_filter}
+GROUP BY ri.meal_id, ri.content_type, m.title, r.name
+ORDER BY interaction_count DESC
+LIMIT :limit
+"""
+
+# Query to get user interaction statistics
+GET_USER_INTERACTION_STATS = """
+SELECT 
+    interaction_type,
+    COUNT(*) as count,
+    MAX(created_at) as latest
+FROM recommendation_interactions
+WHERE user_id = :user_id
+GROUP BY interaction_type
+ORDER BY count DESC
+"""
+
+# Query to get interaction stats by content type
+GET_CONTENT_TYPE_STATS = """
+SELECT 
+    content_type,
+    COUNT(*) as interaction_count,
+    COUNT(DISTINCT meal_id) as unique_items,
+    COUNT(DISTINCT user_id) as unique_users
+FROM recommendation_interactions
+GROUP BY content_type
+"""
+
+#######################
+# RECOMMENDATION QUERIES #
+#######################
+
+# Query for finding similar meals based on co-occurrence patterns
+FIND_SIMILAR_ITEMS = """
+WITH users_who_interacted AS (
+    SELECT DISTINCT user_id
+    FROM recommendation_interactions
+    WHERE meal_id = :meal_id
+)
+SELECT ri2.meal_id, ri2.content_type,
+       CASE WHEN ri2.content_type = 'meal' THEN m.title
+            WHEN ri2.content_type = 'recipe' THEN r.name
+       END as title,
+       COUNT(DISTINCT ri2.user_id) as co_occurrence_count
+FROM recommendation_interactions ri2
+JOIN users_who_interacted uwi ON ri2.user_id = uwi.user_id
+LEFT JOIN "Meal" m ON ri2.meal_id = m.id AND ri2.content_type = 'meal'
+LEFT JOIN "Recipe" r ON ri2.meal_id = r.id AND ri2.content_type = 'recipe'
+WHERE ri2.meal_id != :meal_id
+{type_filter}
+GROUP BY ri2.meal_id, ri2.content_type, m.title, r.name
+ORDER BY co_occurrence_count DESC
+LIMIT :limit
+"""
+
+# Query for finding meals with similar ingredients
+FIND_MEALS_WITH_SIMILAR_INGREDIENTS = """
+WITH meal_ingredients AS (
+    SELECT ingredient_id
+    FROM "MealIngredient"
+    WHERE meal_id = :meal_id
+),
+ingredient_counts AS (
+    SELECT 
+        m.id, 
+        m.title, 
+        COUNT(mi.ingredient_id) AS common_ingredients,
+        (SELECT COUNT(*) FROM "MealIngredient" WHERE meal_id = :meal_id) AS source_ingredient_count
+    FROM "Meal" m
+    JOIN "MealIngredient" mi ON m.id = mi.meal_id
+    JOIN meal_ingredients src ON mi.ingredient_id = src.ingredient_id
+    WHERE m.id != :meal_id
+    GROUP BY m.id, m.title
+)
+SELECT 
+    id, 
+    title, 
+    common_ingredients,
+    common_ingredients::float / source_ingredient_count::float AS similarity_score
+FROM ingredient_counts
+ORDER BY similarity_score DESC, common_ingredients DESC
+LIMIT :limit
+"""
+
+# Query for getting meals by cuisine
+GET_CUISINE_MEALS = """
+SELECT m.id, m.title
+FROM "Meal" m
+WHERE m.cuisine_id = :cuisine_id
+LIMIT :limit
+"""
+
+# Query for getting meals by dietary preference
+GET_DIETARY_PREFERENCE_MEALS = """
+SELECT m.id, m.title
+FROM "Meal" m
+JOIN "MealDietaryRestriction" mdr ON m.id = mdr.meal_id
+WHERE mdr.dietary_restriction_id = :dietary_restriction_id
+LIMIT :limit
+"""
+
+# Query for getting a user's dietary preferences
+GET_USER_DIETARY_PREFERENCES = """
+SELECT dr.id, dr.name
+FROM "UserDietaryPreference" udp
+JOIN "DietaryRestriction" dr ON udp.dietary_restriction_id = dr.id
+WHERE udp.user_id = :user_id
+"""
+
+# Query for getting similar meals based on ingredients
+GET_SIMILAR_MEALS_BY_INGREDIENTS = """
+SELECT m1.id, m1.title, COUNT(mi1.ingredient_id) as ingredient_match_count
+FROM "Meal" m1
+JOIN "MealIngredient" mi1 ON m1.id = mi1.meal_id
+JOIN "MealIngredient" mi2 ON mi1.ingredient_id = mi2.ingredient_id
+WHERE mi2.meal_id = :meal_id
+AND m1.id != :meal_id
+GROUP BY m1.id, m1.title
+ORDER BY ingredient_match_count DESC
+LIMIT :limit
+"""
+
+# Query for getting meal ingredients
+GET_MEAL_INGREDIENTS = """
+SELECT i.id, i.name, mi.amount
+FROM "MealIngredient" mi
+JOIN "Ingredient" i ON mi.ingredient_id = i.id
+WHERE mi.meal_id = :meal_id
+"""
+
+# Query for getting recipe ingredients
+GET_RECIPE_INGREDIENTS = """
+SELECT i.id, i.name, ri.amount
+FROM "RecipeIngredient" ri
+JOIN "Ingredient" i ON ri.ingredient_id = i.id
+WHERE ri.recipe_id = :recipe_id
+"""
+
+# Query for getting personalized meal recommendations based on dietary preferences
+GET_MEALS_BY_USER_DIETARY_PREFERENCES = """
+SELECT DISTINCT m.id, m.title, m.description
+FROM "Meal" m
+JOIN "MealDietaryRestriction" mdr ON m.id = mdr.meal_id
+JOIN "UserDietaryPreference" udp ON mdr.dietary_restriction_id = udp.dietary_restriction_id
+WHERE udp.user_id = :user_id
+ORDER BY RANDOM()
+LIMIT :limit
+"""
+
+# Query for getting meals with high popularity
+GET_POPULAR_MEALS = """
+SELECT m.id, m.title, COUNT(ri.id) as popularity
+FROM "Meal" m
+JOIN recommendation_interactions ri ON m.id = ri.meal_id AND ri.content_type = 'meal'
+WHERE ri.created_at > NOW() - INTERVAL :time_window
+GROUP BY m.id, m.title
+HAVING COUNT(ri.id) > :min_interactions
+ORDER BY popularity DESC
+LIMIT :limit
+"""
+
+# Query for getting meals by time of day
+GET_MEALS_BY_TIME_OF_DAY = """
+SELECT m.id, m.title, m.description
+FROM "Meal" m
+WHERE m.meal_type = :meal_type
+ORDER BY 
+    CASE WHEN m.cuisine_id = :preferred_cuisine_id THEN 0 ELSE 1 END,
+    RANDOM()
+LIMIT :limit
+"""
+
+# Query for getting low-carb or low-calorie meals
+GET_HEALTHY_MEALS = """
+SELECT m.id, m.title, m.calories
+FROM "Meal" m
+WHERE 
+    (m.calories IS NULL OR m.calories < :max_calories)
+    AND (:low_carb = FALSE OR m.id IN (
+        SELECT meal_id FROM "MealDietaryRestriction" 
+        WHERE dietary_restriction_id IN (
+            SELECT id FROM "DietaryRestriction" WHERE name IN ('low-carb', 'keto')
+        )
+    ))
+ORDER BY RANDOM()
+LIMIT :limit
+"""
+
+# Query for finding meals suitable for meal planning
+GET_MEAL_PLAN_RECOMMENDATIONS = """
+WITH user_favorite_cuisines AS (
+    SELECT DISTINCT m.cuisine_id
+    FROM recommendation_interactions ri
+    JOIN "Meal" m ON ri.meal_id = m.id AND ri.content_type = 'meal'
+    WHERE ri.user_id = :user_id
+    GROUP BY m.cuisine_id
+    ORDER BY COUNT(*) DESC
+    LIMIT 3
+)
+SELECT m.id, m.title, m.meal_type, m.prep_time, m.cuisine_id
+FROM "Meal" m
+LEFT JOIN "MealDietaryRestriction" mdr ON m.id = mdr.meal_id
+LEFT JOIN "UserDietaryPreference" udp ON mdr.dietary_restriction_id = udp.dietary_restriction_id AND udp.user_id = :user_id
+WHERE 
+    (m.meal_type = :meal_type OR :meal_type IS NULL)
+    AND (m.cuisine_id IN (SELECT cuisine_id FROM user_favorite_cuisines) OR :ignore_cuisine = TRUE)
+    AND (udp.id IS NOT NULL OR :ignore_preferences = TRUE)
+    AND (m.prep_time <= :max_prep_time OR :max_prep_time IS NULL)
+ORDER BY 
+    CASE WHEN udp.id IS NOT NULL THEN 0 ELSE 1 END,
+    CASE WHEN m.cuisine_id IN (SELECT cuisine_id FROM user_favorite_cuisines) THEN 0 ELSE 1 END,
+    RANDOM()
+LIMIT :limit
+"""
+////////////////////////////////////////////////////////////////////////////////
+
+│   ├── repo.py
 
 ////////////////////////////////////////////////////////////////////////////////
 """
@@ -2412,6 +2493,64 @@ class InteractionRepository:
             return False
 ////////////////////////////////////////////////////////////////////////////////
 
+│   └── signature.md
+
+////////////////////////////////////////////////////////////////////////////////
+#merged
+
+IngID,ingredient,frequency,generic_name,wikilink,wikiimage,FlavorDB_Category,Dietrx_Category,Flavor_DB_Link,flavordb_id,Diet_rx_link,ingredient_raw,serving size (g),energy (kcal),protein (g),carbohydrate (g),total fat (g),total sugar (g)
+0,salt,48195,Salt,https://en.wikipedia.org/wiki/Salt,https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Comparison_of_Table_Salt_with_Kitchen_Salt.png/220px-Comparison_of_Table_Salt_with_Kitchen_Salt.png,,Additive,Salt~https://cosylab.iiitd.edu.in/flavordb/entity_details?id=778,778,,,,,,,,
+1,onion,35453,Onion,https://en.wikipedia.org/wiki/Onion,https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Mixed_onions.jpg/220px-Mixed_onions.jpg,Vegetable-Bulb,Vegetable,Onion~https://cosylab.iiitd.edu.in/flavordb/entity_details?id=348,348,onion~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A4679||welsh onion~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A35875,,,,,,,
+2,butter,30038,Butter,https://en.wikipedia.org/wiki/Butter,https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/%C5%A0v%C3%A9dsk%C3%BD_kol%C3%A1%C4%8D_naruby_904_%28cropped%29.JPG/235px-%C5%A0v%C3%A9dsk%C3%BD_kol%C3%A1%C4%8D_naruby_904_%28cropped%29.JPG,,Dairy,Butter~https://cosylab.iiitd.edu.in/flavordb/entity_details?id=60,60,butter~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Dairy+ID%3A5,,,,,,,
+3,water,26790,Water,https://en.wikipedia.org/wiki/Fresh_Water,https://upload.wikimedia.org/wikipedia/commons/5/5e/Amazonas%2C_Iquitos_-_Leticia%2C_Kolumbien_%2811472506936%29.jpg,,Additive,Water~https://cosylab.iiitd.edu.in/flavordb/entity_details?id=794,794,,,,,,,,
+4,garlic clove,25636,Garlic,https://en.wikipedia.org/wiki/Garlic,https://upload.wikimedia.org/wikipedia/commons/thumb/e/e4/Garlic_whole.jpg/440px-Garlic_whole.jpg,,Herb,Garlic~https://cosylab.iiitd.edu.in/flavordb/entity_details?id=259,259,garlic~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A4682||wild garlic~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A4684,,,,,,,
+5,olive oil,23799,Olive,https://en.wikipedia.org/wiki/Olive_oil,https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Oliven_V1.jpg/250px-Oliven_V1.jpg,,Plant Derivative,Olive~https://cosylab.iiitd.edu.in/flavordb/entity_details?id=307,307,common olive~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A4146||autumn olive~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A43233||chinese white olive~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A300208||russian olive~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A36777||chinese olive~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A246350,olive oil,100.0,900.0,0.0,0.0,100.0,0.0
+
+
+# data/RecipeDB_general.csv
+Recipe_id,Calories,cook_time,prep_time,servings,Recipe_title,total_time,url,Region,Sub_region,Continent,Source,img_url,"Carbohydrate, by difference (g)",Energy (kcal),Protein (g),Total lipid (fat) (g),Utensils,Processes,vegan,pescetarian,ovo_vegetarian,lacto_vegetarian,ovo_lacto_vegetarian
+2610,196.0,30,15,4,Egyptian Lentil Soup,45,http://allrecipes.com/recipe/222661/egyptian-lentil-soup/,Middle Eastern,Egyptian,African,AllRecipes,https://images.media-allrecipes.com/userphotos/560x315/5196784.jpg,146.7606,805.6975,49.554,5.6564,,place||heat||cook||remove||cool||blend||smooth||stir||heat,0.0,0.0,0.0,0.0,0.0
+2611,80.0,35,10,4,Egyptian Green Beans with Carrots,45,http://allrecipes.com/recipe/233456/egyptian-green-beans-with-carrots/,Middle Eastern,Egyptian,African,AllRecipes,https://images.media-allrecipes.com/userphotos/560x315/2619313.jpg,39.3312,386.767,15.5638,19.7239,pot,heat||heat||cook||stir||stir||cook||stirring||pour||stir||boil||add||boil||simmer,0.0,0.0,0.0,0.0,0.0
+2612,339.0,120,15,4,Egyptian Bamia,135,http://allrecipes.com/recipe/227986/egyptian-bamia/,Middle Eastern,Egyptian,African,AllRecipes,https://images.media-allrecipes.com/userphotos/560x315/3840150.jpg,34.0004,1762.7662,82.9034,146.8971,saucepan||oven||dish||oven,heat||heat||cook||stir||mix||cook||stir||stir||season||boil||simmer||stir||preheat||stir||boil||cover||bake,0.0,0.0,0.0,0.0,0.0
+2613,409.0,15,15,3,Magpie's Easy Falafel Cakes,60,http://allrecipes.com/recipe/143113/magpies-easy-falafel-cakes/,Middle Eastern,Egyptian,African,AllRecipes,https://images.media-allrecipes.com/userphotos/560x315/5229672.jpg,225.1172,1686.8298,67.8589,62.4829,skillet||processor||bowl||cup||dish||tablespoon||skillet,cook||smooth||transfer||stir||cover||chill||place||roll||heat||heat||cook,0.0,0.0,0.0,1.0,0.0
+2614,45.0,5,20,24,Dukkah,25,http://allrecipes.com/recipe/79684/dukkah/,Middle Eastern,Egyptian,African,AllRecipes,https://images.media-allrecipes.com/userphotos/560x315/4572970.jpg,83.0609,1006.238,26.18,73.1713,oven||sheet||skillet||bowl||skillet||pan||processor||bowl||processor||bowl,preheat||place||pour||fold||cover||remove||cool||heat||stirring||pop||transfer||process||pour||place||process||stir||season||mix,1.0,1.0,0.0,0.0,0.0
+2615,934.0,30,30,8,Om Ali,60,http://allrecipes.com/recipe/19898/om-ali/,Middle Eastern,Egyptian,African,AllRecipes,https://images.media-allrecipes.com/userphotos/560x315/1101880.jpg,543.3028,4117.4667,46.5988,212.1542,oven||dish||oven||oven||oven||bowl||dish||saucepan||dish||oven,preheat||place||place||remove||preheat||break||stir||spread||boil||heat||beat||cream||spread||place||serve,0.0,0.0,0.0,0.0,0.0
+
+
+
+
+/home/mealflow/mealflow/Recommend/data/RecipeDB_ingredient_phrase.csv
+recipe_no,ingredient_Phrase,ingredient,state,quantity,unit,temp,df,size,ing_id,ndb_id,M_or_A
+2610,3 cups water,water,,3,cups,,,,3,14555,M
+2610,1 cup red lentils,red lentil,,1,cup,,,,452,16144,A
+2610,"1 roma tomato , quartered",rom tomato,quartered,1,,,,,180,93600,A
+2610,"1 carrot , quartered",carrot,quartered,1,,,,,21,11124,M
+2610,"1 small onion , quartered",onion,quartered,1,,,,small,1,11282,M
+2610,"4 cloves garlic , quartered",garlic,quartered,4,cloves,,,,10,11215,A
+2610,2 teaspoons ground cumin,cumin,ground,2,teaspoons,,,,20,2014,M
+2610,1/2 teaspoon sea salt,sea salt,,1/2,teaspoon,,,,90,93600,A
+2610,1/2 teaspoon cracked black pepper,black pepper,cracked,1/2,teaspoon,,,,9,2030,A
+2610,1/4 teaspoon ground coriander,coriander,ground,1/4,teaspoon,,,,57,2013,M
+2611,1 tablespoon vegetable oil,vegetable oil,,1,tablespoon,,,,19,4513,A
+
+
+
+/home/mealflow/mealflow/Recommend/data/RecipeDB_ingredient_flavor.csv
+IngID,ingredient,frequency,generic_name,wikilink,wikiimage,FlavorDB_Category,Dietrx_Category,Flavor_DB_Link,flavordb_id,Diet_rx_link
+0,salt,48195,Salt,https://en.wikipedia.org/wiki/Salt,https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Comparison_of_Table_Salt_with_Kitchen_Salt.png/220px-Comparison_of_Table_Salt_with_Kitchen_Salt.png,,Additive,Salt~https://cosylab.iiitd.edu.in/flavordb/entity_details?id=778,778,
+1,onion,35453,Onion,https://en.wikipedia.org/wiki/Onion,https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Mixed_onions.jpg/220px-Mixed_onions.jpg,Vegetable-Bulb,Vegetable,Onion~https://cosylab.iiitd.edu.in/flavordb/entity_details?id=348,348,onion~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A4679||welsh onion~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A35875
+2,butter,30038,Butter,https://en.wikipedia.org/wiki/Butter,https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/%C5%A0v%C3%A9dsk%C3%BD_kol%C3%A1%C4%8D_naruby_904_%28cropped%29.JPG/235px-%C5%A0v%C3%A9dsk%C3%BD_kol%C3%A1%C4%8D_naruby_904_%28cropped%29.JPG,,Dairy,Butter~https://cosylab.iiitd.edu.in/flavordb/entity_details?id=60,60,butter~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Dairy+ID%3A5
+
+
+
+
+
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
 ├── db.py
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -2651,18 +2790,6 @@ if __name__ == "__main__":
     generator = EmbeddingGenerator()
     result = generator.generate_all_embeddings()
     print(f"Generated embeddings: {result}")
-////////////////////////////////////////////////////////////////////////////////
-
-├── init_dataset
-│   └── kaggle.py
-
-////////////////////////////////////////////////////////////////////////////////
-import kagglehub
-
-# Download latest version
-path = kagglehub.dataset_download("kriishukla/recipe-db")
-
-print("Path to dataset files:", path)
 ////////////////////////////////////////////////////////////////////////////////
 
 ├── main.py
@@ -2937,7 +3064,63 @@ You can change the embedding model in `config.py`:
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"
 
 # For better multilingual support
-# EMBEDDING_MODEL = "paraphrase-multilingual-MiniLM
+# EMBEDDING_MODEL = "paraphrase-multilingual-MiniLM-L12-v2"
+
+# For better semantic understanding but slower processing
+# EMBEDDING_MODEL = "all-mpnet-base-v2"
+```
+
+## Performance Considerations
+
+- The vector index is essential for fast similarity search
+- Background embedding generation prevents API slowdowns
+- Queries include appropriate indexes and limits
+- Connection pooling ensures efficient database usage
+- Caching can be enabled for frequently accessed data
+
+## Troubleshooting
+
+### Connection Issues
+
+If you encounter database connection issues:
+
+```bash
+python -c "from data.database import test_connection; test_connection()"
+```
+
+This will test the database connection and report any errors.
+
+### Missing Embeddings
+
+If meals aren't showing up in recommendations:
+
+```bash
+python -c "from embeddings.generator import EmbeddingGenerator; generator = EmbeddingGenerator(); generator.generate_all_embeddings()"
+```
+
+This will generate embeddings for any missing meals.
+
+### API Issues
+
+You can check the API documentation at:
+
+```
+http://localhost:8000/docs
+```
+
+This provides an interactive OpenAPI interface for testing endpoints.
+
+## License
+
+MIT License
+
+## Acknowledgments
+
+- Thanks to the SentenceTransformers project for the embedding models
+- Thanks to the pgvector extension for PostgreSQL for vector similarity search
+
+
+dataset 
 ////////////////////////////////////////////////////////////////////////////////
 
 ├── services
@@ -3212,6 +3395,7 @@ from services.base_recommender import BaseRecommender
 from services.collaborative import CollaborativeRecommender
 from services.content_based import ContentBasedRecommender
 from services.popularity import PopularityRecommender
+from services.item_based import ItemBasedRecommender
 from data.repositories import InteractionRepository
 from config import DEFAULT_RECOMMENDATION_LIMIT
 
@@ -3223,13 +3407,18 @@ class HybridRecommender(BaseRecommender):
     Combines multiple recommendation strategies with fallbacks:
     1. Collaborative filtering (user-based)
     2. Content-based recommendations
-    3. Popularity-based recommendations
+    3. Item-based collaborative filtering
+    4. Popularity-based recommendations
+    
+    Each strategy contributes to the final recommendation list, with
+    weights assigned to prioritize and blend the recommendations.
     """
     
     def __init__(self):
         """Initialize the hybrid recommender with various strategies."""
         self.collaborative_recommender = CollaborativeRecommender()
         self.content_based_recommender = ContentBasedRecommender()
+        self.item_based_recommender = ItemBasedRecommender()
         self.popularity_recommender = PopularityRecommender()
         self.interaction_repository = InteractionRepository()
     
@@ -3254,23 +3443,45 @@ class HybridRecommender(BaseRecommender):
         Returns:
             List of recommended items
         """
-        recommended_items = []
+        all_recommendations = {}
+        strategy_weights = {
+            'collaborative': 1.0,
+            'content': 0.8,
+            'item_based': 0.7,
+            'popularity': 0.5
+        }
         
-        # Step 1: Try collaborative filtering first (if we have a user_id)
+        # Step 1: Try collaborative filtering if we have a user_id
         if user_id:
             collaborative_items = self.collaborative_recommender.get_recommendations(
                 user_id=user_id,
                 content_type=content_type,
-                limit=limit,
+                limit=limit * 2,  # Request more items for better blending
                 **kwargs
             )
             
-            recommended_items.extend(collaborative_items)
-            logger.info(f"Collaborative filtering returned {len(collaborative_items)} items")
+            # Add to all recommendations with collaborative weight
+            for item in collaborative_items:
+                item_id = item.get('id')
+                if item_id:
+                    score = item.get('score', 0.5) * strategy_weights['collaborative']
+                    if item_id in all_recommendations:
+                        all_recommendations[item_id]['score'] = max(
+                            all_recommendations[item_id]['score'],
+                            score
+                        )
+                    else:
+                        item['score'] = score
+                        all_recommendations[item_id] = item
+            
+            logger.info(f"Collaborative filtering added {len(collaborative_items)} items")
         
-        # Step 2: If we don't have enough recommendations yet, try content-based
-        if len(recommended_items) < limit and user_id:
-            # Get user's most recent interaction for content-based recommendations
+        # Step 2: Try content-based if we have user interactions or meal_id
+        recent_meal_id = meal_id
+        recent_content_type = content_type
+        
+        # If no meal_id but we have user_id, get their most recent interaction
+        if not meal_id and user_id:
             recent_interactions = self.interaction_repository.get_user_recent_interactions(
                 user_id=user_id,
                 content_type=content_type,
@@ -3279,47 +3490,85 @@ class HybridRecommender(BaseRecommender):
             
             if recent_interactions:
                 recent = recent_interactions[0]
-                meal_id = recent['meal_id']
-                content_type_for_content = recent['content_type']
-                
-                # Get additional recommendations based on this content
-                # Exclude already recommended items
-                existing_ids = [item.get("id") for item in recommended_items]
-                
-                remaining = limit - len(recommended_items)
-                content_based_items = self.content_based_recommender.get_recommendations(
-                    meal_id=meal_id,
-                    content_type=content_type_for_content,
-                    limit=remaining,
-                    **kwargs
-                )
-                
-                # Filter out duplicates
-                content_based_items = [
-                    item for item in content_based_items 
-                    if item.get("id") not in existing_ids
-                ]
-                
-                recommended_items.extend(content_based_items)
-                logger.info(f"Content-based filtering added {len(content_based_items)} items")
+                recent_meal_id = recent['meal_id']
+                recent_content_type = recent['content_type']
         
-        # Step 3: If still not enough, use popularity-based recommendations
-        if len(recommended_items) < limit:
-            # Exclude already recommended items
-            existing_ids = [item.get("id") for item in recommended_items]
-            
-            remaining = limit - len(recommended_items)
-            popularity_items = self.popularity_recommender.get_recommendations(
-                content_type=content_type,
-                limit=remaining,
-                exclude_ids=existing_ids,
+        # If we have a meal to base content similarity on, get recommendations
+        if recent_meal_id and recent_content_type:
+            content_based_items = self.content_based_recommender.get_recommendations(
+                meal_id=recent_meal_id,
+                content_type=recent_content_type,
+                limit=limit * 2,  # Request more items for better blending
                 **kwargs
             )
             
-            recommended_items.extend(popularity_items)
-            logger.info(f"Popularity-based filtering added {len(popularity_items)} items")
+            # Add to all recommendations with content-based weight
+            for item in content_based_items:
+                item_id = item.get('id')
+                if item_id:
+                    score = item.get('score', 0.5) * strategy_weights['content']
+                    if item_id in all_recommendations:
+                        all_recommendations[item_id]['score'] = max(
+                            all_recommendations[item_id]['score'],
+                            score
+                        )
+                    else:
+                        item['score'] = score
+                        all_recommendations[item_id] = item
+            
+            logger.info(f"Content-based filtering added {len(content_based_items)} items")
         
-        # Return the combined recommendations (limited to the requested number)
+        # Step 3: Try item-based collaborative filtering if we have user_id
+        if user_id:
+            item_based_items = self.item_based_recommender.get_recommendations(
+                user_id=user_id,
+                content_type=content_type,
+                limit=limit * 2,  # Request more items for better blending
+                **kwargs
+            )
+            
+            # Add to all recommendations with item-based weight
+            for item in item_based_items:
+                item_id = item.get('id')
+                if item_id:
+                    score = item.get('score', 0.5) * strategy_weights['item_based']
+                    if item_id in all_recommendations:
+                        all_recommendations[item_id]['score'] = max(
+                            all_recommendations[item_id]['score'],
+                            score
+                        )
+                    else:
+                        item['score'] = score
+                        all_recommendations[item_id] = item
+            
+            logger.info(f"Item-based filtering added {len(item_based_items)} items")
+        
+        # Step 4: Add popularity-based recommendations to fill any gaps
+        popularity_items = self.popularity_recommender.get_recommendations(
+            content_type=content_type,
+            limit=limit * 2,  # Request more items for better blending
+            **kwargs
+        )
+        
+        # Add to all recommendations with popularity weight
+        for item in popularity_items:
+            item_id = item.get('id')
+            if item_id:
+                score = item.get('score', 0.5) * strategy_weights['popularity']
+                if item_id in all_recommendations:
+                    # Only use popularity as a boost, not a replacement
+                    all_recommendations[item_id]['score'] += score * 0.2
+                else:
+                    item['score'] = score
+                    all_recommendations[item_id] = item
+        
+        logger.info(f"Popularity-based filtering added {len(popularity_items)} items")
+        
+        # Convert dict to list, sort by score, and limit results
+        recommended_items = list(all_recommendations.values())
+        recommended_items.sort(key=lambda x: x.get('score', 0), reverse=True)
+        
+        logger.info(f"Hybrid recommender generated {len(recommended_items)} items total")
         return recommended_items[:limit]
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -3830,57 +4079,203 @@ uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
 ////////////////////////////////////////////////////////////////////////////////
 """
-Background task scheduler.
-Runs periodic tasks for the recommendation system.
+Background task scheduler for meal recommendation service.
+Manages periodic tasks for embedding generation and other maintenance operations.
 """
 import schedule
 import time
 import threading
 import logging
+import signal
+import sys
+from typing import Callable, Dict, List
+from datetime import datetime, timedelta
 
-from embeddings.embedding_generator import EmbeddingGenerator
-from config.settings import EMBEDDING_GENERATION_INTERVAL, SCHEDULER_SLEEP_INTERVAL
+from embeddings.generator import EmbeddingGenerator
+from config import (
+    EMBEDDING_GENERATION_INTERVAL,
+    SCHEDULER_SLEEP_INTERVAL,
+    LOG_LEVEL,
+    LOG_FORMAT
+)
 
 logger = logging.getLogger(__name__)
 
+# Track running tasks
+_running_tasks: Dict[str, bool] = {}
+_task_last_run: Dict[str, datetime] = {}
+_task_durations: Dict[str, List[float]] = {}
+_scheduler_thread: threading.Thread = None
+_stop_event = threading.Event()
+
+def timed_task(task_name: str) -> Callable:
+    """
+    Decorator to time tasks and track their execution.
+    
+    Args:
+        task_name: Name of the task to track
+        
+    Returns:
+        Decorated function
+    """
+    def decorator(func: Callable) -> Callable:
+        def wrapper(*args, **kwargs):
+            # Mark task as running
+            _running_tasks[task_name] = True
+            _task_last_run[task_name] = datetime.now()
+            
+            start_time = time.time()
+            logger.info(f"Starting task: {task_name}")
+            
+            try:
+                result = func(*args, **kwargs)
+                end_time = time.time()
+                duration = end_time - start_time
+                
+                # Track task duration
+                if task_name not in _task_durations:
+                    _task_durations[task_name] = []
+                
+                _task_durations[task_name].append(duration)
+                
+                # Keep only the last 10 durations for average calculation
+                if len(_task_durations[task_name]) > 10:
+                    _task_durations[task_name] = _task_durations[task_name][-10:]
+                
+                avg_duration = sum(_task_durations[task_name]) / len(_task_durations[task_name])
+                
+                logger.info(f"Task {task_name} completed in {duration:.2f}s (avg: {avg_duration:.2f}s)")
+                return result
+            except Exception as e:
+                logger.error(f"Error in task {task_name}: {e}")
+                raise
+            finally:
+                # Mark task as not running
+                _running_tasks[task_name] = False
+        return wrapper
+    return decorator
+
+@timed_task("embedding_generation")
 def run_embedding_generation():
-    """Generate embeddings for content that doesn't have them yet."""
-    logger.info("Running scheduled embedding generation...")
+    """
+    Generate embeddings for meals and recipes that don't have them yet.
+    This task runs periodically to ensure all content has embeddings.
+    """
     try:
         generator = EmbeddingGenerator()
         result = generator.generate_all_embeddings()
-        logger.info(f"Embedding generation completed: {result}")
+        
+        meals_count = result.get('meals', 0)
+        recipes_count = result.get('recipes', 0)
+        total_count = meals_count + recipes_count
+        
+        if total_count > 0:
+            logger.info(f"Generated embeddings for {meals_count} meals and {recipes_count} recipes")
+        else:
+            logger.info("No new content requiring embeddings")
+        
+        return result
     except Exception as e:
         logger.error(f"Error during embedding generation: {e}")
+        return {"error": str(e)}
+
+def get_task_status() -> Dict:
+    """
+    Get the status of scheduled tasks.
+    
+    Returns:
+        Dictionary with task status information
+    """
+    status = {}
+    
+    for task_name in _task_last_run:
+        status[task_name] = {
+            "running": _running_tasks.get(task_name, False),
+            "last_run": _task_last_run[task_name].isoformat() if task_name in _task_last_run else None,
+            "average_duration": None
+        }
+        
+        if task_name in _task_durations and _task_durations[task_name]:
+            avg_duration = sum(_task_durations[task_name]) / len(_task_durations[task_name])
+            status[task_name]["average_duration"] = f"{avg_duration:.2f}s"
+            
+        if task_name in _task_last_run:
+            time_since_last_run = datetime.now() - _task_last_run[task_name]
+            status[task_name]["time_since_last_run"] = f"{time_since_last_run.total_seconds():.0f}s"
+    
+    return status
 
 def run_scheduler():
-    """Run the scheduler loop to execute pending tasks."""
-    while True:
+    """
+    Run the scheduler loop to execute pending tasks.
+    This function runs in a separate thread and periodically checks
+    for tasks that need to be executed.
+    """
+    while not _stop_event.is_set():
         schedule.run_pending()
         time.sleep(SCHEDULER_SLEEP_INTERVAL)
 
+def stop_scheduler():
+    """Stop the scheduler thread."""
+    logger.info("Stopping scheduler...")
+    _stop_event.set()
+    
+    if _scheduler_thread and _scheduler_thread.is_alive():
+        _scheduler_thread.join(timeout=5)
+        
+    logger.info("Scheduler stopped")
+
+def handle_exit_signal(signum, frame):
+    """Handle exit signals to gracefully stop the scheduler."""
+    logger.info(f"Received signal {signum}, shutting down gracefully...")
+    stop_scheduler()
+    sys.exit(0)
+
 def start_scheduler():
-    """Configure and start the scheduler in a background thread."""
+    """
+    Configure and start the scheduler in a background thread.
+    Sets up signal handlers for graceful shutdown.
+    
+    Returns:
+        The scheduler thread
+    """
+    global _scheduler_thread
+    
+    # Register signal handlers for graceful shutdown
+    signal.signal(signal.SIGINT, handle_exit_signal)
+    signal.signal(signal.SIGTERM, handle_exit_signal)
+    
+    # Clear any existing schedules
+    schedule.clear()
+    
     # Schedule embedding generation job
     schedule.every(EMBEDDING_GENERATION_INTERVAL).minutes.do(run_embedding_generation)
-    
     logger.info(f"Scheduled embedding generation every {EMBEDDING_GENERATION_INTERVAL} minutes")
     
-    # Start scheduler in background thread
-    scheduler_thread = threading.Thread(target=run_scheduler)
-    scheduler_thread.daemon = True
-    scheduler_thread.start()
-    logger.info("Scheduler started in background thread")
+    # Initialize tracking dictionaries
+    _running_tasks["embedding_generation"] = False
+    _task_last_run["embedding_generation"] = datetime.now() - timedelta(days=1)  # Set to past time
     
-    return scheduler_thread
+    # Reset stop event
+    _stop_event.clear()
+    
+    # Start scheduler in background thread
+    _scheduler_thread = threading.Thread(target=run_scheduler, name="SchedulerThread")
+    _scheduler_thread.daemon = True
+    _scheduler_thread.start()
+    
+    logger.info("Scheduler started in background thread")
+    return _scheduler_thread
 
 if __name__ == "__main__":
+    # Configure logging
     logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        level=getattr(logging, LOG_LEVEL),
+        format=LOG_FORMAT
     )
     
     # Run immediately on first execution
+    logger.info("Running initial embedding generation")
     run_embedding_generation()
     
     # Start scheduler
@@ -3892,6 +4287,7 @@ if __name__ == "__main__":
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
+        stop_scheduler()
         logger.info("Scheduler stopped.")
 ////////////////////////////////////////////////////////////////////////////////
 

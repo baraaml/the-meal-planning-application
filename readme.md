@@ -1,6 +1,6 @@
-# Meal Recommendation Service
+# MealFlow Recommendation Service
 
-A streamlined, comprehensive meal recommendation service built with FastAPI and PostgreSQL with pgvector for efficient similarity searches. This service provides personalized meal recommendations using multiple recommendation strategies.
+A comprehensive meal recommendation service built with FastAPI and PostgreSQL with pgvector for efficient similarity searches. This service provides personalized meal and recipe recommendations using multiple recommendation strategies.
 
 ## Features
 
@@ -24,75 +24,51 @@ A streamlined, comprehensive meal recommendation service built with FastAPI and 
 ### Efficient Architecture
 
 - Simplified folder structure for better maintainability
-- Consolidated modules (no deep nesting of folders)
+- Consolidated modules for easier updates
 - Optimized database queries
 - Background processing for embedding generation
 - Consistent error handling and response formats
 
 ## System Architecture
 
-The service is built with FastAPI and uses PostgreSQL with pgvector extension for vector similarity search. It stores embeddings and interaction data in separate tables without modifying your existing database schema.
+The service is built with FastAPI and uses PostgreSQL with pgvector extension for vector similarity search. It stores embeddings and interaction data in separate tables to work alongside your existing database schema.
 
 ## Setup Instructions
 
 ### Prerequisites
 
 - Python 3.8+
-- PostgreSQL with pgvector extension
-- Node.js (for client integration, optional)
+- PostgreSQL 13+ with pgvector extension
+- Make (optional, for using the Makefile)
 
 ### Installation
 
 1. Clone this repository:
 
 ```bash
-git clone https://github.com/yourusername/meal-recommendation-service.git
-cd meal-recommendation-service
+git clone https://github.com/yourusername/mealflow-recommendation-service.git
+cd mealflow-recommendation-service
 ```
 
 2. Create a virtual environment (recommended):
 
 ```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
-
-3. Install required Python packages:
-
-```bash
-pip install fastapi uvicorn sqlalchemy psycopg2-binary sentence-transformers pandas scikit-learn numpy python-dotenv schedule
-```
-
-4. Make the startup script executable:
-
-```bash
-chmod +x start.sh
-```
-
-5. Create a `.env` file with your database connection string:
-
-```
-DATABASE_URL=postgresql://username:password@localhost:5432/yourdb
-```
-
-### Starting the Service
-
-Use the provided startup script:
-
-```bash
-./start.sh
-```
+python -m data.loader
 
 This will:
-- Check for and install required packages
 - Create necessary database tables if they don't exist
-- Generate initial embeddings for content
-- Start the background scheduler
-- Start the FastAPI server
+- Import all recipe data from CSV and JSON files
+- Extract and populate cuisine information
+- Update foreign key references
+
+You can customize the import settings in your `.env` file, including:
+- Data directory path
+- File names
+- Batch size for efficient imports
 
 ## API Documentation
 
-Once the service is running, you can access the API documentation at:
+Once the service is running, you can access the interactive API documentation at:
 
 ```
 http://localhost:8000/docs
@@ -103,140 +79,145 @@ http://localhost:8000/docs
 #### User Recommendations
 
 ```
-GET /recommend/user/{user_id}?content_type=meal&limit=10&recommendation_type=hybrid
+GET /recommend/user/{user_id}
 ```
 
-Get personalized meal recommendations for a user with options to use hybrid, user-based, or item-based algorithms.
+Get personalized meal recommendations for a user with options to filter by content type, cuisine, dietary restrictions, and more.
 
 #### Similar Meals
 
 ```
-GET /recommend/similar/{content_type}/{meal_id}?limit=10&similarity_method=content
+GET /recommend/similar/{content_type}/{meal_id}
 ```
 
-Get meals similar to the specified item. Choose between content-based similarity (using embeddings), interaction-based similarity (based on co-occurrence patterns), or ingredient-based similarity.
+Get meals similar to the specified item with various similarity methods (content-based, interaction-based, ingredient-based).
 
 #### Trending Meals
 
 ```
-GET /trending/{content_type}?time_window=day&limit=10
+GET /trending/{content_type}
 ```
 
-Get trending meals based on recent interactions.
+Get trending meals based on recent interactions, with adjustable time windows.
 
 #### Cuisine Recommendations
 
 ```
-GET /recommend/cuisine/{cuisine_id}?limit=10
+GET /recommend/cuisine/{cuisine_id}
 ```
 
-Get meals in the specified cuisine.
+Get recommended meals from a specific cuisine.
 
 #### Dietary Restriction Recommendations
 
 ```
-GET /recommend/dietary/{dietary_restriction_id}?limit=10
+GET /recommend/dietary/{dietary_restriction_id}
 ```
 
-Get meals that conform to specific dietary restrictions.
+Get meal recommendations that match specific dietary requirements.
 
 #### Record Interactions
 
 ```
 POST /interactions
-
-{
-  "user_id": "123",
-  "meal_id": "456",
-  "content_type": "meal",
-  "interaction_type": "view"
-}
 ```
 
-Record user interactions with meals.
+Record user interactions with meals (views, likes, saves, etc.) to improve future recommendations.
 
-## Postman Collection
+## Project Structure
 
-A Postman collection is included in the repository for testing the API. To use it:
-
-1. Import `meal-recommendations.postman_collection.json` into Postman
-2. Set the `baseUrl` environment variable to your API server (default: http://localhost:8000)
-3. Use the test data IDs or replace them with your own data
-
-## Customization
-
-### Configuration Settings
-
-Edit `config.py` to customize:
-
-- Database connection parameters
-- API settings
-- Embedding model and dimension
-- Default recommendation limits
-- Scheduler intervals
-
-### Recommendation Algorithms
-
-You can customize the recommendation algorithms by:
-
-1. Adjusting parameters in the API requests
-2. Modifying the implementation in the respective strategy files
-3. Creating new recommender classes that implement the BaseRecommender interface
-
-### Embedding Model
-
-You can change the embedding model in `config.py`:
-
-```python
-# Default model (lightweight)
-EMBEDDING_MODEL = "all-MiniLM-L6-v2"
-
-# For better multilingual support
-# EMBEDDING_MODEL = "paraphrase-multilingual-MiniLM-L12-v2"
-
-# For better semantic understanding but slower processing
-# EMBEDDING_MODEL = "all-mpnet-base-v2"
+```
+mealflow-recommendation-service/
+├── api/                   # API endpoints and middleware
+├── config/                # Configuration settings
+├── data/                  # Data access and management
+│   ├── loader.py          # Data import script
+│   ├── database.py        # Database connection utilities
+│   ├── queries.py         # SQL queries
+│   └── repositories.py    # Data access repositories
+├── embeddings/            # Vector embedding generation
+├── services/              # Recommendation services
+│   ├── base_recommender.py        # Base interface
+│   ├── collaborative_recommender.py
+│   ├── content_based_recommender.py
+│   ├── hybrid_recommender.py
+│   ├── item_based_recommender.py
+│   └── popularity_recommender.py
+├── setup/                 # Database setup scripts
+├── utils/                 # Utility functions
+├── main.py                # Application entry point
+├── .env                   # Environment variables (not in version control)
+├── .env.example           # Example environment file
+├── Makefile               # Task automation
+└── requirements.txt       # Python dependencies
 ```
 
-## Performance Considerations
+## Production Deployment Considerations
 
-- The vector index is essential for fast similarity search
-- Background embedding generation prevents API slowdowns
-- Queries include appropriate indexes and limits
-- Connection pooling ensures efficient database usage
-- Caching can be enabled for frequently accessed data
+When deploying to production, consider the following:
+
+1. **Database Optimization**:
+   - Create appropriate indexes for frequent queries
+   - Consider partitioning large tables
+   - Set up regular database maintenance
+
+2. **Security**:
+   - Use proper authentication for API endpoints
+   - Restrict CORS settings to allowed domains
+   - Use environment variables for sensitive information
+
+3. **Performance**:
+   - Run embedding generation as a separate background process
+   - Implement caching for frequent queries
+   - Consider using a connection pool for database access
+
+4. **Scalability**:
+   - Deploy behind a load balancer
+   - Set up multiple worker processes
+   - Consider containerization with Docker
+
+5. **Monitoring**:
+   - Add detailed logging
+   - Set up performance monitoring
+   - Implement health check endpoints
+
+## Maintenance and Updates
+
+### Adding New Recommendation Strategies
+
+1. Create a new class that implements the `BaseRecommender` interface
+2. Implement the `get_recommendations` method
+3. Add the new strategy to the `HybridRecommender` if needed
+
+### Updating Data Models
+
+If you need to update data models:
+
+1. Modify the corresponding repository class
+2. Update the database tables as needed
+3. Update any affected queries
 
 ## Troubleshooting
 
-### Connection Issues
+### Common Issues
 
-If you encounter database connection issues:
+1. **Missing pgvector Extension**:
+   - Error: "extension 'vector' does not exist"
+   - Solution: Install the pgvector extension in your database
 
-```bash
-python -c "from data.database import test_connection; test_connection()"
-```
+2. **Embedding Generation Errors**:
+   - Check that the `sentence-transformers` package is properly installed
+   - Ensure you have enough memory for the embedding model
 
-This will test the database connection and report any errors.
+3. **Database Connection Issues**:
+   - Verify your DATABASE_URL in the .env file
+   - Check that PostgreSQL is running
+   - Test connection with `make test-db`
 
-### Missing Embeddings
-
-If meals aren't showing up in recommendations:
-
-```bash
-python -c "from embeddings.generator import EmbeddingGenerator; generator = EmbeddingGenerator(); generator.generate_all_embeddings()"
-```
-
-This will generate embeddings for any missing meals.
-
-### API Issues
-
-You can check the API documentation at:
-
-```
-http://localhost:8000/docs
-```
-
-This provides an interactive OpenAPI interface for testing endpoints.
+4. **Dataset Import Errors**:
+   - Ensure your CSV files have the expected format
+   - Check for encoding issues in your data files
+   - Try importing with smaller batch sizes
 
 ## License
 
@@ -244,8 +225,103 @@ MIT License
 
 ## Acknowledgments
 
-- Thanks to the SentenceTransformers project for the embedding models
-- Thanks to the pgvector extension for PostgreSQL for vector similarity search
+- SentenceTransformers for the embedding models
+- pgvector for PostgreSQL vector similarity search
+- FastAPI for the API framework venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
 
+3. Install required Python packages:
 
-dataset 
+```bash
+pip install -r requirements.txt
+```
+
+4. Configure your environment by creating a `.env` file based on `.env.example`:
+
+```bash
+cp .env.example .env
+# Edit .env with your database credentials and settings
+```
+
+5. Install the pgvector extension in your PostgreSQL database:
+
+```sql
+CREATE EXTENSION IF NOT EXISTS vector;
+```
+
+### Using the Makefile
+
+The project includes a Makefile to simplify common tasks:
+
+```bash
+# Set up the complete development environment
+make setup
+
+# Test database connection
+make test-db
+
+# Load data from CSV and JSON files
+make load-data
+
+# Set up database tables only (without data import)
+make schema-only
+
+# Generate initial embeddings
+make init-embeddings
+
+# Run the service
+make run
+
+# Clean up temporary files
+make clean
+
+# Show available make commands
+make help
+```
+
+### Manual Setup
+
+If you prefer not to use the Makefile, you can perform each step manually:
+
+1. Set up database tables:
+
+```bash
+python -m setup
+```
+
+2. Load data from CSV and JSON files:
+
+```bash
+python -m data.loader
+```
+
+3. Generate initial embeddings:
+
+```bash
+python -c "from embeddings.generator import EmbeddingGenerator; generator = EmbeddingGenerator(); generator.generate_all_embeddings()"
+```
+
+4. Start the server:
+
+```bash
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+## Importing Data
+
+The system includes a data loader script that imports the following datasets:
+
+- `RecipeDB_general.csv`: Basic recipe metadata
+- `RecipeDB_ingredient_phrase.csv`: Recipe-ingredient relationships
+- `RecipeDB_ingredient_flavor.csv`: Ingredient metadata and flavor profiles
+- `RecipeDB_instructions.json`: Step-by-step recipe instructions
+- `merged.csv`: Merged recipe data with additional metrics
+
+To import your data:
+
+1. Place your data files in the `data` directory
+2. Run the data loader:
+
+```bash
+python -m
