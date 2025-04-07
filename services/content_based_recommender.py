@@ -6,8 +6,8 @@ from typing import List, Dict, Any, Optional
 import logging
 
 from services.base_recommender import BaseRecommender
-from data.repositories.content_embedding_repository import ContentEmbeddingRepository
-from config.settings import DEFAULT_RECOMMENDATION_LIMIT, CONTENT_TYPES
+from data.repositories import ContentEmbeddingRepository
+from config import DEFAULT_RECOMMENDATION_LIMIT, CONTENT_TYPES, MIN_SIMILARITY_SCORE
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +27,7 @@ class ContentBasedRecommender(BaseRecommender):
         meal_id: Optional[str] = None,
         content_type: Optional[str] = None,
         limit: int = DEFAULT_RECOMMENDATION_LIMIT,
+        min_similarity: float = MIN_SIMILARITY_SCORE,
         **kwargs
     ) -> List[Dict[str, Any]]:
         """
@@ -34,15 +35,17 @@ class ContentBasedRecommender(BaseRecommender):
         
         Args:
             user_id: Not used for content-based recommendations
-            meal_id: The ID of the source content
-            content_type: The type of content ('post', 'community')
+            meal_id: The ID of the source meal
+            content_type: The type of content ('meal', 'recipe')
             limit: Maximum number of recommendations
+            min_similarity: Minimum similarity score threshold
+            kwargs: Additional filters (not used for content-based)
             
         Returns:
             List of similar content items
         """
         if not meal_id or not content_type:
-            logger.warning("Content ID and type required for content-based recommendations")
+            logger.warning("Meal ID and content type required for content-based recommendations")
             return []
         
         if content_type not in CONTENT_TYPES:
@@ -63,5 +66,41 @@ class ContentBasedRecommender(BaseRecommender):
             exclude_ids=exclude_ids,
             limit=limit
         )
+        
+        # Filter by minimum similarity threshold
+        filtered_items = [item for item in similar_items if item.get('similarity', 0) >= min_similarity]
+        
+        # Rename similarity to score for consistent interface
+        for item in filtered_items:
+            item['score'] = item.pop('similarity', 0)
+        
+        return filtered_items
+    
+    def get_similar_by_ingredients(
+        self,
+        meal_id: str,
+        content_type: str,
+        limit: int = DEFAULT_RECOMMENDATION_LIMIT
+    ) -> List[Dict[str, Any]]:
+        """
+        Get meals similar by ingredients.
+        
+        Args:
+            meal_id: The ID of the meal
+            content_type: The type of content
+            limit: Maximum number of results
+            
+        Returns:
+            List of similar meals
+        """
+        similar_items = self.repository.get_similar_by_ingredients(
+            meal_id=meal_id,
+            content_type=content_type,
+            limit=limit
+        )
+        
+        # Rename similarity to score for consistent interface
+        for item in similar_items:
+            item['score'] = item.pop('similarity', 0)
         
         return similar_items

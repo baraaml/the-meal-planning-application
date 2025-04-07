@@ -7,8 +7,8 @@ from typing import List, Dict, Any, Optional
 import time
 import logging
 
-from config.settings import EMBEDDING_MODEL
-from data.repositories.content_embedding_repository import ContentEmbeddingRepository
+from config import EMBEDDING_MODEL
+from data.repositories import ContentEmbeddingRepository
 
 logger = logging.getLogger(__name__)
 

@@ -6,11 +6,11 @@ from typing import List, Dict, Any, Optional
 import logging
 
 from services.base_recommender import BaseRecommender
-from services.collaborative_recommender import CollaborativeRecommender
-from services.content_based_recommender import ContentBasedRecommender
-from services.popularity_recommender import PopularityRecommender
-from data.repositories.interaction_repository import InteractionRepository
-from config.settings import DEFAULT_RECOMMENDATION_LIMIT
+from services.collaborative import CollaborativeRecommender
+from services.content_based import ContentBasedRecommender
+from services.popularity import PopularityRecommender
+from data.repositories import InteractionRepository
+from config import DEFAULT_RECOMMENDATION_LIMIT
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +46,7 @@ class HybridRecommender(BaseRecommender):
             meal_id: Optional content ID for similar content recommendations
             content_type: Optional content type filter
             limit: Maximum number of recommendations
+            kwargs: Additional parameters like cuisine and dietary_restriction
             
         Returns:
             List of recommended items

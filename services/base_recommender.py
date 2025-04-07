@@ -22,8 +22,8 @@ class BaseRecommender(ABC):
         
         Args:
             user_id: Optional user ID for personalized recommendations
-            meal_id: Optional content ID for similar content recommendations
-            content_type: Optional content type filter
+            meal_id: Optional meal ID for similar meal recommendations
+            content_type: Optional content type filter ('meal', 'recipe')
             limit: Maximum number of recommendations to return
             kwargs: Additional strategy-specific parameters
             
@@ -31,18 +31,3 @@ class BaseRecommender(ABC):
             List of recommended items
         """
         pass
-    
-    def format_recommendations(
-        self, 
-        items: List[Dict[str, Any]]
-    ) -> Dict[str, List[Dict[str, Any]]]:
-        """
-        Format recommendations for API response.
-        
-        Args:
-            items: List of recommendation items
-            
-        Returns:
-            Formatted recommendations
-        """
-        return {"items": items}

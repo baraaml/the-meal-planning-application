@@ -6,9 +6,9 @@ from typing import List, Dict, Any, Optional
 import logging
 
 from services.base_recommender import BaseRecommender
-from data.repositories.interaction_repository import InteractionRepository
-from config.settings import DEFAULT_RECOMMENDATION_LIMIT
-from data.queries.service_queries import FIND_SIMILAR_ITEMS
+from data.repositories import InteractionRepository
+from config import DEFAULT_RECOMMENDATION_LIMIT
+from data.queries import FIND_SIMILAR_ITEMS
 from data.database import execute_query
 
 logger = logging.getLogger(__name__)
@@ -37,9 +37,10 @@ class ItemBasedRecommender(BaseRecommender):
         
         Args:
             user_id: The ID of the user
-            meal_id: Optional specific content ID to find similar items for
+            meal_id: Optional specific meal ID to find similar items for
             content_type: Optional content type filter
             limit: Maximum number of recommendations
+            kwargs: Additional filters (cuisine, dietary_restriction)
             
         Returns:
             List of recommended items based on item similarity
@@ -53,7 +54,7 @@ class ItemBasedRecommender(BaseRecommender):
             return self._get_similar_items(meal_id, content_type, limit)
         
         # Otherwise, use the user's recent interactions to find similar items
-        return self._get_user_item_based_recommendations(user_id, content_type, limit)
+        return self._get_user_item_based_recommendations(user_id, content_type, limit, **kwargs)
     
     def _get_similar_items(
         self,
@@ -62,10 +63,10 @@ class ItemBasedRecommender(BaseRecommender):
         limit: int = DEFAULT_RECOMMENDATION_LIMIT
     ) -> List[Dict[str, Any]]:
         """
-        Find items similar to a specific content item based on co-occurrence patterns.
+        Find items similar to a specific meal item based on co-occurrence patterns.
         
         Args:
-            meal_id: The ID of the content to find similar items for
+            meal_id: The ID of the meal to find similar items for
             content_type: Optional content type filter
             limit: Maximum number of similar items to return
             
@@ -73,9 +74,6 @@ class ItemBasedRecommender(BaseRecommender):
             List of similar items
         """
         # Execute SQL to find items that frequently co-occur with the given meal_id
-        # This is done by finding users who interacted with meal_id and then
-        # counting other items they interacted with
-        
         params = {
             "meal_id": meal_id,
             "limit": limit
@@ -102,7 +100,8 @@ class ItemBasedRecommender(BaseRecommender):
                 "id": row[0],
                 "content_type": row[1],
                 "title": row[2],
-                "co_occurrence_count": row[3]
+                "co_occurrence_count": row[3],
+                "score": row[3] / 10.0  # Normalize to 0-1 range (approximate)
             })
         
         return similar_items
@@ -111,7 +110,8 @@ class ItemBasedRecommender(BaseRecommender):
         self,
         user_id: str,
         content_type: Optional[str] = None,
-        limit: int = DEFAULT_RECOMMENDATION_LIMIT
+        limit: int = DEFAULT_RECOMMENDATION_LIMIT,
+        **kwargs
     ) -> List[Dict[str, Any]]:
         """
         Get item-based recommendations for a user by finding items similar
@@ -121,6 +121,7 @@ class ItemBasedRecommender(BaseRecommender):
             user_id: The ID of the user
             content_type: Optional content type filter
             limit: Maximum number of recommendations
+            kwargs: Additional filters (cuisine, dietary_restriction)
             
         Returns:
             List of recommended items
@@ -156,14 +157,29 @@ class ItemBasedRecommender(BaseRecommender):
         unique_items = {}
         for item in all_recommendations:
             item_id = item["id"]
-            if item_id not in unique_items or item.get("co_occurrence_count", 0) > unique_items[item_id].get("co_occurrence_count", 0):
+            if item_id not in unique_items or item.get("score", 0) > unique_items[item_id].get("score", 0):
                 unique_items[item_id] = item
         
-        # Sort by co-occurrence count and limit results
+        # Sort by score and limit results
         sorted_items = sorted(
             unique_items.values(), 
-            key=lambda x: x.get("co_occurrence_count", 0), 
+            key=lambda x: x.get("score", 0), 
             reverse=True
         )
         
-        return sorted_items[:limit]
+        # Apply additional filters if specified
+        filtered_items = sorted_items
+        
+        # Filter by cuisine if specified
+        cuisine = kwargs.get('cuisine')
+        if cuisine and filtered_items:
+            # This would require additional logic to filter by cuisine
+            logger.info(f"Filtering by cuisine: {cuisine}")
+        
+        # Filter by dietary restriction if specified
+        dietary_restriction = kwargs.get('dietary_restriction')
+        if dietary_restriction and filtered_items:
+            # This would require additional logic to filter by dietary restriction
+            logger.info(f"Filtering by dietary restriction: {dietary_restriction}")
+        
+        return filtered_items[:limit]

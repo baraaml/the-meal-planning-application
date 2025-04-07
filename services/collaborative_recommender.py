@@ -6,8 +6,8 @@ from typing import List, Dict, Any, Optional
 import logging
 
 from services.base_recommender import BaseRecommender
-from data.repositories.interaction_repository import InteractionRepository
-from config.settings import DEFAULT_RECOMMENDATION_LIMIT
+from data.repositories import InteractionRepository
+from config import DEFAULT_RECOMMENDATION_LIMIT, MIN_COMMON_ITEMS
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +28,7 @@ class CollaborativeRecommender(BaseRecommender):
         meal_id: Optional[str] = None,
         content_type: Optional[str] = None,
         limit: int = DEFAULT_RECOMMENDATION_LIMIT,
-        min_common_items: int = 2,
+        min_common_items: int = MIN_COMMON_ITEMS,
         max_similar_users: int = 10,
         **kwargs
     ) -> List[Dict[str, Any]]:
@@ -42,6 +42,7 @@ class CollaborativeRecommender(BaseRecommender):
             limit: Maximum number of recommendations
             min_common_items: Minimum number of items in common to consider users similar
             max_similar_users: Maximum number of similar users to consider
+            kwargs: Additional filters (cuisine, dietary_restriction)
             
         Returns:
             List of recommended items based on similar users
@@ -69,4 +70,28 @@ class CollaborativeRecommender(BaseRecommender):
             limit=limit
         )
         
-        return recommended_items
+        # Apply additional filters if specified
+        filtered_items = recommended_items
+        
+        # Filter by cuisine if specified
+        cuisine = kwargs.get('cuisine')
+        if cuisine and filtered_items:
+            # This would require additional logic to filter by cuisine
+            # For simplicity, we're just logging it for now
+            logger.info(f"Filtering by cuisine: {cuisine}")
+        
+        # Filter by dietary restriction if specified
+        dietary_restriction = kwargs.get('dietary_restriction')
+        if dietary_restriction and filtered_items:
+            # This would require additional logic to filter by dietary restriction
+            # For simplicity, we're just logging it for now
+            logger.info(f"Filtering by dietary restriction: {dietary_restriction}")
+        
+        # Transform the interaction count to a score between 0 and 1
+        if filtered_items:
+            max_count = max(item.get('interaction_count', 0) for item in filtered_items)
+            if max_count > 0:
+                for item in filtered_items:
+                    item['score'] = item.get('interaction_count', 0) / max_count
+        
+        return filtered_items

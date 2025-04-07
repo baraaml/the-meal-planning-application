@@ -5,14 +5,22 @@ Creates necessary database tables and indexes for the recommendation system.
 import logging
 from sqlalchemy import text
 
-from data.database import get_transaction, test_connection
-from config.settings import EMBEDDING_DIMENSION
-from data.queries.setup_queries import (
+from data.database import execute_query, get_transaction, test_connection
+from config import EMBEDDING_DIMENSION
+from data.queries import (
     ENABLE_PGVECTOR,
     CREATE_CONTENT_EMBEDDINGS_TABLE,
     CREATE_EMBEDDINGS_INDEX,
     CREATE_INTERACTIONS_TABLE,
-    CREATE_INTERACTIONS_INDEXES
+    CREATE_INTERACTIONS_INDEXES,
+    CREATE_CUISINE_TABLE,
+    CREATE_DIETARY_RESTRICTION_TABLE,
+    CREATE_USER_DIETARY_PREFERENCE_TABLE,
+    CREATE_MEAL_DIETARY_RESTRICTION_TABLE,
+    CREATE_INGREDIENT_TABLE,
+    CREATE_MEAL_INGREDIENT_TABLE,
+    INSERT_DEFAULT_CUISINES,
+    INSERT_DEFAULT_DIETARY_RESTRICTIONS
 )
 
 logger = logging.getLogger(__name__)
@@ -41,6 +49,18 @@ def create_recommendation_tables():
             
             # Create indexes for quick lookups
             conn.execute(text(CREATE_INTERACTIONS_INDEXES))
+            
+            # Create reference tables
+            conn.execute(text(CREATE_CUISINE_TABLE))
+            conn.execute(text(CREATE_DIETARY_RESTRICTION_TABLE))
+            conn.execute(text(CREATE_USER_DIETARY_PREFERENCE_TABLE))
+            conn.execute(text(CREATE_MEAL_DIETARY_RESTRICTION_TABLE))
+            conn.execute(text(CREATE_INGREDIENT_TABLE))
+            conn.execute(text(CREATE_MEAL_INGREDIENT_TABLE))
+            
+            # Insert default reference data
+            conn.execute(text(INSERT_DEFAULT_CUISINES))
+            conn.execute(text(INSERT_DEFAULT_DIETARY_RESTRICTIONS))
         
         logger.info("Database tables and indexes created successfully")
         return True

@@ -1,0 +1,454 @@
+{
+    "info": {
+      "name": "Meal Recommendation API",
+      "description": "Collection of API endpoints for the Meal Recommendation Service",
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+      "_exporter_id": "12345678"
+    },
+    "item": [
+      {
+        "name": "Status",
+        "request": {
+          "method": "GET",
+          "header": [],
+          "url": {
+            "raw": "{{baseUrl}}/",
+            "host": ["{{baseUrl}}"],
+            "path": [""]
+          },
+          "description": "Check if the API is running"
+        },
+        "response": []
+      },
+      {
+        "name": "User Recommendations",
+        "item": [
+          {
+            "name": "Get User Recommendations",
+            "request": {
+              "method": "GET",
+              "header": [],
+              "url": {
+                "raw": "{{baseUrl}}/recommend/user/{{userId}}?limit=10&recommendation_type=hybrid&content_type=meal",
+                "host": ["{{baseUrl}}"],
+                "path": ["recommend", "user", "{{userId}}"],
+                "query": [
+                  {
+                    "key": "limit",
+                    "value": "10",
+                    "description": "Maximum number of recommendations to return"
+                  },
+                  {
+                    "key": "recommendation_type",
+                    "value": "hybrid",
+                    "description": "Recommendation algorithm (hybrid, user-based, item-based)"
+                  },
+                  {
+                    "key": "content_type",
+                    "value": "meal",
+                    "description": "Content type (meal, recipe)"
+                  },
+                  {
+                    "key": "cuisine",
+                    "value": "",
+                    "description": "Filter by cuisine ID",
+                    "disabled": true
+                  },
+                  {
+                    "key": "dietary_restriction",
+                    "value": "",
+                    "description": "Filter by dietary restriction ID",
+                    "disabled": true
+                  }
+                ]
+              },
+              "description": "Get personalized meal recommendations for a user"
+            },
+            "response": []
+          },
+          {
+            "name": "Get User History",
+            "request": {
+              "method": "GET",
+              "header": [],
+              "url": {
+                "raw": "{{baseUrl}}/user/{{userId}}/history?limit=10&content_type=meal",
+                "host": ["{{baseUrl}}"],
+                "path": ["user", "{{userId}}", "history"],
+                "query": [
+                  {
+                    "key": "limit",
+                    "value": "10",
+                    "description": "Maximum number of history items to return"
+                  },
+                  {
+                    "key": "content_type",
+                    "value": "meal",
+                    "description": "Content type (meal, recipe)",
+                    "disabled": false
+                  }
+                ]
+              },
+              "description": "Get a user's meal interaction history"
+            },
+            "response": []
+          },
+          {
+            "name": "Get User Dietary Preferences",
+            "request": {
+              "method": "GET",
+              "header": [],
+              "url": {
+                "raw": "{{baseUrl}}/user/{{userId}}/dietary-preferences",
+                "host": ["{{baseUrl}}"],
+                "path": ["user", "{{userId}}", "dietary-preferences"]
+              },
+              "description": "Get a user's dietary preferences"
+            },
+            "response": []
+          }
+        ],
+        "description": "Endpoints for user-specific recommendations and preferences"
+      },
+      {
+        "name": "Similar Meals",
+        "item": [
+          {
+            "name": "Get Similar Meals (Content-Based)",
+            "request": {
+              "method": "GET",
+              "header": [],
+              "url": {
+                "raw": "{{baseUrl}}/recommend/similar/meal/{{mealId}}?limit=10&similarity_method=content",
+                "host": ["{{baseUrl}}"],
+                "path": ["recommend", "similar", "meal", "{{mealId}}"],
+                "query": [
+                  {
+                    "key": "limit",
+                    "value": "10",
+                    "description": "Maximum number of similar meals to return"
+                  },
+                  {
+                    "key": "similarity_method",
+                    "value": "content",
+                    "description": "Method to determine similarity (content, interaction, ingredient)"
+                  }
+                ]
+              },
+              "description": "Get similar meals using content-based similarity (vector embeddings)"
+            },
+            "response": []
+          },
+          {
+            "name": "Get Similar Meals (Interaction-Based)",
+            "request": {
+              "method": "GET",
+              "header": [],
+              "url": {
+                "raw": "{{baseUrl}}/recommend/similar/meal/{{mealId}}?limit=10&similarity_method=interaction",
+                "host": ["{{baseUrl}}"],
+                "path": ["recommend", "similar", "meal", "{{mealId}}"],
+                "query": [
+                  {
+                    "key": "limit",
+                    "value": "10",
+                    "description": "Maximum number of similar meals to return"
+                  },
+                  {
+                    "key": "similarity_method",
+                    "value": "interaction",
+                    "description": "Method to determine similarity (content, interaction, ingredient)"
+                  }
+                ]
+              },
+              "description": "Get similar meals using interaction-based similarity (co-occurrence patterns)"
+            },
+            "response": []
+          },
+          {
+            "name": "Get Similar Meals (Ingredient-Based)",
+            "request": {
+              "method": "GET",
+              "header": [],
+              "url": {
+                "raw": "{{baseUrl}}/recommend/similar/meal/{{mealId}}?limit=10&similarity_method=ingredient",
+                "host": ["{{baseUrl}}"],
+                "path": ["recommend", "similar", "meal", "{{mealId}}"],
+                "query": [
+                  {
+                    "key": "limit",
+                    "value": "10",
+                    "description": "Maximum number of similar meals to return"
+                  },
+                  {
+                    "key": "similarity_method",
+                    "value": "ingredient",
+                    "description": "Method to determine similarity (content, interaction, ingredient)"
+                  }
+                ]
+              },
+              "description": "Get similar meals using ingredient-based similarity (common ingredients)"
+            },
+            "response": []
+          }
+        ],
+        "description": "Endpoints for finding meals similar to a specific meal"
+      },
+      {
+        "name": "Trending Meals",
+        "item": [
+          {
+            "name": "Get Trending Meals (Day)",
+            "request": {
+              "method": "GET",
+              "header": [],
+              "url": {
+                "raw": "{{baseUrl}}/trending/meal?limit=10&time_window=day",
+                "host": ["{{baseUrl}}"],
+                "path": ["trending", "meal"],
+                "query": [
+                  {
+                    "key": "limit",
+                    "value": "10",
+                    "description": "Maximum number of trending meals to return"
+                  },
+                  {
+                    "key": "time_window",
+                    "value": "day",
+                    "description": "Time window (day, week, month)"
+                  }
+                ]
+              },
+              "description": "Get trending meals based on interactions in the last 24 hours"
+            },
+            "response": []
+          },
+          {
+            "name": "Get Trending Meals (Week)",
+            "request": {
+              "method": "GET",
+              "header": [],
+              "url": {
+                "raw": "{{baseUrl}}/trending/meal?limit=10&time_window=week",
+                "host": ["{{baseUrl}}"],
+                "path": ["trending", "meal"],
+                "query": [
+                  {
+                    "key": "limit",
+                    "value": "10",
+                    "description": "Maximum number of trending meals to return"
+                  },
+                  {
+                    "key": "time_window",
+                    "value": "week",
+                    "description": "Time window (day, week, month)"
+                  }
+                ]
+              },
+              "description": "Get trending meals based on interactions in the last 7 days"
+            },
+            "response": []
+          },
+          {
+            "name": "Get Trending Recipes",
+            "request": {
+              "method": "GET",
+              "header": [],
+              "url": {
+                "raw": "{{baseUrl}}/trending/recipe?limit=10&time_window=week",
+                "host": ["{{baseUrl}}"],
+                "path": ["trending", "recipe"],
+                "query": [
+                  {
+                    "key": "limit",
+                    "value": "10",
+                    "description": "Maximum number of trending recipes to return"
+                  },
+                  {
+                    "key": "time_window",
+                    "value": "week",
+                    "description": "Time window (day, week, month)"
+                  }
+                ]
+              },
+              "description": "Get trending recipes based on interactions in the specified time window"
+            },
+            "response": []
+          },
+          {
+            "name": "Get All Trending Content",
+            "request": {
+              "method": "GET",
+              "header": [],
+              "url": {
+                "raw": "{{baseUrl}}/trending/all?limit=10&time_window=week",
+                "host": ["{{baseUrl}}"],
+                "path": ["trending", "all"],
+                "query": [
+                  {
+                    "key": "limit",
+                    "value": "10",
+                    "description": "Maximum number of trending items to return"
+                  },
+                  {
+                    "key": "time_window",
+                    "value": "week",
+                    "description": "Time window (day, week, month)"
+                  }
+                ]
+              },
+              "description": "Get trending content (meals and recipes) based on interactions"
+            },
+            "response": []
+          }
+        ],
+        "description": "Endpoints for getting trending meals based on recent interactions"
+      },
+      {
+        "name": "Category-Based Recommendations",
+        "item": [
+          {
+            "name": "Get Meals by Cuisine",
+            "request": {
+              "method": "GET",
+              "header": [],
+              "url": {
+                "raw": "{{baseUrl}}/recommend/cuisine/{{cuisineId}}?limit=10",
+                "host": ["{{baseUrl}}"],
+                "path": ["recommend", "cuisine", "{{cuisineId}}"],
+                "query": [
+                  {
+                    "key": "limit",
+                    "value": "10",
+                    "description": "Maximum number of meals to return"
+                  }
+                ]
+              },
+              "description": "Get meal recommendations based on cuisine"
+            },
+            "response": []
+          },
+          {
+            "name": "Get Meals by Dietary Restriction",
+            "request": {
+              "method": "GET",
+              "header": [],
+              "url": {
+                "raw": "{{baseUrl}}/recommend/dietary/{{dietaryRestrictionId}}?limit=10",
+                "host": ["{{baseUrl}}"],
+                "path": ["recommend", "dietary", "{{dietaryRestrictionId}}"],
+                "query": [
+                  {
+                    "key": "limit",
+                    "value": "10",
+                    "description": "Maximum number of meals to return"
+                  }
+                ]
+              },
+              "description": "Get meal recommendations based on dietary restrictions"
+            },
+            "response": []
+          }
+        ],
+        "description": "Endpoints for category-based recommendations (cuisine, dietary preferences)"
+      },
+      {
+        "name": "Interactions",
+        "item": [
+          {
+            "name": "Record Interaction",
+            "request": {
+              "method": "POST",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": {
+                "mode": "raw",
+                "raw": "{\n    \"user_id\": \"{{userId}}\",\n    \"meal_id\": \"{{mealId}}\",\n    \"content_type\": \"meal\",\n    \"interaction_type\": \"view\"\n}"
+              },
+              "url": {
+                "raw": "{{baseUrl}}/interactions",
+                "host": ["{{baseUrl}}"],
+                "path": ["interactions"]
+              },
+              "description": "Record a user interaction with a meal"
+            },
+            "response": []
+          },
+          {
+            "name": "Add Dietary Preference",
+            "request": {
+              "method": "POST",
+              "header": [],
+              "url": {
+                "raw": "{{baseUrl}}/user/{{userId}}/dietary-preferences?dietary_restriction_id=1",
+                "host": ["{{baseUrl}}"],
+                "path": ["user", "{{userId}}", "dietary-preferences"],
+                "query": [
+                  {
+                    "key": "dietary_restriction_id",
+                    "value": "1",
+                    "description": "ID of the dietary restriction"
+                  }
+                ]
+              },
+              "description": "Add a dietary preference for a user"
+            },
+            "response": []
+          }
+        ],
+        "description": "Endpoints for recording user interactions and preferences"
+      }
+    ],
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "type": "text/javascript",
+          "exec": [""]
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "type": "text/javascript",
+          "exec": [""]
+        }
+      }
+    ],
+    "variable": [
+      {
+        "key": "baseUrl",
+        "value": "http://localhost:8000",
+        "type": "string",
+        "description": "Base URL for the meal recommendation API"
+      },
+      {
+        "key": "userId",
+        "value": "user-123",
+        "type": "string",
+        "description": "Sample user ID for testing"
+      },
+      {
+        "key": "mealId",
+        "value": "meal-456",
+        "type": "string",
+        "description": "Sample meal ID for testing"
+      },
+      {
+        "key": "cuisineId",
+        "value": "1",
+        "type": "string",
+        "description": "Sample cuisine ID for testing (1=Italian)"
+      },
+      {
+        "key": "dietaryRestrictionId",
+        "value": "1",
+        "type": "string",
+        "description": "Sample dietary restriction ID for testing (1=Vegetarian)"
+      }
+    ]
+  }
