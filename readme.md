@@ -33,39 +33,6 @@ A streamlined, comprehensive meal recommendation service built with FastAPI and 
 
 The service is built with FastAPI and uses PostgreSQL with pgvector extension for vector similarity search. It stores embeddings and interaction data in separate tables without modifying your existing database schema.
 
-### Folder Structure
-
-```
-meal-recommendation-service/
-├── api/
-│   ├── __init__.py
-│   ├── endpoints.py        # All API routes consolidated here
-│   └── middleware.py       # CORS and other middleware
-├── services/
-│   ├── __init__.py
-│   ├── base_recommender.py
-│   ├── collaborative.py
-│   ├── content_based.py
-│   ├── hybrid.py
-│   ├── item_based.py
-│   └── popularity.py
-├── data/
-│   ├── __init__.py
-│   ├── database.py         # Connection handling
-│   ├── queries.py          # SQL queries in one file
-│   └── repositories.py     # All repositories consolidated
-├── embeddings/
-│   ├── __init__.py
-│   └── generator.py
-├── utils/
-│   ├── __init__.py
-│   └── scheduler.py
-├── config.py               # All settings in one file
-├── setup.py                # Database setup
-├── main.py                 # Entry point
-└── start.sh                # Startup script
-```
-
 ## Setup Instructions
 
 ### Prerequisites
@@ -225,4 +192,57 @@ You can change the embedding model in `config.py`:
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"
 
 # For better multilingual support
-# EMBEDDING_MODEL = "paraphrase-multilingual-MiniLM
+# EMBEDDING_MODEL = "paraphrase-multilingual-MiniLM-L12-v2"
+
+# For better semantic understanding but slower processing
+# EMBEDDING_MODEL = "all-mpnet-base-v2"
+```
+
+## Performance Considerations
+
+- The vector index is essential for fast similarity search
+- Background embedding generation prevents API slowdowns
+- Queries include appropriate indexes and limits
+- Connection pooling ensures efficient database usage
+- Caching can be enabled for frequently accessed data
+
+## Troubleshooting
+
+### Connection Issues
+
+If you encounter database connection issues:
+
+```bash
+python -c "from data.database import test_connection; test_connection()"
+```
+
+This will test the database connection and report any errors.
+
+### Missing Embeddings
+
+If meals aren't showing up in recommendations:
+
+```bash
+python -c "from embeddings.generator import EmbeddingGenerator; generator = EmbeddingGenerator(); generator.generate_all_embeddings()"
+```
+
+This will generate embeddings for any missing meals.
+
+### API Issues
+
+You can check the API documentation at:
+
+```
+http://localhost:8000/docs
+```
+
+This provides an interactive OpenAPI interface for testing endpoints.
+
+## License
+
+MIT License
+
+## Acknowledgments
+
+- Thanks to the SentenceTransformers project for the embedding models
+- Thanks to the pgvector extension for PostgreSQL for vector similarity search

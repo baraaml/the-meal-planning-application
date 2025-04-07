@@ -5,19 +5,18 @@ import argparse
 
 def print_tree(directory, prefix='', output_file=None):
     """
-    Recursively print the directory tree and file contents, excluding 'node_modules', 'assets', 'prompt.py', 
-    '.svg', '.js', 'index.html', and '.git' files or folders.
+    Recursively print the directory tree and file contents, excluding certain folders and file types.
 
-    Args:
-        directory (str): The directory path to print
-        prefix (str): The prefix for the current level of tree
-        output_file (file object, optional): File to write output to
+    Excludes:
+    - Folders: .git, node_modules, assets, venv
+    - Files: prompt.py, index.html, meals.csv
+    - Extensions: .svg, .js, .csv
     """
     try:
         entries = [
             entry for entry in os.listdir(directory)
-            if entry not in ('node_modules', 'assets', 'prompt.py', 'index.html', '.git')
-            and not entry.endswith(('.svg', '.js'))
+            if entry not in ('node_modules', 'assets', 'venv', '.git', 'prompt.py', 'index.html', 'meals.csv')
+            and not entry.endswith(('.svg', '.js', '.csv'))
         ]
         entries.sort()  # Sort entries alphabetically
 
@@ -25,7 +24,6 @@ def print_tree(directory, prefix='', output_file=None):
             entry_path = os.path.join(directory, entry)
             is_last = (i == len(entries) - 1)
 
-            # Print appropriate tree symbols
             connector = "└── " if is_last else "├── "
 
             if output_file:
@@ -34,11 +32,12 @@ def print_tree(directory, prefix='', output_file=None):
                 print(f"{prefix}{connector}{entry}")
 
             if os.path.isdir(entry_path):
-                # For directories, continue recursion with updated prefix
                 new_prefix = prefix + ("    " if is_last else "│   ")
                 print_tree(entry_path, new_prefix, output_file)
             else:
-                # Automatically include file content
+                # Skip reading files with .csv extension
+                if entry.endswith('.csv'):
+                    continue
                 try:
                     with open(entry_path, 'r', encoding='utf-8') as file:
                         content = file.read()
@@ -65,7 +64,6 @@ def print_tree(directory, prefix='', output_file=None):
             print(error_msg)
 
 def main():
-    # Set up argument parser
     parser = argparse.ArgumentParser(description='Print directory tree while excluding certain folders and file types')
     parser.add_argument('input_dir', help='Input directory path')
 
