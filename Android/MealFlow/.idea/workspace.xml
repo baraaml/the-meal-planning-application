@@ -16,258 +16,7 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c27443f1-8784-4399-8d5f-2eb0a7fa1a11" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/../../.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.idea/.name" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.idea/AndroidProjectSystem.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.idea/compiler.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.idea/deploymentTargetSelector.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.idea/gradle.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.idea/kotlinc.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.idea/migrations.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.idea/misc.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.idea/runConfigurations.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.idea/vcs.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.kotlin/errors/errors-1740540710768.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.kotlin/errors/errors-1740540887017.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.kotlin/errors/errors-1740541186978.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.kotlin/errors/errors-1740541232571.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.kotlin/errors/errors-1740541311092.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.kotlin/errors/errors-1740541381350.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.kotlin/errors/errors-1740541398186.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.kotlin/errors/errors-1740541636274.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.kotlin/errors/errors-1743524729612.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.kotlin/errors/errors-1743524729674.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.kotlin/errors/errors-1743525279062.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.kotlin/errors/errors-1743529358185.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.kotlin/errors/errors-1743529358201.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.kotlin/errors/errors-1743530096115.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.kotlin/errors/errors-1743530096123.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.kotlin/errors/errors-1743556197948.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.kotlin/errors/errors-1743556197980.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.kotlin/errors/errors-1743556851509.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.kotlin/errors/errors-1743557032540.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.kotlin/errors/errors-1743557032544.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.kotlin/errors/errors-1743557493879.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.kotlin/errors/errors-1743557494223.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.kotlin/errors/errors-1743559293284.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.kotlin/errors/errors-1743559293315.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.kotlin/errors/errors-1743607563078.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.kotlin/errors/errors-1743607563109.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.kotlin/errors/errors-1743607863495.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.kotlin/errors/errors-1743608405895.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.kotlin/errors/errors-1743609994033.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.kotlin/errors/errors-1743609994064.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.kotlin/errors/errors-1743610509692.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.kotlin/errors/errors-1743610509707.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.kotlin/errors/errors-1743610608365.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.kotlin/errors/errors-1743611176330.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.kotlin/errors/errors-1743611176346.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.kotlin/errors/errors-1743611462360.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.kotlin/errors/errors-1743611462375.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.kotlin/errors/errors-1743612755268.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.kotlin/errors/errors-1743612755284.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.kotlin/errors/errors-1743612902895.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.kotlin/errors/errors-1743621901584.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../.kotlin/errors/errors-1743621901596.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/.idea/AndroidProjectSystem.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/.idea/caches/deviceStreaming.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/.idea/gradle.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/.idea/migrations.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/.idea/misc.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/.idea/runConfigurations.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/.idea/vcs.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/build.gradle.kts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/proguard-rules.pro" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/schemas/com.example.mealflow.database.CommunityDatabase/1.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/androidTest/java/com/example/mealflow/ExampleInstrumentedTest.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/AndroidManifest.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/ic_launcher-playstore.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/MainActivity.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/buttons/Backup.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/buttons/Buttons.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/data/model/MealModels.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/data/repository/MealRepository.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/database/CommunityId.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/database/Converters.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/database/Database.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/database/community/CommunityDao.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/database/community/CommunityEntity.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/database/community/CommunityFunctions.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/database/community/CommunityRepository.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/database/token/AuthInterceptor.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/database/token/KeyGenerator.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/database/token/TokenAuthenticator.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/database/token/TokenManager.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/network/ApiClient.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/network/ApiClientToken.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/network/ApiCreateCommunity.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/network/ApiForgetPassword.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/network/ApiGetCommunity.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/network/ApiGetCommunityMembers.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/network/ApiJoinCommunity.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/network/ApiLogin.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/network/ApiLogout.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/network/ApiMeal.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/network/ApiQuickLogin.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/network/ApiRegister.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/network/ApiResetOtp.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/network/ApiResetPassword.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/network/ApiVerifyEmail.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/network/Test.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/network/TestApi.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/random/Divider.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/random/Icons.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/random/Input.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/random/Showpopup.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/ui/components/ComponentCommunity.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/ui/components/CreateCommunityComponents.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/ui/components/LanguageSwitcher.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/ui/components/MealItem.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/ui/components/NoteItem.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/ui/screens/Bars.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/ui/screens/CommunityPage.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/ui/screens/CommunityPage1.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/ui/screens/CreateCommunityPages.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/ui/screens/ForgetPasswordPage.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/ui/screens/GroceriesPage.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/ui/screens/HomePage.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/ui/screens/LoginPage.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/ui/screens/MarketPage.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/ui/screens/MealDetailsPage.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/ui/screens/OtpPage.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/ui/screens/PlannerPage.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/ui/screens/Posts.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/ui/screens/Profile.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/ui/screens/QuickLoginPage.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/ui/screens/RegisterPage.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/ui/screens/ResetPasswordPage.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/ui/screens/SearchPage.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/ui/screens/StartPage.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/ui/screens/SuccessfulResetedPass.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/ui/screens/Test.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/ui/screens/TestCommunity.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/ui/screens/backup.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/ui/screens/createCommunity/FirstPageCreateCommunity.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/ui/screens/createCommunity/FourthPageCreateCommunity.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/ui/screens/createCommunity/SecondPageCreateCommunity.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/ui/screens/createCommunity/ThirdPageCreateCommunity.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/ui/theme/Color.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/ui/theme/Theme.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/ui/theme/Type.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/utils/Validator.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/viewModel/CommunityViewModel.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/viewModel/ForgetPasswordViewModel.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/viewModel/GetCommunityViewModel.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/viewModel/HomeViewModel.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/viewModel/LoginViewModel.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/viewModel/MealViewModel.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/viewModel/MealViewModelFactory.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/viewModel/RegisterViewModel.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/viewModel/SelectedViewModel.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/viewModel/TokenViewModel.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/java/com/example/mealflow/viewModel/ViewModelFactory.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/drawable-nodpi/android_robot.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/drawable-nodpi/apple_logo_icon.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/drawable-nodpi/background_main_page.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/drawable-nodpi/background_main_page1.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/drawable-nodpi/batman.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/drawable-nodpi/bubble_comment_talk_icon.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/drawable-nodpi/community_icon.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/drawable-nodpi/eye_closed_icon.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/drawable-nodpi/eye_show_regular_icon.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/drawable-nodpi/eye_view_icon.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/drawable-nodpi/facebook_logo_icon.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/drawable-nodpi/google_icon_icons_com_62736.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/drawable-nodpi/home_icon.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/drawable-nodpi/ic_task_completed.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/drawable-nodpi/loading_placeholder.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/drawable-nodpi/market_icon.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/drawable-nodpi/mealflow.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/drawable-nodpi/oip.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/drawable-nodpi/oip__1_.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/drawable-nodpi/ok.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/drawable-nodpi/ok1.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/drawable-nodpi/ok11.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/drawable-nodpi/ok2.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/drawable-nodpi/ok3.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/drawable-nodpi/ok4.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/drawable-nodpi/ok5.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/drawable-nodpi/ok6.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/drawable-nodpi/ok7.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/drawable-nodpi/ok8.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/drawable-nodpi/ok9.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/drawable-nodpi/placeholder.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/drawable-nodpi/planner_icon.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/drawable-nodpi/scroll_arrow_to_down.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/drawable-nodpi/search_zoom.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/drawable-nodpi/up_arrow_angle_icon.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/drawable/ic_launcher_background.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/drawable/ic_launcher_foreground.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/drawable/neptune_placeholder_48.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/font/arabic.ttf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/font/newyork.ttf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/font/newyorkbold.otf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/font/newyorklarge.otf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/font/newyorksmall.otf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/font/newyorksmallbold.otf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/font/sf_balckitalic.otf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/font/sf_heavy.otf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/font/sf_heavy_pro.otf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/font/sf_pro_display_semibold.otf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/font/sf_pro_rounded_heavy.otf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/font/sf_reg_ita.otf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/font/sfheavyitalic.otf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/font/sflight.otf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/font/sflightit.otf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/font/sfmed.otf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/font/sfmedit.otf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/font/sfpro.ttf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/font/sfproultralight.otf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/font/ultralightitalicsfpro.otf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/mipmap-hdpi/ic_launcher.webp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/mipmap-hdpi/ic_launcher_background.webp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/mipmap-hdpi/ic_launcher_foreground.webp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/mipmap-hdpi/ic_launcher_round.webp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/mipmap-mdpi/ic_launcher.webp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/mipmap-mdpi/ic_launcher_background.webp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/mipmap-mdpi/ic_launcher_foreground.webp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/mipmap-mdpi/ic_launcher_round.webp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/mipmap-xhdpi/ic_launcher.webp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/mipmap-xhdpi/ic_launcher_background.webp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/mipmap-xhdpi/ic_launcher_foreground.webp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/mipmap-xhdpi/ic_launcher_round.webp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/mipmap-xxhdpi/ic_launcher.webp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/mipmap-xxhdpi/ic_launcher_background.webp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/mipmap-xxhdpi/ic_launcher_foreground.webp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/mipmap-xxhdpi/ic_launcher_round.webp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/mipmap-xxxhdpi/ic_launcher.webp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/mipmap-xxxhdpi/ic_launcher_background.webp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.webp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.webp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/values-ar/strings.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/values/colors.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/values/strings.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/values/themes.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/xml/backup_rules.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/xml/data_extraction_rules.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/main/res/xml/locale_config.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../app/src/test/java/com/example/mealflow/ExampleUnitTest.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../build.gradle.kts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../gradle.properties" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../gradle/libs.versions.toml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../gradle/wrapper/gradle-wrapper.jar" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../gradle/wrapper/gradle-wrapper.properties" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../gradlew" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../gradlew.bat" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../settings.gradle.kts" beforeDir="false" />
-    </list>
+    <list default="true" id="c27443f1-8784-4399-8d5f-2eb0a7fa1a11" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -276,7 +25,7 @@
   <component name="ClangdSettings">
     <option name="formatViaClangd" value="false" />
   </component>
-  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[DeviceId(pluginId=LocalEmulator, isTemplate=false, identifier=path=C:\Users\abdo6\.android\avd\Pixel_8_API_30.avd)]" />
+  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[DeviceId(pluginId=PhysicalDevice, isTemplate=false, identifier=serial=c9229361)]" />
   <component name="ExternalProjectsData">
     <projectState path="$PROJECT_DIR$">
       <ProjectState />
@@ -353,35 +102,34 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Android App.app.executor": "Run",
-    "ApkExportedModule": "Meal_Flow.app",
-    "Compose Preview.MyTextField.executor": "Run",
-    "Kotlin.ApiRegisterKt.executor": "Coverage",
-    "Kotlin.TestApiKt.executor": "Coverage",
-    "Kotlin.TestKt.executor": "Run",
-    "ResourceManagerPrefKey.ResourceType": "DRAWABLE",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.cidr.known.project.marker": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.readMode.enableVisualFormatting": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "android.gradle.sync.needed": "true",
-    "cf.first.check.clang-format": "false",
-    "cidr.known.project.marker": "true",
-    "com.google.services.firebase.aqiPopupShown": "true",
-    "dart.analysis.tool.window.visible": "false",
-    "git-widget-placeholder": "release1.3",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "D:/Android/مجلد جديد/1.2/meal planning",
-    "project.structure.last.edited": "Suggestions",
-    "project.structure.proportion": "0.17",
-    "project.structure.side.proportion": "0.2",
-    "settings.editor.selected.configurable": "preferences.language.Kotlin",
-    "show.migrate.to.gradle.popup": "false"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Android App.app.executor&quot;: &quot;Run&quot;,
+    &quot;ApkExportedModule&quot;: &quot;Meal_Flow.app&quot;,
+    &quot;Compose Preview.MyTextField.executor&quot;: &quot;Run&quot;,
+    &quot;Kotlin.ApiRegisterKt.executor&quot;: &quot;Coverage&quot;,
+    &quot;Kotlin.TestApiKt.executor&quot;: &quot;Coverage&quot;,
+    &quot;Kotlin.TestKt.executor&quot;: &quot;Run&quot;,
+    &quot;ResourceManagerPrefKey.ResourceType&quot;: &quot;DRAWABLE&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.readMode.enableVisualFormatting&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;cf.first.check.clang-format&quot;: &quot;false&quot;,
+    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;com.google.services.firebase.aqiPopupShown&quot;: &quot;true&quot;,
+    &quot;dart.analysis.tool.window.visible&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;release1.3&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/Android/مجلد جديد/1.2/meal planning&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Suggestions&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.17&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.language.Kotlin&quot;,
+    &quot;show.migrate.to.gradle.popup&quot;: &quot;false&quot;
   }
-}]]></component>
+}</component>
   <component name="PsdUISettings">
     <option name="MODULE_TAB" value="Properties" />
     <option name="LAST_EDITED_SIGNING_CONFIG" value="debug" />

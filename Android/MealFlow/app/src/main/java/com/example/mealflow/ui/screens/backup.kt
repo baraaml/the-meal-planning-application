@@ -1114,3 +1114,163 @@ package com.example.mealflow.ui.screens
 //--------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------
+
+//    Scaffold(
+//        topBar = {
+//            TopBarProfile(
+//                context,
+//                navController,
+//                snackbarHostState
+//            )
+//        }
+//    ) { paddingValues ->
+//        Column(
+//            modifier = Modifier
+//                .fillMaxSize()
+//                .background(
+//                    brush = Brush.verticalGradient(
+//                        colors = listOf(Color.DarkGray, Color.White)
+//                    )
+//                )
+//                .padding(paddingValues)
+//                .padding(24.dp),
+//            horizontalAlignment = Alignment.CenterHorizontally
+//        ) {
+//            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+//                Image(
+//                    painter = rememberAsyncImagePainter(
+//                        model = "https://photobasement.com/wp-content/uploads/2017/04/this-is-a-photo.jpg",
+//                        error = painterResource(R.drawable.placeholder), // Default image on error
+//                        placeholder = painterResource(R.drawable.loading_placeholder) // Image while loading
+//                    ),
+//                    contentDescription = "Community image",
+////            contentScale = ContentScale.Crop,
+//                    modifier = Modifier
+//                        .size(100.dp)
+//                        .clip(CircleShape)
+//                        .border(2.dp, Color.White, CircleShape)
+//                )
+////                AsyncImage(
+////                    model = "https://www.bitesofberi.com/wp-content/uploads/2021/01/Beri-Profile.jpg",
+////                    contentDescription = "Profile Picture",
+////                    modifier = Modifier
+////                        .size(120.dp)
+////                        .clip(CircleShape)
+////                        .border(3.dp, Color.White, CircleShape)
+////                )
+//                Column(horizontalAlignment = Alignment.Start) {
+//                    Text("Abdelrahman", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+//                    Text("123456789", color = Color.Gray, fontSize = 18.sp)
+//                    Spacer(modifier = Modifier.height(8.dp))
+//                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+//                        Text("0 Following", color = Color.White, fontSize = 16.sp)
+//                        Text("23 Followers", color = Color.White, fontSize = 16.sp)
+//                    }
+//                    Spacer(modifier = Modifier.height(8.dp))
+//                    Button(
+//                        onClick = {},
+//                        colors = ButtonDefaults.buttonColors(Color(0xFFFFA500)),
+//                        shape = RoundedCornerShape(10.dp),
+//                        modifier = Modifier.fillMaxWidth(0.6f)
+//                    ) {
+//                        Text("Follow", color = Color.Black, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+//                    }
+//                }
+//            }
+//
+//            Spacer(modifier = Modifier.height(16.dp))
+//
+//            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+//                Text("Simple recipes that taste delicious. 😋", color = Color.White, fontSize = 16.sp)
+//                Spacer(modifier = Modifier.height(4.dp))
+//                Text("www.bitesofberi.com", color = Color(0xFF1E90FF), fontSize = 16.sp)
+//            }
+//
+//            Spacer(modifier = Modifier.height(20.dp))
+//
+//            TabRow(selectedTabIndex = selectedTabIndex, modifier = Modifier.fillMaxWidth()) {
+//                Tab(selected = selectedTabIndex == 0, onClick = { selectedTabIndex = 0 }) {
+//                    Text("Activity", color = if (selectedTabIndex == 0) Color(0xFFFFA500) else Color.Black, fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(8.dp))
+//                }
+//                Tab(selected = selectedTabIndex == 1, onClick = { selectedTabIndex = 1 }) {
+//                    Text("Created", color = if (selectedTabIndex == 1) Color(0xFFFFA500) else Color.Black, fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(8.dp))
+//                }
+//                Tab(selected = selectedTabIndex == 2, onClick = { selectedTabIndex = 2 }) {
+//                    Text("Menu", color = if (selectedTabIndex == 2) Color(0xFFFFA500) else Color.Black, fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(8.dp))
+//                }
+//            }
+//            Spacer(modifier = Modifier.height(16.dp))
+//
+//            when (selectedTabIndex) {
+//                0 -> ActivityTabContent()
+//                1 -> CreatedTabContent()
+//                2 -> MenuTabContent()
+//            }
+//        }
+//    }
+
+//@OptIn(ExperimentalMaterial3Api::class)
+//@Composable
+//fun TopBarProfile(
+//    context: Context,
+//    navController: NavController,
+//    snackbarHostState: SnackbarHostState
+//) {
+//    var expanded by remember { mutableStateOf(false) }
+//
+//    TopAppBar(
+//        title = {
+//            Row(
+//                verticalAlignment = Alignment.CenterVertically,
+//                modifier = Modifier.fillMaxWidth()
+//            ) {
+//                IconButton(onClick = { /* Handle back action */ }) {
+//                    Icon(
+//                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+//                        contentDescription = "Back",
+//                        tint = MaterialTheme.colorScheme.onPrimary
+//                    )
+//                }
+//                Spacer(modifier = Modifier.width(8.dp))
+//                Text(
+//                    "Profile",
+//                    color = MaterialTheme.colorScheme.onPrimary,
+//                    fontSize = 22.sp,
+//                    fontWeight = FontWeight.Bold,
+//                    modifier = Modifier.weight(1f) // لجعل العنوان يتمدد ويكون بمحاذاة أفضل
+//                )
+//            }
+//        },
+//        colors = TopAppBarDefaults.mediumTopAppBarColors(
+//            containerColor = MaterialTheme.colorScheme.error
+//        ),
+//        actions = {
+//            IconButton(onClick = { expanded = true }) {
+//                Icon(
+//                    imageVector = Icons.Default.MoreVert,
+//                    contentDescription = "More",
+//                    tint = MaterialTheme.colorScheme.onPrimary
+//                )
+//            }
+//            DropdownMenu(
+//                expanded = expanded,
+//                onDismissRequest = { expanded = false },
+//                modifier = Modifier.background(MaterialTheme.colorScheme.surface)
+//            ) {
+//                DropdownMenuItem(
+//                    text = { Text("Settings", fontSize = 16.sp) },
+//                    onClick = { expanded = false },
+//                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+//                )
+//                DropdownMenuItem(
+//                    text = { Text("Logout", fontSize = 16.sp, color = Color.Red) },
+//                    onClick = {
+//                        expanded = false
+//                        logoutApi(context, navController, snackbarHostState)
+//                    },
+//                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+//                )
+//            }
+//        }
+//    )
+//}

@@ -68,11 +68,11 @@ import com.example.mealflow.database.UserPreferencesManager
 import com.example.mealflow.database.community.CommunityRepository
 import com.example.mealflow.database.token.TokenManager
 import com.example.mealflow.network.CommunityApiService
+import com.example.mealflow.ui.screens.CommunityHome
 import com.example.mealflow.ui.screens.CommunityPage
 import com.example.mealflow.ui.screens.ForgetPasswordPage
 import com.example.mealflow.ui.screens.HomePage
 import com.example.mealflow.ui.screens.LoginPage
-import com.example.mealflow.ui.screens.MainScreen
 import com.example.mealflow.ui.screens.MarketPage
 import com.example.mealflow.ui.screens.MealDetailScreen
 import com.example.mealflow.ui.screens.OtpPage
@@ -306,7 +306,7 @@ fun AppNavHost(
                 ResetPasswordPage(navController, token)
             }
             composable("Community Page") {
-                CommunityPage(
+                CommunityHome(
                     navController,
                     viewModelGetCommunity
                 )
@@ -355,7 +355,7 @@ fun AppNavHost(
             }
             composable("main screen")
             {
-                MainScreen(viewModelGetCommunity)
+                CommunityPage(viewModelGetCommunity)
             }
             composable(
                 route = "meal_detail/{mealId}",
@@ -496,7 +496,8 @@ fun shouldShowBottomBar(currentRoute: String?): Boolean {
         "FirstStep Page",
         "SecondStep Page",
         "ThirdStep Page",
-        "meal_detail"
+        "meal_detail",
+        "Profile Page"
     )
     return currentRoute?.let { route ->
         mainScreens.any { screen ->
