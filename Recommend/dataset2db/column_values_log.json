@@ -1,0 +1,603 @@
+{
+  "merged.csv": {
+    "ingredient": {
+      "total_unique_values": 19019,
+      "sample_values": [
+        "10x sugar",
+        "2bleu pizza sauce",
+        "450g parrot fish red snapper",
+        "450g tomatillo",
+        "5oz gluten flour",
+        "8x8 disposable aluminum cake pan",
+        "`` pastry pie shell",
+        "abalone sauce",
+        "abalone without shell",
+        "aberdeen angus rib"
+      ]
+    },
+    "generic_name": {
+      "total_unique_values": 2191,
+      "sample_values": [
+        " Cocktail Mix",
+        "Abalone",
+        "Absinthe",
+        "Achiote",
+        "Acinus Di Pepe Pasta",
+        "Acorn Squash",
+        "Adobo",
+        "Adzuki Bean",
+        "Agar",
+        "Agave"
+      ]
+    },
+    "wikilink": {
+      "total_unique_values": 1321,
+      "sample_values": [
+        " ",
+        "NF",
+        "['https://upload.wikimedia.org/wikipedia/commons/0/0f/Chilito_verde.jpg', 'https://upload.wikimedia.org/wikipedia/commons/1/10/Chilli25.svg', 'https://upload.wikimedia.org/wikipedia/commons/d/d6/Foodlogo2.svg']",
+        "['https://upload.wikimedia.org/wikipedia/commons/b/b4/152_-_CIMG0806.JPG', 'https://upload.wikimedia.org/wikipedia/commons/9/94/Artocarpus_heterophylla_flowers.JPG', 'https://upload.wikimedia.org/wikipedia/commons/9/99/Artocarpus_heterophyllus.jpg']",
+        "https://en.wikipedia.org/?title=Sushi_rice&redirect=no",
+        "https://en.wikipedia.org/wiki/A%C3%B1ejo_cheese",
+        "https://en.wikipedia.org/wiki/Abalone",
+        "https://en.wikipedia.org/wiki/Absinthe",
+        "https://en.wikipedia.org/wiki/Acini_di_pepe",
+        "https://en.wikipedia.org/wiki/Acorn_squash"
+      ]
+    },
+    "wikiimage": {
+      "total_unique_values": 1406,
+      "sample_values": [
+        " https://upload.wikimedia.org/wikipedia/commons/thumb/0/01/Dog-biscuit.jpg/220px-Dog-biscuit.jpg",
+        " https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/2017_0102_fenugreek_seeds.jpg/220px-2017_0102_fenugreek_seeds.jpg",
+        " https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Triple_Sec.jpg/220px-Triple_Sec.jpg",
+        "NF",
+        "['https://upload.wikimedia.org/wikipedia/commons/0/04/Crawfish_dinner.jpg', 'https://upload.wikimedia.org/wikipedia/commons/d/d6/Foodlogo2.svg', 'https://upload.wikimedia.org/wikipedia/commons/6/69/Roux_bianco.JPG']",
+        "['https://upload.wikimedia.org/wikipedia/commons/0/0f/Chilito_verde.jpg', 'https://upload.wikimedia.org/wikipedia/commons/1/10/Chilli25.svg', 'https://upload.wikimedia.org/wikipedia/commons/d/d6/Foodlogo2.svg']",
+        "['https://upload.wikimedia.org/wikipedia/commons/2/22/A_plate_of_Jam%C3%B3n_serrano_in_Madrid%2C_Spain_Jam%C3%B3n_serrano_is_a_type_of_jam%C3%B3n_%28dry-cured_Spanish_ham%29%2C_which_is_generally_served_in_thin_slices.jpg', 'https://upload.wikimedia.org/wikipedia/commons/d/d6/Foodlogo2.svg', 'https://upload.wikimedia.org/wikipedia/commons/0/03/Jamon_Serrano.jpg']",
+        "['https://upload.wikimedia.org/wikipedia/commons/2/2e/Bravo_Cheddar.jpg', 'https://upload.wikimedia.org/wikipedia/commons/d/d3/Cheddar_cave_cheese.jpg', 'https://upload.wikimedia.org/wikipedia/commons/e/ef/Cheese_curds_2.jpg']",
+        "['https://upload.wikimedia.org/wikipedia/commons/3/39/17-03-16-J%C3%A4germeister-Miniaturen-RR7_8310.jpg', 'https://upload.wikimedia.org/wikipedia/commons/f/f7/Flessen_drank.jpg', 'https://upload.wikimedia.org/wikipedia/commons/8/83/Hubertus-liege.jpg']",
+        "['https://upload.wikimedia.org/wikipedia/commons/5/5b/Allspice.JPG', 'https://upload.wikimedia.org/wikipedia/commons/0/0a/Flag_of_Jamaica.svg', 'https://upload.wikimedia.org/wikipedia/commons/d/d6/Foodlogo2.svg']"
+      ]
+    },
+    "FlavorDB_Category": {
+      "total_unique_values": 42,
+      "sample_values": [
+        "Alcoholic Beverages",
+        "Bakery",
+        "Beverage",
+        "Beverage-Alcoholic",
+        "Beverage-Caffeinated",
+        "Beverage-Carbonated",
+        "Cereal",
+        "Condiment",
+        "Condiment-Sauce",
+        "Dairy"
+      ]
+    },
+    "Dietrx_Category": {
+      "total_unique_values": 35,
+      "sample_values": [
+        "Additive",
+        "Additive-Salt",
+        "Additive-Sugar",
+        "Additive-Vinegar",
+        "Additive-Yeast",
+        "Bakery",
+        "Berry",
+        "Beverage",
+        "Beverage Caffeinated",
+        "Beverage-Alcoholic"
+      ]
+    },
+    "Flavor_DB_Link": {
+      "total_unique_values": 818,
+      "sample_values": [
+        " Lime~https://cosylab.iiitd.edu.in/flavordb/entity_details?id=241",
+        "Abalone~https://cosylab.iiitd.edu.in/flavordb/entity_details?id=489",
+        "Adobo~https://cosylab.iiitd.edu.in/flavordb/entity_details?id=882",
+        "Agar~https://cosylab.iiitd.edu.in/flavordb/entity_details?id=494",
+        "Agave~https://cosylab.iiitd.edu.in/flavordb/entity_details?id=717",
+        "Albacore tuna~https://cosylab.iiitd.edu.in/flavordb/entity_details?id=679",
+        "Alcohol~https://cosylab.iiitd.edu.in/flavordb/entity_details?id=487",
+        "Alcohol~https://cosylab.iiitd.edu.in/flavordb/entity_details?id=488",
+        "Alfalfa~https://cosylab.iiitd.edu.in/flavordb/entity_details?id=496",
+        "AllSpice~https://cosylab.iiitd.edu.in/flavordb/entity_details?id=375"
+      ]
+    },
+    "Diet_rx_link": {
+      "total_unique_values": 313,
+      "sample_values": [
+        "abyssinian mustard~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A52824||black mustard~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A3710||brassica juncea cutleaf mustard group~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A3707||yellow mustard~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A3728||purple stem mustard~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A3711",
+        "agave sisalana~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A442491||agave americana~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A39510",
+        "almond~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A3755||dwarf russian almond~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A140661||tropical almond~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A39993||java almond~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A246350",
+        "amaranth~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A3567||green amaranth~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A56196||redroot amaranth~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A124763||grain amaranth~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A28502||purple amaranth~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A3565",
+        "american blueberry~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A69266||lowbush blueberry~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A472369||bog blueberry~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A190548",
+        "american chestnut~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A134033||common horse chestnut~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A43364||moreton bay chestnut~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A24962||japanese horse chestnut~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A83375||japanese chestnut~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A103480||chinese water chestnut~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A110284||chinese chestnut~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A60419",
+        "american cranberry~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A13750",
+        "angelica keiskei~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A357850||angelica archangelica l~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A40949||angelica dahurica cv hangbaizhi var formosan~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A48101||angelica sylvestri~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A54703||angelica decursiva f albiflora~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A52491||angelica polymorpha~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A76119||angelica ursina~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A357859||angelica acutiloba var sugiyamae~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A55605||angelica giga nakai~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A85712||angelica koreana~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A182415||angelica pubescen~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A312530||angelica genuflexa~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A357848||angelica japonica a gray~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A265806",
+        "anise~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A40880||chinese star anise~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A124778||japanese star anise~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A124794",
+        "apple brandy~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=AlcoholicBev+ID%3A6"
+      ]
+    },
+    "ingredient_raw": {
+      "total_unique_values": 190,
+      "sample_values": [
+        "alfredo sauce",
+        "almond butter",
+        "almond oil",
+        "almond paste",
+        "apple cider",
+        "apple pie filling",
+        "apricot nectar",
+        "artichoke",
+        "bagel",
+        "barbecue sauce"
+      ]
+    }
+  },
+  "RecipeDB_general.csv": {
+    "cook_time": {
+      "total_unique_values": 215,
+      "sample_values": [
+        "0",
+        "0",
+        "1",
+        "10",
+        "100",
+        "103",
+        "104",
+        "105",
+        "106",
+        "107"
+      ]
+    },
+    "prep_time": {
+      "total_unique_values": 63,
+      "sample_values": [
+        "0",
+        "0",
+        "1",
+        "10",
+        "100",
+        "105",
+        "12",
+        "120",
+        "13",
+        "130"
+      ]
+    },
+    "servings": {
+      "total_unique_values": 9865,
+      "sample_values": [
+        "01-Apr",
+        "01-Aug",
+        "01-Dec",
+        "01-Feb",
+        "01-Jul",
+        "01-Jun",
+        "01-Mar",
+        "01-May",
+        "01-Oct",
+        "02-Apr"
+      ]
+    },
+    "Recipe_title": {
+      "total_unique_values": 112254,
+      "sample_values": [
+        "! Arriba ! Baked Winter Squash Mexican-Style",
+        "\" Add Anything\" French Rolls or Baguettes",
+        "\" Ali's Chicken\"   Goat Cheese, Pesto, Basil, Sundried",
+        "\" All In\" Meatless Mincemeat",
+        "\" Almost Grilled\" Cheese Sandwich",
+        "\" Berry French Toast\" Oatmeal",
+        "\" Berry Good\" French Toast Bake",
+        "\" Big Easy \" Gumbo",
+        "\" Born Again Crayons \" - Kids Fun Crafts",
+        "\" Butter Me Bananas\" French Toast"
+      ]
+    },
+    "total_time": {
+      "total_unique_values": 1296,
+      "sample_values": [
+        "0",
+        "0",
+        "1",
+        "1",
+        "10",
+        "10",
+        "100",
+        "100",
+        "1000",
+        "1000"
+      ]
+    },
+    "url": {
+      "total_unique_values": 116620,
+      "sample_values": [
+        "http://allrecipes.com/recipe/100008/homemade-pickled-ginger-gari/",
+        "http://allrecipes.com/recipe/10001/chocolate-pizzelles/",
+        "http://allrecipes.com/recipe/100011/pork-and-black-bean-stew/",
+        "http://allrecipes.com/recipe/100056/jalapeno-poppers-of-champions/",
+        "http://allrecipes.com/recipe/100072/lobster-colorado/",
+        "http://allrecipes.com/recipe/100117/lasooni-murgh-garlic-flavored-spicy-chicken/",
+        "http://allrecipes.com/recipe/100118/paneer-home-made/",
+        "http://allrecipes.com/recipe/10012/kourabiedes-i/",
+        "http://allrecipes.com/recipe/10014/hazelnut-biscotti/",
+        "http://allrecipes.com/recipe/10015/drommar/"
+      ]
+    },
+    "Region": {
+      "total_unique_values": 26,
+      "sample_values": [
+        "Australian",
+        "Belgian",
+        "Canadian",
+        "Caribbean",
+        "Central American",
+        "Chinese and Mongolian",
+        "Deutschland ",
+        "Eastern European",
+        "French",
+        "Greek"
+      ]
+    },
+    "Sub_region": {
+      "total_unique_values": 75,
+      "sample_values": [
+        "Angolan",
+        "Argentine",
+        "Australian",
+        "Austrian",
+        "Bangladeshi",
+        "Belgian",
+        "Brazilian",
+        "Cambodian",
+        "Canadian",
+        "Chilean"
+      ]
+    },
+    "Continent": {
+      "total_unique_values": 6,
+      "sample_values": [
+        "African",
+        "Asian",
+        "Australasian",
+        "European",
+        "Latin American",
+        "North American"
+      ]
+    },
+    "Source": {
+      "total_unique_values": 3,
+      "sample_values": [
+        "AllRecipes",
+        "Epicurious",
+        "Geniuskitchen"
+      ]
+    },
+    "img_url": {
+      "total_unique_values": 49950,
+      "sample_values": [
+        "https://geniuskitchen.sndimg.com/gk/img/gk-shareGraphic.png",
+        "https://images.media-allrecipes.com/images/79591.png",
+        "https://images.media-allrecipes.com/userphotos/250x250/100012.jpg",
+        "https://images.media-allrecipes.com/userphotos/250x250/1000737.jpg",
+        "https://images.media-allrecipes.com/userphotos/250x250/1000766.jpg",
+        "https://images.media-allrecipes.com/userphotos/250x250/1001023.jpg",
+        "https://images.media-allrecipes.com/userphotos/250x250/10017.jpg",
+        "https://images.media-allrecipes.com/userphotos/250x250/100175.jpg",
+        "https://images.media-allrecipes.com/userphotos/250x250/1001970.jpg",
+        "https://images.media-allrecipes.com/userphotos/250x250/1002742.jpg"
+      ]
+    },
+    "Utensils": {
+      "total_unique_values": 32988,
+      "sample_values": [
+        "basin",
+        "basin||oven||pan",
+        "basin||pan",
+        "basin||pan||pan||pan||pan",
+        "basin||pan||saucepan||cup||saucepan",
+        "basket",
+        "basket||bowl",
+        "basket||bowl||pot||bowl",
+        "basket||microwave",
+        "basket||oven||knife"
+      ]
+    },
+    "Processes": {
+      "total_unique_values": 110489,
+      "sample_values": [
+        "add",
+        "add||add",
+        "add||add||add",
+        "add||add||add||add||add||add||add||add||boil||simmer||add",
+        "add||add||add||add||add||add||add||simmer||add||add||simmer",
+        "add||add||add||add||add||add||cover||refrigerate||serve||serve",
+        "add||add||add||add||add||add||note||add",
+        "add||add||add||add||add||blend||add||add||drizzle",
+        "add||add||add||add||add||cook||add||cook||add||add||add||puree||smooth||add||boil||add||add||cook||cook||serve||add||mix||shape||cook",
+        "add||add||add||add||add||mix||add||add||mix"
+      ]
+    }
+  },
+  "RecipeDB_ingredient_phrase.csv": {
+    "ingredient_Phrase": {
+      "total_unique_values": 370066,
+      "sample_values": [
+        "& frac 12 cup red wine",
+        "& frac 12 tablespoon dried chipotle powder",
+        "& frac 12 tablespoon kosher salt",
+        "& frac 12 teaspoon lime zest",
+        "& frac 14 c water",
+        "& frac 14 teaspoon salt",
+        "' 1 egg",
+        "' 1/2 teaspoon hot paprika",
+        "' 1/4 cup grated parmesan cheese",
+        "-2 tablespoons bitter orange juice ( Seville ) or 1 -2 tablespoon white vinegar"
+      ]
+    },
+    "ingredient": {
+      "total_unique_values": 20280,
+      "sample_values": [
+        "'",
+        "' n",
+        "'chochos bean",
+        "'crunchie chocolate candy bar",
+        "'super moist white cake mix",
+        "'vegit ' seasoning mix",
+        "10x sugar",
+        "1lb",
+        "2bleu pizza sauce",
+        "450g parrot fish red snapper"
+      ]
+    },
+    "state": {
+      "total_unique_values": 14472,
+      "sample_values": [
+        "#NAME?",
+        "'Safed",
+        "'red barbecued",
+        "-cooked",
+        "-crushed",
+        "-crushed chopped",
+        "-drained",
+        "-sliced",
+        "-soaked",
+        "-thawed"
+      ]
+    },
+    "quantity": {
+      "total_unique_values": 905,
+      "sample_values": [
+        "0.125",
+        "0.25",
+        "0.333",
+        "0.5",
+        "0.667",
+        "0.75",
+        "1",
+        "1 -",
+        "1 - 1 1/2",
+        "1 - 1 1/3"
+      ]
+    },
+    "unit": {
+      "total_unique_values": 1085,
+      "sample_values": [
+        " bag",
+        " drop",
+        " g",
+        " inch",
+        " jar",
+        " kg",
+        " lb",
+        " m",
+        " ml",
+        "%"
+      ]
+    },
+    "temp": {
+      "total_unique_values": 8,
+      "sample_values": [
+        "6 cups all-purpose flour",
+        "cold",
+        "firm",
+        "from",
+        "frozen",
+        "frozen frozen",
+        "hot",
+        "warm"
+      ]
+    },
+    "df": {
+      "total_unique_values": 22,
+      "sample_values": [
+        "Fresh",
+        "Freshly",
+        "all-purpose flour",
+        "dish",
+        "drid",
+        "dried",
+        "dried dried",
+        "drinking",
+        "dry",
+        "ffresh"
+      ]
+    },
+    "size": {
+      "total_unique_values": 19,
+      "sample_values": [
+        "-5",
+        "-6",
+        "6",
+        "extra",
+        "extra large",
+        "extra-large",
+        "large",
+        "large large",
+        "large/extra",
+        "lb"
+      ]
+    },
+    "M_or_A": {
+      "total_unique_values": 2,
+      "sample_values": [
+        "A",
+        "M"
+      ]
+    }
+  },
+  "RecipeDB_ingredient_flavor.csv": {
+    "ingredient": {
+      "total_unique_values": 19019,
+      "sample_values": [
+        "10x sugar",
+        "2bleu pizza sauce",
+        "450g parrot fish red snapper",
+        "450g tomatillo",
+        "5oz gluten flour",
+        "8x8 disposable aluminum cake pan",
+        "`` pastry pie shell",
+        "abalone sauce",
+        "abalone without shell",
+        "aberdeen angus rib"
+      ]
+    },
+    "generic_name": {
+      "total_unique_values": 2191,
+      "sample_values": [
+        " Cocktail Mix",
+        "Abalone",
+        "Absinthe",
+        "Achiote",
+        "Acinus Di Pepe Pasta",
+        "Acorn Squash",
+        "Adobo",
+        "Adzuki Bean",
+        "Agar",
+        "Agave"
+      ]
+    },
+    "wikilink": {
+      "total_unique_values": 1321,
+      "sample_values": [
+        " ",
+        "NF",
+        "['https://upload.wikimedia.org/wikipedia/commons/0/0f/Chilito_verde.jpg', 'https://upload.wikimedia.org/wikipedia/commons/1/10/Chilli25.svg', 'https://upload.wikimedia.org/wikipedia/commons/d/d6/Foodlogo2.svg']",
+        "['https://upload.wikimedia.org/wikipedia/commons/b/b4/152_-_CIMG0806.JPG', 'https://upload.wikimedia.org/wikipedia/commons/9/94/Artocarpus_heterophylla_flowers.JPG', 'https://upload.wikimedia.org/wikipedia/commons/9/99/Artocarpus_heterophyllus.jpg']",
+        "https://en.wikipedia.org/?title=Sushi_rice&redirect=no",
+        "https://en.wikipedia.org/wiki/A%C3%B1ejo_cheese",
+        "https://en.wikipedia.org/wiki/Abalone",
+        "https://en.wikipedia.org/wiki/Absinthe",
+        "https://en.wikipedia.org/wiki/Acini_di_pepe",
+        "https://en.wikipedia.org/wiki/Acorn_squash"
+      ]
+    },
+    "wikiimage": {
+      "total_unique_values": 1406,
+      "sample_values": [
+        " https://upload.wikimedia.org/wikipedia/commons/thumb/0/01/Dog-biscuit.jpg/220px-Dog-biscuit.jpg",
+        " https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/2017_0102_fenugreek_seeds.jpg/220px-2017_0102_fenugreek_seeds.jpg",
+        " https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Triple_Sec.jpg/220px-Triple_Sec.jpg",
+        "NF",
+        "['https://upload.wikimedia.org/wikipedia/commons/0/04/Crawfish_dinner.jpg', 'https://upload.wikimedia.org/wikipedia/commons/d/d6/Foodlogo2.svg', 'https://upload.wikimedia.org/wikipedia/commons/6/69/Roux_bianco.JPG']",
+        "['https://upload.wikimedia.org/wikipedia/commons/0/0f/Chilito_verde.jpg', 'https://upload.wikimedia.org/wikipedia/commons/1/10/Chilli25.svg', 'https://upload.wikimedia.org/wikipedia/commons/d/d6/Foodlogo2.svg']",
+        "['https://upload.wikimedia.org/wikipedia/commons/2/22/A_plate_of_Jam%C3%B3n_serrano_in_Madrid%2C_Spain_Jam%C3%B3n_serrano_is_a_type_of_jam%C3%B3n_%28dry-cured_Spanish_ham%29%2C_which_is_generally_served_in_thin_slices.jpg', 'https://upload.wikimedia.org/wikipedia/commons/d/d6/Foodlogo2.svg', 'https://upload.wikimedia.org/wikipedia/commons/0/03/Jamon_Serrano.jpg']",
+        "['https://upload.wikimedia.org/wikipedia/commons/2/2e/Bravo_Cheddar.jpg', 'https://upload.wikimedia.org/wikipedia/commons/d/d3/Cheddar_cave_cheese.jpg', 'https://upload.wikimedia.org/wikipedia/commons/e/ef/Cheese_curds_2.jpg']",
+        "['https://upload.wikimedia.org/wikipedia/commons/3/39/17-03-16-J%C3%A4germeister-Miniaturen-RR7_8310.jpg', 'https://upload.wikimedia.org/wikipedia/commons/f/f7/Flessen_drank.jpg', 'https://upload.wikimedia.org/wikipedia/commons/8/83/Hubertus-liege.jpg']",
+        "['https://upload.wikimedia.org/wikipedia/commons/5/5b/Allspice.JPG', 'https://upload.wikimedia.org/wikipedia/commons/0/0a/Flag_of_Jamaica.svg', 'https://upload.wikimedia.org/wikipedia/commons/d/d6/Foodlogo2.svg']"
+      ]
+    },
+    "FlavorDB_Category": {
+      "total_unique_values": 42,
+      "sample_values": [
+        "Alcoholic Beverages",
+        "Bakery",
+        "Beverage",
+        "Beverage-Alcoholic",
+        "Beverage-Caffeinated",
+        "Beverage-Carbonated",
+        "Cereal",
+        "Condiment",
+        "Condiment-Sauce",
+        "Dairy"
+      ]
+    },
+    "Dietrx_Category": {
+      "total_unique_values": 35,
+      "sample_values": [
+        "Additive",
+        "Additive-Salt",
+        "Additive-Sugar",
+        "Additive-Vinegar",
+        "Additive-Yeast",
+        "Bakery",
+        "Berry",
+        "Beverage",
+        "Beverage Caffeinated",
+        "Beverage-Alcoholic"
+      ]
+    },
+    "Flavor_DB_Link": {
+      "total_unique_values": 818,
+      "sample_values": [
+        " Lime~https://cosylab.iiitd.edu.in/flavordb/entity_details?id=241",
+        "Abalone~https://cosylab.iiitd.edu.in/flavordb/entity_details?id=489",
+        "Adobo~https://cosylab.iiitd.edu.in/flavordb/entity_details?id=882",
+        "Agar~https://cosylab.iiitd.edu.in/flavordb/entity_details?id=494",
+        "Agave~https://cosylab.iiitd.edu.in/flavordb/entity_details?id=717",
+        "Albacore tuna~https://cosylab.iiitd.edu.in/flavordb/entity_details?id=679",
+        "Alcohol~https://cosylab.iiitd.edu.in/flavordb/entity_details?id=487",
+        "Alcohol~https://cosylab.iiitd.edu.in/flavordb/entity_details?id=488",
+        "Alfalfa~https://cosylab.iiitd.edu.in/flavordb/entity_details?id=496",
+        "AllSpice~https://cosylab.iiitd.edu.in/flavordb/entity_details?id=375"
+      ]
+    },
+    "Diet_rx_link": {
+      "total_unique_values": 313,
+      "sample_values": [
+        "abyssinian mustard~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A52824||black mustard~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A3710||brassica juncea cutleaf mustard group~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A3707||yellow mustard~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A3728||purple stem mustard~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A3711",
+        "agave sisalana~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A442491||agave americana~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A39510",
+        "almond~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A3755||dwarf russian almond~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A140661||tropical almond~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A39993||java almond~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A246350",
+        "amaranth~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A3567||green amaranth~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A56196||redroot amaranth~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A124763||grain amaranth~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A28502||purple amaranth~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A3565",
+        "american blueberry~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A69266||lowbush blueberry~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A472369||bog blueberry~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A190548",
+        "american chestnut~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A134033||common horse chestnut~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A43364||moreton bay chestnut~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A24962||japanese horse chestnut~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A83375||japanese chestnut~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A103480||chinese water chestnut~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A110284||chinese chestnut~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A60419",
+        "american cranberry~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A13750",
+        "angelica keiskei~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A357850||angelica archangelica l~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A40949||angelica dahurica cv hangbaizhi var formosan~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A48101||angelica sylvestri~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A54703||angelica decursiva f albiflora~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A52491||angelica polymorpha~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A76119||angelica ursina~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A357859||angelica acutiloba var sugiyamae~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A55605||angelica giga nakai~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A85712||angelica koreana~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A182415||angelica pubescen~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A312530||angelica genuflexa~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A357848||angelica japonica a gray~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A265806",
+        "anise~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A40880||chinese star anise~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A124778||japanese star anise~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=Plant+ID%3A124794",
+        "apple brandy~https://cosylab.iiitd.edu.in/dietrx/get_food?food_id=AlcoholicBev+ID%3A6"
+      ]
+    }
+  },
+  "RecipeDB_instructions.json": {
+    "": {
+      "total_unique_values": 138234,
+      "sample_values": [
+        "{'recipe_id': '65892', 'steps': 'in a blender , combine onion , ginger , garlic , turmeric , cayenne , salt , amchoor , garam marsala and lemon juice . puree into a paste . spread the puree over the fish fillets and marinate in refrigerator 1 3 hours . preheat broiler with oven rack on second highest notch . broil fillets for 7 10 minutes on each side , or until fish is firm to touch and barely opaque . brush fillets with a little olive oil to make surface glisten . serve with a dollop of mint chutney .'}",
+        "{'recipe_id': '74774', 'steps': 'preheat oven to 200\u00b0c or 180\u00b0c if using a fan forced oven and grease a 12 hole muffin pan or friand pan . whisk the egg whites in a medium bowl until frothy . add the melted butter . almond meal , sifted icing sugar and flour , then the chopped pear . stir until combined . place into the 12 muffin/friand pans and sprinkle with the flaked almonds . bake for about 20 minutes . stand 5 minutes in the pan , before turning out . allow to cool on a wire rack .'}",
+        "{'recipe_id': '147030', 'steps': 'in a large frypan , heat oil over medium high heat ; saute garlic until light golden and fragrant ; about 10 seconds . add shrimp and rosemary ; saute just until shrimp are pink , about 1 minute . add sherry , salt , pepper and hot pepper sauce ; saute until liquid is reduced by half , about 3 minutes .'}",
+        "{'recipe_id': '104018', 'steps': 'butter a 9x13 baking dish and scatter pecan halves evenly across the bottom . in heavy sauce pan , melt butter , add sugar and bring to a boil . boil approximately 12 minutes or until candy reaches 290\u00b0 . add chopped pecans and stir to mix , then pour over halves in backing dish . place candy bars on top , allow to melt and then smooth over . . chill thoroughly , turn pan over , dump on counter and break up by whacking with heavy spoon .'}",
+        "{'recipe_id': '38572', 'steps': 'combine vodka and cocoa beans in a sealable container and store in a warm , dry place . agitate the mixture 2 or 3 times a day for 1 week . six hours before serving , add the mint leaves . strain through a coffee filter into a bottle , seal and store in your freezer . serving suggestion , serve ice cold without a garnish . bring your holiday guests together with this pretty , party ready bread . get an editor picked recipe delivered to your inbox daily . privacy policy watch holiday obsessions'}",
+        "{'recipe_id': '3885', 'steps': 'heat oil in a large wok over medium heat ; add garlic . cook and stir until fragrant , about 3 minutes . add onion ; cook and stir until translucent , about 5 minutes . stir in tomatoes ; cook , mashing with a fork , until flesh and skin separate , about 5 minutes . place chicken in the wok ; cook and stir until lightly browned , about 5 minutes . pour in water . cover and bring to a boil . stir in tomato sauce ; simmer until flavors combine , about 15 minutes . mix potatoes into the wok ; simmer until tender , about 10 minutes . stir in bell pepper and carrot ; simmer until softened , about 5 minutes . season with salt and pepper .'}",
+        "{'recipe_id': '37398', 'steps': 'watch how to make this recipe . puree the olives , oil , garlic , and zest in a food processor until smooth and spreadable . blend in the mayonnaise . toss the tuna , artichokes , lemon juice , and pepper in a medium bowl , keeping the tuna in small chunks . hollow out the bottom and top halves of the bread . spread the olive puree over both cut sides of the bread . spoon the tuna and artichoke mixture onto the bottom half of the bread . sprinkle the tomatoes over . cover with the bread top . cut the sandwich crosswise into 6 pieces and serve . bring your holiday guests together with this pretty , party ready bread . get an editor picked recipe delivered to your inbox daily . privacy policy watch holiday obsessions'}",
+        "{'recipe_id': '49212', 'steps': 'in a large pot , heat 1 tablespoons of the oil on high heat . when hot , add the pork cubes and cook until soft . stir in the garlic , curry powder , coriander , cumin , and crushed red pepper . cook 1 minute . add ginger , cinnamon , bay leaf , salt , chicken broth , and tomato paste . bring liquid to a boil , cover and simmer on low for 45 minutes . add peanut butter and blend well . cook stew another 3 minutes , uncovered to blend . stir in chopped tomato and bell pepper . simmer 2 3 minutes , just until the vegetables soften but still retain shape . before serving , taste to correct seasonings ; you may wish to add a final splash of lemon juice to refresh the flavors .'}",
+        "{'recipe_id': '54779', 'steps': 'heat oil in large heavy saucepan over medium heat . add chopped onion and chilies and stir until onion is translucent . mix in turmeric and cinnamon . add rice and stir 2 minutes . add chicken broth , water , bay leaf and cayenne pepper . bring to a boil ; reduce heat , cover and cook until liquid is absorbed , about 20 minutes . sprinkle green onions on top before serving .'}",
+        "{'recipe_id': '119899', 'steps': 'to prepare the artichokes , cut of stems using a sharp knife to produce a neat , flat base . as artichokes are cut , rub exposed surfaces with lemon juice to prevent discoloration . with your sharp paring knife , trim off the bottom two layers of leaves , being careful not to cut away the white part underneath . trim any remaining green from around the base . lay the artichoke on its side and cut through , leaving about 1 and 1/2 from base to the trimmed top . turn the artichoke upside down and halve it . cut each half into four or five wedges and then remove and discard the fuzzy choke from the center of each wedge . your artichokes are now ready to be cooked , but if you are not going to cook them immediately , place them in a bowl and cover them with acidulated water . to make the recipe , place the trimmed artichokes into a small saucepan and cover with water and the juice from half a lemon . bring to a boil , blanch for five minutes , drain and set aside . place the pancetta in a saucepan , cover with water , bring to a boil , drain and set aside . place the cauliflower florets into a large saucepan , cover with salted water , bring to a boil , cook five minutes , drain and set aside . heat the olive oil in a large skillet , add the pancetta , and cook over medium heat for two minutes . add the artichokes and saute briefly . season with oregano and rosemary and cook five minutes . add the garlic and tomatoes to the pan and cook two minutes . add the olives , cauliflower and parsely and salt and pepper and cook five minutes . meanwhile cook the penne in boiling salted water until al dente and drain , reserving 1 and 1/2 cups of the cooking liquid . toss the pasta in the pan with the sauce , then add the cooking liquid and cook for two minutes . taste the sauce , adjust the seasoning , add the butter and the cheese and stir gently till melted and serve .'}"
+      ]
+    },
+    "recipe_id": {
+      "total_unique_values": 1,
+      "sample_values": [
+        "161081"
+      ]
+    },
+    "steps": {
+      "total_unique_values": 1,
+      "sample_values": [
+        "peel all of the potatoes . cut each potato in half lengthwise . slice each half lengthwise into french style potatoes . salt the potatoes and toss to season evenly . pour oil into a large , open frying pan . the oil should be about 1 inch deep in the pan . heat the oil on medium high heat . place all potatoes in the pan and fry them until they are golden brown or at least until the edges are a golden brown color . \u200b remove the potatoes with a slotted spatula and allow to drain before serving ."
+      ]
+    }
+  }
+}
