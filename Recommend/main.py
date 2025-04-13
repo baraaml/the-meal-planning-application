@@ -51,7 +51,7 @@ async def general_exception_handler(request: Request, exc: Exception):
     )
 
 # Add health check endpoint
-@app.get("/health", response_model=HealthResponse)
+@app.get("/api/v1/health", response_model=HealthResponse)
 async def health_check():
     """
     Simple health check endpoint.

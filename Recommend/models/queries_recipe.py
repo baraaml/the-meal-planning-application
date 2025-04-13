@@ -43,7 +43,7 @@ def get_recipe(recipe_id: int):
     
     return recipe
 
-def get_recipes(limit=20, offset=0, filters=None):
+def get_recipes(limit=20, offset=0, filters=None, calories_filter=None):
     """Get a list of recipes with optional filtering."""
     query = """
     SELECT 
@@ -63,6 +63,15 @@ def get_recipes(limit=20, offset=0, filters=None):
             if value:
                 query += f" AND {key} = %({key})s"
                 params[key] = value
+    
+    # Add calorie filters if provided
+    if calories_filter:
+        if "min_calories" in calories_filter:
+            query += " AND calories >= %(min_calories)s"
+            params["min_calories"] = calories_filter["min_calories"]
+        if "max_calories" in calories_filter:
+            query += " AND calories <= %(max_calories)s"
+            params["max_calories"] = calories_filter["max_calories"]
     
     # Add ORDER BY and LIMIT clauses
     query += """

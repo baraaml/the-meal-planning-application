@@ -1,0 +1,2797 @@
+Directory Tree: ./
+================================================================================
+
+├── .env
+
+////////////////////////////////////////////////////////////////////////////////
+# Database settings
+DATABASE_URL=postgresql://mealflow:mealflow@localhost:5432/meals
+
+# API settings
+API_HOST=0.0.0.0
+API_PORT=9999
+RELOAD=True
+
+# Embedding model settings
+EMBEDDING_MODEL=all-MiniLM-L6-v2
+EMBEDDING_DIMENSION=384
+
+# Recommendation settings
+DEFAULT_RECOMMENDATION_LIMIT=10
+CONTENT_TYPES=recipe
+ALLOWED_TRENDING_WINDOWS=day,week,month
+INTERACTION_TYPES=view,like,save,cook,comment
+
+# Scheduler settings
+EMBEDDING_GENERATION_INTERVAL=60
+SCHEDULER_SLEEP_INTERVAL=60
+
+# Cache settings
+ENABLE_CACHE=False
+CACHE_EXPIRATION=300
+
+# Similarity thresholds
+MIN_SIMILARITY_SCORE=0.6
+MIN_COMMON_ITEMS=2
+
+# Data import settings
+DATA_DIR=dataset2db
+BATCH_SIZE=64
+////////////////////////////////////////////////////////////////////////////////
+
+├── README.md
+
+////////////////////////////////////////////////////////////////////////////////
+# MealFlow Recommendation System
+
+A sophisticated recipe and meal recommendation service built with FastAPI, PostgreSQL, and vector embeddings. Provides personalized recipe recommendations using a hybrid approach combining collaborative filtering, content-based analysis, and popularity metrics.
+
+## Features
+
+### 📊 Multiple Recommendation Strategies
+
+- **Hybrid Recommender**: Combines multiple algorithms with intelligent fallbacks
+- **Collaborative Filtering**: Recommends recipes based on similar users' preferences
+- **Content-Based Analysis**: Uses vector embeddings to find similar recipes
+- **Ingredient Similarity**: Suggests recipes with similar ingredient profiles
+- **Popularity-Based**: Recommends trending recipes as a fallback
+
+### 🔍 Flexible Filtering
+
+- Filter by recipe category
+- Filter by cuisine/region
+- Filter by dietary preferences (vegan, vegetarian, etc.)
+- Personalized recommendations based on user history
+
+### 🚀 Optimized Architecture
+
+- Direct database access for improved performance
+- Efficient query organization by domain
+- Background embedding generation
+- Scalable vector search using pgvector
+
+## Technical Architecture
+
+The service is built using:
+
+- **FastAPI**: High-performance API framework
+- **PostgreSQL + pgvector**: Database with vector similarity search
+- **SentenceTransformers**: For generating recipe embeddings
+- **CF-Step**: For collaborative filtering and matrix factorization
+
+## Quick Start
+
+### Prerequisites
+
+- Python == 3.12
+- PostgreSQL 17.4 with pgvector extension
+- Make utility (for using the Makefile)
+
+### Fast Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/mealflow.git
+cd mealflow
+
+# Configure your PostgreSQL connection string in .env
+cp .env.example .env
+# Edit .env with your database credentials
+
+# Run fast setup and start the service
+python3.12 -m venv venv
+make install
+make setup-db
+make load-data
+make init-embeddings
+make run
+```
+
+## API Documentation
+
+The service provides the following API endpoints:
+
+### User Recommendations
+
+```
+GET /api/v1/recommend/user/{user_id}
+```
+
+Get personalized recipe recommendations for a user.
+
+**Parameters:**
+- `limit` (optional): Maximum number of recommendations (default: 10)
+- `recommendation_type` (optional): Algorithm to use (hybrid, content, collaborative)
+- `cuisine` (optional): Filter by cuisine/region
+- `dietary_restriction` (optional): Filter by dietary restriction
+
+### Similar Recipes
+
+```
+GET /api/v1/recommend/similar/{recipe_id}
+```
+
+Find recipes similar to a specific item.
+
+**Parameters:**
+- `limit` (optional): Maximum number of similar items (default: 10)
+- `similarity_method` (optional): Method to determine similarity (content, ingredient)
+
+### Trending Recipes
+
+```
+GET /api/v1/trending
+```
+
+Get trending recipes based on recent interactions.
+
+**Parameters:**
+- `time_window` (optional): Time window for trending items (day, week, month)
+- `limit` (optional): Maximum number of items (default: 10)
+
+### Recipe Management
+
+```
+GET /api/v1/recipes/{recipe_id}
+GET /api/v1/recipes
+POST /api/v1/recipes
+PUT /api/v1/recipes/{recipe_id}
+DELETE /api/v1/recipes/{recipe_id}
+```
+
+Full CRUD operations for recipe management.
+
+### Record Interactions
+
+```
+POST /api/v1/interactions
+```
+
+Record a user interaction with a recipe (view, like, save, cook).
+
+**Body:**
+```json
+{
+  "user_id": "user123",
+  "meal_id": "1001",
+  "content_type": "recipe",
+  "interaction_type": "like"
+}
+```
+
+## Data Structure
+
+The system works with recipe information including:
+- Basic recipe information (id, title, cuisine, etc.)
+- Ingredient lists
+- Cooking instructions
+- Nutritional information
+- User interactions and preferences
+
+## Custom Embedding Generation
+
+Adjust embedding generation parameters:
+
+```python
+from embedding.embeddings import EmbeddingGenerator
+
+# Update batch size for faster processing
+generator = EmbeddingGenerator()
+generator.generate_all_embeddings(batch_size=64)
+
+# Use a different model for better embeddings
+generator = EmbeddingGenerator(model_name="sentence-transformers/all-mpnet-base-v2")
+```
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Missing pgvector Extension**:
+   - Error: `extension 'vector' does not exist`
+   - Solution: Install the pgvector extension in your database
+   ```sql
+   CREATE EXTENSION vector;
+   ```
+
+## License
+
+MIT License
+////////////////////////////////////////////////////////////////////////////////
+
+├── __pycache__
+├── config
+│   ├── __pycache__
+│   ├── config.py
+
+////////////////////////////////////////////////////////////////////////////////
+"""
+Configuration settings loaded from environment variables.
+"""
+import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
+# Database settings
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://mealflow:mealflow@localhost:5432/meals")
+
+# API settings
+API_HOST = os.getenv("API_HOST", "0.0.0.0")
+API_PORT = int(os.getenv("API_PORT", "9999"))
+RELOAD = os.getenv("RELOAD", "True").lower() in ("true", "1", "t")
+
+# Embedding settings
+EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "all-MiniLM-L6-v2")
+EMBEDDING_DIMENSION = int(os.getenv("EMBEDDING_DIMENSION", "384"))
+
+# Recommendation settings
+DEFAULT_RECOMMENDATION_LIMIT = int(os.getenv("DEFAULT_RECOMMENDATION_LIMIT", "10"))
+ALLOWED_TRENDING_WINDOWS = ["day", "week", "month"]
+INTERACTION_TYPES = ["view", "like", "save", "cook", "rating"]
+
+# Search settings
+MIN_SIMILARITY_SCORE = float(os.getenv("MIN_SIMILARITY_SCORE", "0.6"))
+MIN_COMMON_ITEMS = int(os.getenv("MIN_COMMON_ITEMS", "2"))
+
+# Logging
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
+LOG_FORMAT = os.getenv("LOG_FORMAT", "%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+////////////////////////////////////////////////////////////////////////////////
+
+│   └── db.py
+
+////////////////////////////////////////////////////////////////////////////////
+"""
+Database connection handling with connection pooling and transaction management.
+"""
+import logging
+from typing import Any, Dict, Optional, List
+from contextlib import contextmanager
+import psycopg2
+import psycopg2.extras
+from psycopg2.pool import ThreadedConnectionPool
+from config.config import DATABASE_URL
+
+logger = logging.getLogger(__name__)
+
+# Global connection pool
+pool = None
+
+def initialize_pool(min_conn=5, max_conn=20):
+    """Initialize the connection pool."""
+    global pool
+    try:
+        pool = ThreadedConnectionPool(
+            min_conn, 
+            max_conn, 
+            DATABASE_URL,
+            cursor_factory=psycopg2.extras.RealDictCursor
+        )
+        logger.info(f"Connection pool initialized with {min_conn}-{max_conn} connections")
+    except Exception as e:
+        logger.error(f"Failed to initialize connection pool: {e}")
+        raise
+
+@contextmanager
+def get_connection():
+    """Get a connection from the pool."""
+    global pool
+    if pool is None:
+        initialize_pool()
+    
+    conn = None
+    try:
+        conn = pool.getconn()
+        yield conn
+    finally:
+        if conn:
+            pool.putconn(conn)
+
+@contextmanager
+def get_cursor():
+    """Get a cursor using a connection from the pool."""
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        try:
+            yield cursor
+            conn.commit()
+        except Exception as e:
+            conn.rollback()
+            logger.error(f"Database error: {e}")
+            raise
+        finally:
+            cursor.close()
+
+def execute_query(query: str, params: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
+    """Execute a query and return all results."""
+    with get_cursor() as cursor:
+        cursor.execute(query, params or {})
+        if cursor.description:
+            return cursor.fetchall()
+        return []
+
+def execute_query_single(query: str, params: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
+    """Execute a query and return a single result."""
+    with get_cursor() as cursor:
+        cursor.execute(query, params or {})
+        if cursor.description:
+            result = cursor.fetchone()
+            return result
+        return None
+
+def execute_transaction(queries_params: List[tuple]):
+    """
+    Execute multiple queries in a transaction.
+    
+    Args:
+        queries_params: List of (query, params) tuples to execute
+    
+    Returns:
+        True if successful, False otherwise
+    """
+    with get_connection() as conn:
+        try:
+            with conn.cursor() as cursor:
+                for query, params in queries_params:
+                    cursor.execute(query, params or {})
+            conn.commit()
+            return True
+        except Exception as e:
+            conn.rollback()
+            logger.error(f"Transaction error: {e}")
+            raise
+
+def check_connection() -> bool:
+    """Test database connection."""
+    try:
+        with get_cursor() as cursor:
+            cursor.execute("SELECT 1")
+            return True
+    except Exception as e:
+        logger.error(f"Connection check failed: {e}")
+        return False
+////////////////////////////////////////////////////////////////////////////////
+
+├── embedding
+│   ├── __pycache__
+│   └── embeddings.py
+
+////////////////////////////////////////////////////////////////////////////////
+"""
+Embedding generation for recipes using SentenceTransformers.
+"""
+import logging
+from typing import List, Dict, Any, Optional
+from sentence_transformers import SentenceTransformer
+import numpy as np
+
+from config.db import execute_query, execute_query_single
+from config.config import EMBEDDING_MODEL, EMBEDDING_DIMENSION
+from models.queries_recipe import get_recipe, get_recipes_without_embeddings
+
+logger = logging.getLogger(__name__)
+
+class EmbeddingGenerator:
+    """Generator for recipe embeddings using SentenceTransformers."""
+    
+    def __init__(self, model_name: str = EMBEDDING_MODEL):
+        """Initialize the embedding generator with the specified model."""
+        try:
+            logger.info(f"Loading model: {model_name}")
+            self.model = SentenceTransformer(model_name)
+            logger.info(f"Model loaded successfully")
+        except Exception as e:
+            logger.error(f"Failed to load model {model_name}: {e}")
+            logger.info("Falling back to default model: all-MiniLM-L6-v2")
+            self.model = SentenceTransformer('all-MiniLM-L6-v2')
+        
+        self.embedding_dimension = EMBEDDING_DIMENSION
+    
+    def generate_recipe_embedding(self, recipe_data: Dict[str, Any]) -> Optional[List[float]]:
+        """Generate an embedding for a single recipe with improved error handling."""
+        try:
+            # Create a comprehensive text representation of the recipe
+            title = recipe_data.get("recipe_title", "")
+            instructions = recipe_data.get("instructions", "")
+            ingredients = [ing.get("ingredient_name", "") for ing in recipe_data.get("ingredients", [])]
+            
+            ingredients_text = ", ".join(ingredients)
+            text_for_embedding = f"{title}. {instructions} Ingredients: {ingredients_text}"
+            
+            # Generate embedding
+            embedding = self.model.encode(text_for_embedding)
+            
+            # Ensure it's a list of floats
+            if not isinstance(embedding, list):
+                embedding = embedding.tolist()
+            
+            # Validate embedding
+            if not embedding or len(embedding) != self.embedding_dimension:
+                logger.warning(f"Invalid embedding generated. Length: {len(embedding)}, Expected: {self.embedding_dimension}")
+                return None
+            
+            return embedding
+            
+        except Exception as e:
+            logger.error(f"Error generating embedding: {e}")
+            return None
+     
+    def save_recipe_embedding(self, recipe_id: int, embedding: List[float]) -> bool:
+        """Save a recipe embedding to the database with correct vector formatting."""
+        try:
+            # Convert embedding to PostgreSQL vector format
+            # Ensure the embedding is a list and convert to a string 
+            # that starts with "[" and is compatible with PostgreSQL vector
+            if not isinstance(embedding, list):
+                embedding = list(embedding)
+            
+            pg_vector = f"[{', '.join(map(str, embedding))}]"
+            
+            query = """
+            INSERT INTO recipe_embeddings (recipe_id, embedding)
+            VALUES (%(recipe_id)s, %(embedding)s::vector)
+            ON CONFLICT (recipe_id) 
+            DO UPDATE SET 
+                embedding = %(embedding)s::vector, 
+                updated_at = CURRENT_TIMESTAMP
+            """
+            
+            execute_query(query, {"recipe_id": recipe_id, "embedding": pg_vector})
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error saving embedding for recipe {recipe_id}: {e}")
+            return False
+     
+    def update_recipe_embedding(self, recipe_id: int) -> bool:
+        """Update the embedding for a specific recipe."""
+        try:
+            # Get recipe data
+            recipe_data = get_recipe(recipe_id)
+            if not recipe_data:
+                return False
+            
+            # Generate new embedding
+            embedding = self.generate_recipe_embedding(recipe_data)
+            if not embedding:
+                return False
+            
+            # Save embedding
+            return self.save_recipe_embedding(recipe_id, embedding)
+            
+        except Exception as e:
+            logger.error(f"Error updating embedding for recipe {recipe_id}: {e}")
+            return False
+    
+    def generate_all_embeddings(self, batch_size: int = 5000) -> int:
+        """Generate embeddings for recipes that don't have them yet."""
+        count = 0
+        
+        try:
+            # Get recipes without embeddings
+            recipes = get_recipes_without_embeddings(batch_size)
+            
+            if not recipes:
+                logger.info("No recipes found without embeddings")
+                return 0
+            
+            logger.info(f"Generating embeddings for {len(recipes)} recipes")
+            
+            # Process recipes
+            for recipe in recipes:
+                recipe_id = recipe["recipe_id"]
+                
+                # Get complete recipe data
+                recipe_data = get_recipe(recipe_id)
+                if not recipe_data:
+                    continue
+                
+                # Generate embedding
+                embedding = self.generate_recipe_embedding(recipe_data)
+                if not embedding:
+                    continue
+                
+                # Save embedding
+                if self.save_recipe_embedding(recipe_id, embedding):
+                    count += 1
+            
+            logger.info(f"Generated embeddings for {count} recipes")
+            return count
+            
+        except Exception as e:
+            logger.error(f"Error generating embeddings: {e}")
+            return count
+    
+    def get_embedding_stats(self) -> Dict[str, Any]:
+        """Get statistics about recipe embeddings."""
+        try:
+            query = """
+            SELECT
+                (SELECT COUNT(*) FROM recipes) as total_recipes,
+                (SELECT COUNT(*) FROM recipe_embeddings) as total_embeddings
+            """
+            
+            stats = execute_query_single(query)
+            
+            # Get most recent embeddings
+            recent_query = """
+            SELECT recipe_id, created_at, updated_at
+            FROM recipe_embeddings
+            ORDER BY updated_at DESC
+            LIMIT 5
+            """
+            
+            recent_embeddings = execute_query(recent_query)
+            
+            # Format timestamps to strings
+            if recent_embeddings:
+                for embedding in recent_embeddings:
+                    if "created_at" in embedding and embedding["created_at"]:
+                        embedding["created_at"] = embedding["created_at"].isoformat()
+                    if "updated_at" in embedding and embedding["updated_at"]:
+                        embedding["updated_at"] = embedding["updated_at"].isoformat()
+            
+            total_recipes = stats.get("total_recipes", 0)
+            total_embeddings = stats.get("total_embeddings", 0)
+            
+            return {
+                "total_recipes": total_recipes,
+                "total_embeddings": total_embeddings,
+                "coverage_percentage": round((total_embeddings / total_recipes * 100), 2) if total_recipes > 0 else 0,
+                "recent_embeddings": recent_embeddings or []
+            }
+            
+        except Exception as e:
+            logger.error(f"Error getting embedding stats: {e}")
+            return {
+                "error": str(e)
+            }
+////////////////////////////////////////////////////////////////////////////////
+
+├── endpoints
+│   ├── __pycache__
+│   ├── middleware.py
+
+////////////////////////////////////////////////////////////////////////////////
+"""
+API middleware for the meal recommendation service.
+Includes CORS, request timing, and error handling middleware.
+"""
+from fastapi import Request, Response
+from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
+import time
+import json
+import logging
+from typing import Callable
+
+logger = logging.getLogger(__name__)
+
+def setup_middleware(app):
+    """
+    Set up middleware for the FastAPI application.
+    
+    Args:
+        app: The FastAPI application
+    """
+    # Add CORS middleware
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],  # Replace with specific origins in production
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+    
+    # Add GZip compression middleware
+    app.add_middleware(GZipMiddleware, minimum_size=1000)
+    
+    # Add request timing middleware
+    @app.middleware("http")
+    async def add_process_time_header(request: Request, call_next: Callable):
+        start_time = time.time()
+        
+        # Add request ID for tracking
+        request_id = f"req-{int(start_time * 1000)}"
+        request.state.request_id = request_id
+        
+        # Process the request
+        try:
+            response = await call_next(request)
+            process_time = time.time() - start_time
+            
+            # Add timing headers
+            response.headers["X-Process-Time"] = str(round(process_time * 1000, 2))
+            response.headers["X-Request-ID"] = request_id
+            
+            # Add timing to JSON response
+            if (
+                response.headers.get("content-type") == "application/json" 
+                and isinstance(response, JSONResponse)
+            ):
+                content = response.body.decode()
+                try:
+                    data = json.loads(content)
+                    if isinstance(data, dict):
+                        data["execution_time_ms"] = round(process_time * 1000, 2)
+                        data["request_id"] = request_id
+                        response.body = json.dumps(data).encode()
+                except Exception as e:
+                    logger.error(f"Error updating response: {e}")
+            
+            # Log request completion
+            logger.info(
+                f"Request {request_id} completed: {request.method} {request.url.path} "
+                f"- {response.status_code} in {process_time:.3f}s"
+            )
+            
+            return response
+            
+        except Exception as e:
+            # Log any unhandled exceptions
+            process_time = time.time() - start_time
+            logger.error(
+                f"Request {request_id} error: {request.method} {request.url.path} "
+                f"- {str(e)} in {process_time:.3f}s"
+            )
+            
+            # Create error response
+            error_response = JSONResponse(
+                status_code=500,
+                content={
+                    "detail": "Internal server error",
+                    "request_id": request_id,
+                    "execution_time_ms": round(process_time * 1000, 2)
+                }
+            )
+            return error_response
+////////////////////////////////////////////////////////////////////////////////
+
+│   ├── recipes.py
+
+////////////////////////////////////////////////////////////////////////////////
+"""
+API endpoints for recipe management.
+"""
+from fastapi import APIRouter, HTTPException, Query, status
+from typing import Dict, Optional, List
+
+from models.models import RecipeCreate, RecipeUpdate, RecipeBase, RecipeDetail
+from models.queries_recipe import (
+    get_recipe, get_recipes, create_recipe, update_recipe, delete_recipe
+)
+from embedding.embeddings import EmbeddingGenerator
+from config.db import execute_query  # Add this import
+
+router = APIRouter(prefix="/api/v1", tags=["recipes"])
+
+@router.get("/recipes/{recipe_id}", response_model=RecipeDetail)
+def get_recipe_endpoint(recipe_id: int):
+    """Get a recipe by ID."""
+    recipe = get_recipe(recipe_id)
+    if not recipe:
+        raise HTTPException(status_code=404, detail=f"Recipe with ID {recipe_id} not found")
+    return recipe
+
+
+@router.get("/recipes", response_model=List[RecipeBase])
+def get_recipes_endpoint(
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100),
+    region: Optional[str] = None,
+    sub_region: Optional[str] = None,
+    min_calories: Optional[int] = None,
+    max_calories: Optional[int] = None
+):
+    """Get a list of recipes with optional filtering."""
+    # Calculate offset based on page and limit
+    offset = (page - 1) * limit
+    
+    # Prepare filters
+    filters = {}
+    if region:
+        filters["region"] = region
+    if sub_region:
+        filters["sub_region"] = sub_region
+        
+    # Add calorie filters to the query parameters
+    calories_filter = {}
+    if min_calories is not None:
+        calories_filter["min_calories"] = min_calories
+    if max_calories is not None:
+        calories_filter["max_calories"] = max_calories
+    
+    recipes = get_recipes(limit=limit, offset=offset, filters=filters, calories_filter=calories_filter)
+    return recipes
+
+@router.post("/recipes", response_model=RecipeDetail, status_code=status.HTTP_201_CREATED)
+def create_recipe_endpoint(recipe: RecipeCreate):
+    """Create a new recipe."""
+    recipe_id = create_recipe(recipe.dict())
+    if not recipe_id:
+        raise HTTPException(status_code=500, detail="Failed to create recipe")
+    
+    # Generate embedding in background (could be moved to a background task)
+    generator = EmbeddingGenerator()
+    generator.update_recipe_embedding(recipe_id)
+    
+    return get_recipe(recipe_id)
+
+@router.put("/recipes/{recipe_id}", response_model=RecipeDetail)
+def update_recipe_endpoint(recipe_id: int, recipe: RecipeUpdate):
+    """Update a recipe."""
+    # Check if recipe exists
+    existing_recipe = get_recipe(recipe_id)
+    if not existing_recipe:
+        raise HTTPException(status_code=404, detail=f"Recipe with ID {recipe_id} not found")
+    
+    # Update recipe
+    success = update_recipe(recipe_id, recipe.dict(exclude_unset=True))
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to update recipe")
+    
+    # Update embedding if recipe content changed
+    if recipe.recipe_title:
+        generator = EmbeddingGenerator()
+        generator.update_recipe_embedding(recipe_id)
+    
+    return get_recipe(recipe_id)
+
+@router.delete("/recipes/{recipe_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_recipe_endpoint(recipe_id: int):
+    """Delete a recipe."""
+    # Check if recipe exists
+    existing_recipe = get_recipe(recipe_id)
+    if not existing_recipe:
+        raise HTTPException(status_code=404, detail=f"Recipe with ID {recipe_id} not found")
+    
+    # Delete recipe
+    success = delete_recipe(recipe_id)
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to delete recipe")
+    
+    return None
+
+
+@router.get("/recipes/filter/calories", response_model=List[RecipeBase])
+def filter_recipes_by_calories(
+    min: float = Query(0, ge=0),
+    max: float = Query(1000, ge=0),
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100)
+):
+    """Filter recipes by calorie range."""
+    # Calculate offset based on page and limit
+    offset = (page - 1) * limit
+    
+    query = """
+    SELECT 
+        recipe_id, recipe_title, region, sub_region
+    FROM recipes
+    WHERE calories >= %(min)s AND calories <= %(max)s
+    ORDER BY recipe_id
+    LIMIT %(limit)s OFFSET %(offset)s
+    """
+    
+    params = {
+        "min": min,
+        "max": max,
+        "limit": limit,
+        "offset": offset
+    }
+    
+    return execute_query(query, params)
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+│   └── recommendations.py
+
+////////////////////////////////////////////////////////////////////////////////
+"""
+API endpoints for recommendation features.
+"""
+import time
+from fastapi import APIRouter, HTTPException, Query, Depends
+from typing import Dict, List, Optional
+
+from config.config import DEFAULT_RECOMMENDATION_LIMIT, ALLOWED_TRENDING_WINDOWS
+from models.models import RecommendationResponse, RecommendationItem, InteractionCreate
+from models.queries_recommend import (
+    get_trending_recipes, record_interaction, get_user_recent_interactions,
+    find_similar_users, get_content_from_similar_users
+)
+from models.queries_search import (
+    find_similar_content, get_similar_by_ingredients, 
+    get_cuisine_recommendations, get_dietary_recommendations
+)
+from recommenders.hybrid import HybridRecommender
+
+router = APIRouter(prefix="/api/v1", tags=["recommendations"])
+
+@router.get("/recommend/user/{user_id}", response_model=RecommendationResponse)
+def get_user_recommendations(
+    user_id: str,
+    content_type: Optional[str] = None,
+    limit: int = Query(DEFAULT_RECOMMENDATION_LIMIT, description="Maximum number of items"),
+    recommendation_type: str = Query("hybrid", description="Type of recommendation algorithm to use"),
+    cuisine: Optional[str] = None,
+    dietary_restriction: Optional[str] = None
+):
+    """Get personalized recommendations for a user."""
+    start_time = time.time()
+    
+    # Use HybridRecommender from recommenders module
+    recommender = HybridRecommender()
+    recommended_items = recommender.get_recommendations(
+        user_id=user_id,
+        content_type=content_type,
+        limit=limit,
+        recommendation_type=recommendation_type,
+        cuisine=cuisine,
+        dietary_restriction=dietary_restriction
+    )
+    
+    # Format the items
+    items = []
+    for item in recommended_items:
+        items.append(RecommendationItem(
+            id=str(item["id"]),
+            content_type=item.get("content_type", "recipe"),
+            title=item.get("title", ""),
+            score=item.get("score")
+        ))
+    
+    execution_time = (time.time() - start_time) * 1000
+    
+    return RecommendationResponse(
+        items=items,
+        count=len(items),
+        execution_time_ms=round(execution_time, 2)
+    )
+
+@router.get("/recommend/similar/{recipe_id}", response_model=RecommendationResponse)
+def get_similar_recommendations(
+    recipe_id: int,
+    limit: int = Query(DEFAULT_RECOMMENDATION_LIMIT, description="Maximum number of items"),
+    similarity_method: str = Query("content", description="Method to determine similarity")
+):
+    """Get recommendations similar to a specific item."""
+    start_time = time.time()
+    
+    # Choose similarity method
+    if similarity_method == "ingredient":
+        similar_items = get_similar_by_ingredients(recipe_id, limit)
+    else:  # Default to content-based
+        # First get the embedding of the recipe
+        from models.queries_recipe import get_recipe
+        recipe = get_recipe(recipe_id)
+        if not recipe:
+            raise HTTPException(status_code=404, detail=f"Recipe with ID {recipe_id} not found")
+        
+        from embedding.embeddings import EmbeddingGenerator
+        generator = EmbeddingGenerator()
+        embedding = generator.generate_recipe_embedding(recipe)
+        
+        if not embedding:
+            raise HTTPException(status_code=500, detail="Failed to generate embedding")
+        
+        similar_items = find_similar_content(embedding, exclude_ids=[recipe_id], limit=limit)
+    
+    # Format the items
+    items = []
+    for item in similar_items:
+        items.append(RecommendationItem(
+            id=str(item["recipe_id"]),
+            content_type="recipe",
+            title=item["title"] if "title" in item else item.get("recipe_title", ""),
+            score=item.get("similarity", 0)
+        ))
+    
+    execution_time = (time.time() - start_time) * 1000
+    
+    return RecommendationResponse(
+        items=items,
+        count=len(items),
+        execution_time_ms=round(execution_time, 2)
+    )
+
+@router.get("/trending", response_model=RecommendationResponse)
+def get_trending_content(
+    time_window: str = Query("day", description="Time window for trending items"),
+    limit: int = Query(DEFAULT_RECOMMENDATION_LIMIT, description="Maximum number of items"),
+    cuisine: Optional[str] = None,
+    dietary_restriction: Optional[str] = None
+):
+    """Get trending recipes based on recent interactions."""
+    start_time = time.time()
+    
+    if time_window not in ALLOWED_TRENDING_WINDOWS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid time window. Allowed values are: {', '.join(ALLOWED_TRENDING_WINDOWS)}"
+        )
+    
+    trending_items = get_trending_recipes(
+        time_window=time_window,
+        limit=limit,
+        cuisine=cuisine,
+        dietary_restriction=dietary_restriction
+    )
+    
+    # Format the items
+    items = []
+    for item in trending_items:
+        items.append(RecommendationItem(
+            id=str(item["recipe_id"]),
+            content_type="recipe",
+            title=item["title"],
+            score=item.get("popularity", 0) / 100 if item.get("popularity") else 0.5
+        ))
+    
+    execution_time = (time.time() - start_time) * 1000
+    
+    return RecommendationResponse(
+        items=items,
+        count=len(items),
+        execution_time_ms=round(execution_time, 2)
+    )
+
+@router.get("/recommend/cuisine/{cuisine_id}", response_model=RecommendationResponse)
+def get_cuisine_recommendations_endpoint(
+    cuisine_id: str,
+    limit: int = Query(DEFAULT_RECOMMENDATION_LIMIT, description="Maximum number of items")
+):
+    """Get recipe recommendations for a specific cuisine or region."""
+    start_time = time.time()
+    
+    cuisine_items = get_cuisine_recommendations(cuisine_name=cuisine_id, limit=limit)
+    
+    # Format the items
+    items = []
+    for item in cuisine_items:
+        items.append(RecommendationItem(
+            id=str(item["recipe_id"]),
+            content_type="recipe",
+            title=item["title"],
+            score=None
+        ))
+    
+    execution_time = (time.time() - start_time) * 1000
+    
+    return RecommendationResponse(
+        items=items,
+        count=len(items),
+        execution_time_ms=round(execution_time, 2)
+    )
+
+@router.get("/recommend/dietary/{dietary_restriction}", response_model=RecommendationResponse)
+def get_dietary_recommendations_endpoint(
+    dietary_restriction: str,
+    limit: int = Query(DEFAULT_RECOMMENDATION_LIMIT, description="Maximum number of items")
+):
+    """Get recipe recommendations based on dietary restrictions."""
+    start_time = time.time()
+    
+    dietary_items = get_dietary_recommendations(
+        dietary_restriction=dietary_restriction,
+        limit=limit
+    )
+    
+    # Format the items
+    items = []
+    for item in dietary_items:
+        items.append(RecommendationItem(
+            id=str(item["recipe_id"]),
+            content_type="recipe",
+            title=item["title"],
+            score=None
+        ))
+    
+    execution_time = (time.time() - start_time) * 1000
+    
+    return RecommendationResponse(
+        items=items,
+        count=len(items),
+        execution_time_ms=round(execution_time, 2)
+    )
+
+@router.post("/interactions")
+def create_interaction_endpoint(interaction: InteractionCreate):
+    """Record a user interaction with a recipe."""
+    start_time = time.time()
+    
+    # Validate recipe_id
+    recipe_id = interaction.meal_id
+    if recipe_id and "{{" in recipe_id:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid recipe_id format. Template variables not resolved."
+        )
+    
+    success = record_interaction(
+        user_id=interaction.user_id,
+        recipe_id=recipe_id,
+        interaction_type=interaction.interaction_type,
+        rating=interaction.rating if interaction.interaction_type == 'rating' else None
+    )
+    
+    execution_time = (time.time() - start_time) * 1000
+    
+    if success:
+        return {
+            "status": "recorded",
+            "execution_time_ms": round(execution_time, 2)
+        }
+    else:
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to record interaction"
+        )
+    """Record a user interaction with a recipe."""
+    start_time = time.time()
+    
+    success = record_interaction(
+        user_id=interaction.user_id,
+        recipe_id=interaction.meal_id,
+        interaction_type=interaction.interaction_type,
+        rating=interaction.rating if interaction.interaction_type == 'rating' else None
+    )
+    
+    execution_time = (time.time() - start_time) * 1000
+    
+    if success:
+        return {
+            "status": "recorded",
+            "execution_time_ms": round(execution_time, 2)
+        }
+    else:
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to record interaction"
+        )
+
+
+# Add this endpoint to the endpoints/recommendations.py file
+@router.get("/recommend/quick", response_model=RecommendationResponse)
+def get_quick_recipes(
+    max_time: int = Query(30, description="Maximum total preparation time in minutes"),
+    limit: int = Query(DEFAULT_RECOMMENDATION_LIMIT, description="Maximum number of items"),
+    cuisine: Optional[str] = None,
+    dietary_restriction: Optional[str] = None
+):
+    """Get quick recipe recommendations based on preparation time."""
+    start_time = time.time()
+    
+    # Query for recipes with preparation time less than max_time
+    query = """
+    SELECT 
+        recipe_id,
+        recipe_title as title
+    FROM recipes
+    WHERE 1=1
+    AND (total_time <= %(max_time)s OR 
+         (prep_time + COALESCE(cook_time, 0)) <= %(max_time)s)
+    """
+    
+    params = {
+        "max_time": max_time,
+        "limit": limit
+    }
+    
+    # Add filters
+    if cuisine:
+        query += " AND (region = %(cuisine)s OR sub_region = %(cuisine)s)"
+        params["cuisine"] = cuisine
+    
+    if dietary_restriction:
+        query += """
+        AND EXISTS (
+            SELECT 1 FROM recipe_diet_attributes rda 
+            WHERE rda.recipe_id = recipes.recipe_id AND
+            CASE 
+                WHEN %(dietary)s = 'vegan' THEN rda.vegan = TRUE
+                WHEN %(dietary)s = 'pescetarian' THEN rda.pescetarian = TRUE
+                WHEN %(dietary)s = 'lacto_vegetarian' THEN rda.lacto_vegetarian = TRUE
+                ELSE FALSE
+            END
+        )
+        """
+        params["dietary"] = dietary_restriction
+    
+    # Complete the query with ordering and limit
+    query += """
+    ORDER BY (COALESCE(prep_time, 0) + COALESCE(cook_time, 0))
+    LIMIT %(limit)s
+    """
+    
+    # Execute the query
+    from config.db import execute_query
+    quick_recipes = execute_query(query, params)
+    
+    # Format the items
+    items = []
+    for item in quick_recipes:
+        items.append(RecommendationItem(
+            id=str(item["recipe_id"]),
+            content_type="recipe",
+            title=item["title"],
+            score=None
+        ))
+    
+    execution_time = (time.time() - start_time) * 1000
+    
+    return RecommendationResponse(
+        items=items,
+        count=len(items),
+        execution_time_ms=round(execution_time, 2)
+    )
+
+////////////////////////////////////////////////////////////////////////////////
+
+├── guide.md
+
+////////////////////////////////////////////////////////////////////////////////
+# MealFlow API Variable Guide
+
+## URL Configuration
+- `base_url`: 
+  - Default: `http://localhost:9999/api/v1`
+  - Replace with actual service host
+
+## User and Interaction Variables
+- `user_id`: 
+  - Unique string identifier
+  - Currently limited to single user in database
+
+- `interaction_type`: 
+  - `view`
+  - `like`
+  - `save`
+  - `cook`
+  - `rating`
+
+## Recipe Filtering Variables
+### Geographical Filters
+- `cuisine` / `region`: 
+  - `Middle Eastern`
+  - `Egyptian`
+  - `Lebanese`
+  - `Turkish`
+  - `Saudi Arabian`
+  - `Iraqi`
+  - `Palestinian`
+  - `Israeli`
+
+- `sub_region`: 
+  - Same values as cuisine/region
+  - `Rest Middle Eastern`
+
+- `continent`:
+  - `Africa`
+  - Other continents not in sample data
+
+### Dietary Filters
+- `dietary_restriction`: 
+  - `vegan` (494 recipes)
+  - `pescetarian` (539 recipes)
+  - `lacto_vegetarian` (299 recipes)
+
+## Recommendation Variables
+- `recommendation_type`: 
+  - `hybrid` (default)
+  - `content`
+  - `collaborative`
+
+- `similarity_method`: 
+  - `content` (default)
+  - `ingredient`
+
+- `time_window`: 
+  - `day`
+  - `week`
+  - `month`
+
+## Pagination and Limits
+- `limit`: 
+  - Default: `10`
+  - Maximum: `100`
+  - Any positive integer
+
+- `page`: 
+  - Default: `1`
+  - Any positive integer
+
+## Numeric Recipe Variables
+### Time
+- `cook_time`: 
+  - Range: 5-120 minutes
+  - Most recipes: < 15 minutes
+
+- `prep_time`: 
+  - Range: 10-30 minutes
+  - Average: ~15 minutes
+
+### Nutrition
+- `calories`: 
+  - Range: 45-934
+  - Categories:
+    - Low (< 300): 2,021 recipes
+    - Medium (300-600): 1,227 recipes
+    - High (601-900): 370 recipes
+    - Very High (> 900): 286 recipes
+
+- `rating`: 
+  - Decimal between 1-5
+  - Example: `4.5`
+
+## Recipe Identification
+- `recipe_id`: 
+  - Numeric IDs (sample range: 2610-2619)
+  - Total recipes: 3,905
+
+## Naming
+- `recipe_title`: Free-text recipe name
+- Example: `"Egyptian Lentil Soup"`
+
+## Notes
+- Values derived from database exploration
+- Actual values may expand with future data imports
+
+# MealFlow API Variable Guide
+
+## URL Configuration
+- `base_url`: 
+  - Default: `http://localhost:9999/api/v1`
+  - Replace with actual service host
+
+## User and Interaction Variables
+- `user_id`: 
+  - Unique string identifier
+  - Currently limited to single user in database
+
+- `interaction_type`: 
+  - `view`
+  - `like`
+  - `save`
+  - `cook`
+  - `rating`
+
+## Recipe Filtering Variables
+### Geographical Filters
+- `cuisine` / `region`: 
+  - `Middle Eastern`
+  - `Egyptian`
+  - `Lebanese`
+  - `Turkish`
+  - `Saudi Arabian`
+  - `Iraqi`
+  - `Palestinian`
+  - `Israeli`
+
+- `sub_region`: 
+  - Same values as cuisine/region
+  - `Rest Middle Eastern`
+
+- `continent`:
+  - `Africa`
+  - Other continents not in sample data
+
+### Dietary Filters
+- `dietary_restriction`: 
+  - `vegan` (494 recipes)
+  - `pescetarian` (539 recipes)
+  - `lacto_vegetarian` (299 recipes)
+
+### Time Filters
+- `max_time`:
+  - For quick recipes endpoint
+  - Any positive integer (minutes)
+  - Default: 30
+
+## Recommendation Variables
+- `recommendation_type`: 
+  - `hybrid` (default)
+  - `content`
+  - `collaborative`
+
+- `similarity_method`: 
+  - `content` (default)
+  - `ingredient`
+
+- `time_window`: 
+  - `day`
+  - `week`
+  - `month`
+
+## Pagination and Limits
+- `limit`: 
+  - Default: `10`
+  - Maximum: `100`
+  - Any positive integer
+
+- `page`: 
+  - Default: `1`
+  - Any positive integer
+
+## Numeric Recipe Variables
+### Time
+- `cook_time`: 
+  - Range: 5-120 minutes
+  - Most recipes: < 15 minutes
+
+- `prep_time`: 
+  - Range: 10-30 minutes
+  - Average: ~15 minutes
+
+### Nutrition
+- `calories`: 
+  - Range: 45-934
+  - Categories:
+    - Low (< 300): 2,021 recipes
+    - Medium (300-600): 1,227 recipes
+    - High (601-900): 370 recipes
+    - Very High (> 900): 286 recipes
+
+- `rating`: 
+  - Decimal between 1-5
+  - Example: `4.5`
+
+## Recipe Identification
+- `recipe_id`: 
+  - Numeric IDs (sample range: 2610-2619)
+  - Total recipes: 3,905
+
+## Naming
+- `recipe_title`: Free-text recipe name
+- Example: `"Egyptian Lentil Soup"`
+
+## API Endpoints
+### Quick Recommendations
+```
+GET /api/v1/recommend/quick
+```
+Get recipes that can be prepared quickly.
+
+**Parameters:**
+- `max_time` (optional): Maximum preparation time in minutes (default: 30)
+- `limit` (optional): Maximum number of recipes (default: 10)
+- `cuisine` (optional): Filter by cuisine/region
+- `dietary_restriction` (optional): Filter by dietary restriction
+
+## Notes
+- Values derived from database exploration
+- Actual values may expand with future data imports
+////////////////////////////////////////////////////////////////////////////////
+
+├── main.py
+
+////////////////////////////////////////////////////////////////////////////////
+"""
+Main application file for the MealFlow recommendation service.
+Sets up FastAPI app, routes, middleware, and database connection.
+"""
+import uvicorn
+import logging
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse, RedirectResponse
+import time
+
+from config.config import API_HOST, API_PORT, RELOAD, LOG_LEVEL, LOG_FORMAT
+from config.db import check_connection, initialize_pool
+from endpoints.middleware import setup_middleware
+from endpoints.recipes import router as recipe_router
+from endpoints.recommendations import router as recommendation_router
+from models.models import HealthResponse
+
+# Configure logging
+logging.basicConfig(
+    level=getattr(logging, LOG_LEVEL),
+    format=LOG_FORMAT
+)
+logger = logging.getLogger(__name__)
+
+# Create FastAPI app
+app = FastAPI(
+    title="MealFlow Recommendation Service",
+    description="API for personalized meal recommendations",
+    version="1.0.0"
+)
+
+# Set up middleware
+setup_middleware(app)
+
+# Include API routers
+app.include_router(recipe_router)
+app.include_router(recommendation_router)
+
+# Add error handling for 500 errors
+@app.exception_handler(Exception)
+async def general_exception_handler(request: Request, exc: Exception):
+    """Global exception handler for unhandled exceptions."""
+    logger.error(f"Unhandled exception: {str(exc)}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={
+            "detail": "An unexpected error occurred. Please try again later.",
+            "error_type": type(exc).__name__,
+            "path": request.url.path
+        }
+    )
+
+# Add health check endpoint
+@app.get("/api/v1/health", response_model=HealthResponse)
+async def health_check():
+    """
+    Simple health check endpoint.
+    Returns database connection status and uptime.
+    """
+    start_time = time.time()
+    
+    # Test database connection
+    db_status = "connected" if check_connection() else "disconnected"
+    
+    execution_time = time.time() - start_time
+    
+    return HealthResponse(
+        status="healthy",
+        database=db_status,
+        execution_time_ms=round(execution_time * 1000, 2)
+    )
+
+# Add API documentation redirection
+@app.get("/", include_in_schema=False)
+async def redirect_to_docs():
+    """Redirect root endpoint to API documentation."""
+    return RedirectResponse(url="/docs")
+
+# Initialize database connection pool
+@app.on_event("startup")
+async def startup_event():
+    """Initialize resources on startup."""
+    logger.info("Initializing application...")
+    initialize_pool()
+    logger.info("Application initialization complete")
+
+# Cleanup on shutdown
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Clean up resources on shutdown."""
+    logger.info("Application shutting down...")
+    # Any cleanup code would go here
+
+if __name__ == "__main__":
+    uvicorn.run(
+        "main:app", 
+        host=API_HOST, 
+        port=API_PORT,
+        reload=RELOAD
+    )
+////////////////////////////////////////////////////////////////////////////////
+
+├── makefile
+
+////////////////////////////////////////////////////////////////////////////////
+.PHONY: setup install clean run test load-data setup-db reset-db drop-db create-db init-embeddings test-db help
+
+# Python from virtual environment
+PYTHON = ./venv/bin/python
+PIP = ./venv/bin/pip
+
+# Default environment file
+ENV_FILE = .env
+
+# Check if environment file exists
+ifeq (,$(wildcard $(ENV_FILE)))
+    $(warning $(ENV_FILE) file not found. Using default values.)
+endif
+
+# Load environment variables if file exists
+ifneq (,$(wildcard $(ENV_FILE)))
+    include $(ENV_FILE)
+    export
+endif
+
+# Setup the development environment (full setup)
+setup: install setup-db load-data init-embeddings
+
+# Install required packages
+install:
+	@echo "Installing required packages..."
+	$(PIP) install -r requirements.txt
+	@echo "✓ Installation complete"
+
+# Clean up temporary files and artifacts
+clean:
+	@echo "Cleaning up temporary files and artifacts..."
+	find . -name "__pycache__" -type d -exec rm -rf {} +
+	find . -name "*.py[cod]" -exec rm -f {} +
+	find . -name ".DS_Store" -exec rm -f {} +
+	find . -name "*.egg-info" -type d -exec rm -rf {} +
+	find . -name "*.egg" -exec rm -f {} +
+	find . -name ".pytest_cache" -type d -exec rm -rf {} +
+	find . -name ".coverage" -exec rm -f {} +
+	find . -name "htmlcov" -type d -exec rm -rf {} +
+	find . -name ".mypy_cache" -type d -exec rm -rf {} +
+	@echo "✓ Cleanup complete"
+
+# Run the service
+run:
+	@echo "Starting the meal recommendation service..."
+	./run.sh
+
+# Run tests
+test:
+	@echo "Running tests..."
+	pytest -xvs tests/
+
+# Load data from CSV and JSON files
+load-data:
+	@echo "Loading data from CSV and JSON files..."
+	$(PYTHON) ./dataset2db/load.py
+	@echo "✓ Data loading complete"
+
+# Setup database tables for recommendation system
+setup-db: test-db
+	@echo "Setting up database tables for recommendation system..."
+	psql $(DATABASE_URL) < ./schema/schema.sql
+	@echo "✓ Database setup complete"
+
+# Reset database (drop and recreate tables)
+reset-db: drop-db setup-db
+	@echo "Database reset complete."
+
+# Drop database
+drop-db:
+	@echo "Dropping database schema..."
+	psql $(DATABASE_URL) -c "DROP SCHEMA public CASCADE;"
+	psql $(DATABASE_URL) -c "CREATE SCHEMA public;"
+	psql $(DATABASE_URL) -c "GRANT ALL ON SCHEMA public TO postgres;"
+	psql $(DATABASE_URL) -c "GRANT ALL ON SCHEMA public TO public;"
+	@echo "✓ Database dropped"
+
+# Generate all initial embeddings
+init-embeddings:
+	@echo "Generating initial embeddings..."
+	PYTHONPATH=. $(PYTHON) -c "import logging; logging.basicConfig(level=logging.INFO); from embedding.embeddings import EmbeddingGenerator; generator = EmbeddingGenerator(); generator.generate_all_embeddings()"
+	@echo "✓ Embeddings generated"
+
+# Create database
+create-db:
+	@echo "Creating database..."
+	createdb -h localhost -U mealflow meals
+	@echo "✓ Database created"
+
+# Test database connection
+test-db:
+	@echo "Testing database connection..."
+	@psql $(DATABASE_URL) -c "SELECT 1" >/dev/null 2>&1 || \
+		(echo "Database connection failed. Please check your DATABASE_URL in .env file."; exit 1)
+	@echo "✓ Database connection successful"
+
+# Help
+help:
+	@echo "╔════════════════════════════════════════════════════╗"
+	@echo "║               MealFlow Makefile Help               ║"
+	@echo "╚════════════════════════════════════════════════════╝"
+	@echo "Available targets:"
+	@echo "  setup           - Complete setup"
+	@echo "  run             - Start the recommendation service"
+	@echo ""
+	@echo "Database commands:"
+	@echo "  test-db         - Test database connection"
+	@echo "  create-db       - Create the database"
+	@echo "  setup-db        - Create database tables"
+	@echo "  drop-db         - Drop database schema"
+	@echo "  reset-db        - Reset database (drop and recreate)"
+	@echo ""
+	@echo "Data commands:"
+	@echo "  load-data       - Import data from CSV/JSON files"
+	@echo "  init-embeddings - Generate all embeddings"
+	@echo ""
+	@echo "Development tools:"
+	@echo "  install         - Install required packages"
+	@echo "  clean           - Clean up temporary files"
+	@echo "  test            - Run tests"
+	@echo ""
+	@echo "Example usage:"
+	@echo "  make setup && make run"
+
+# Default target
+.DEFAULT_GOAL := help
+////////////////////////////////////////////////////////////////////////////////
+
+├── models
+│   ├── __pycache__
+│   ├── models.py
+
+////////////////////////////////////////////////////////////////////////////////
+"""
+Pydantic models for API request and response validation.
+"""
+from typing import List, Dict, Any, Optional
+from pydantic import BaseModel, Field
+
+# Request models
+class RecipeCreate(BaseModel):
+    """Model for creating a recipe."""
+    recipe_title: str
+    region: Optional[str] = None
+    sub_region: Optional[str] = None
+    continent: Optional[str] = None
+    source: Optional[str] = None
+    image_url: Optional[str] = None
+    cook_time: Optional[int] = None
+    prep_time: Optional[int] = None
+    total_time: Optional[int] = None
+    servings: Optional[int] = None
+    url: Optional[str] = None
+    calories: Optional[float] = None
+
+class RecipeUpdate(BaseModel):
+    """Model for updating a recipe."""
+    recipe_title: Optional[str] = None
+    region: Optional[str] = None
+    sub_region: Optional[str] = None
+    continent: Optional[str] = None
+    source: Optional[str] = None
+    image_url: Optional[str] = None
+    cook_time: Optional[int] = None
+    prep_time: Optional[int] = None
+    total_time: Optional[int] = None
+    servings: Optional[int] = None
+    url: Optional[str] = None
+    calories: Optional[float] = None
+
+class InteractionCreate(BaseModel):
+    """Model for creating an interaction."""
+    user_id: str
+    meal_id: str
+    content_type: str = "recipe"
+    interaction_type: str
+    rating: Optional[float] = None
+
+class DietaryPreferenceCreate(BaseModel):
+    """Model for creating a dietary preference."""
+    dietary_restriction: str
+
+# Response models
+class RecipeBase(BaseModel):
+    """Base model for recipe responses."""
+    recipe_id: int
+    recipe_title: str
+    region: Optional[str] = None
+    sub_region: Optional[str] = None
+
+class RecipeDetail(RecipeBase):
+    """Model for detailed recipe response."""
+    continent: Optional[str] = None
+    source: Optional[str] = None
+    image_url: Optional[str] = None
+    cook_time: Optional[int] = None
+    prep_time: Optional[int] = None
+    total_time: Optional[int] = None
+    servings: Optional[int] = None
+    url: Optional[str] = None
+    calories: Optional[float] = None
+    instructions: Optional[str] = None
+    ingredients: List[Dict[str, Any]] = []
+
+class RecommendationItem(BaseModel):
+    """Model for a recommendation item."""
+    id: str
+    content_type: str = "recipe"
+    title: str
+    score: Optional[float] = None
+
+class RecommendationResponse(BaseModel):
+    """Model for recommendation responses."""
+    items: List[RecommendationItem]
+    count: int
+    execution_time_ms: float = 0
+
+class HealthResponse(BaseModel):
+    """Model for health check response."""
+    status: str
+    database: str
+    execution_time_ms: float = 0
+////////////////////////////////////////////////////////////////////////////////
+
+│   ├── queries_recipe.py
+
+////////////////////////////////////////////////////////////////////////////////
+"""
+Recipe-specific database queries.
+"""
+from config.db import execute_query, execute_query_single, execute_transaction
+
+def get_recipe(recipe_id: int):
+    """Get a recipe by ID with ingredients and instructions."""
+    query = """
+    SELECT 
+        r.recipe_id, r.recipe_title, r.region, r.sub_region, 
+        r.continent, r.source, r.image_url, r.cook_time, 
+        r.prep_time, r.total_time, r.servings, r.url, r.calories
+    FROM recipes r
+    WHERE r.recipe_id = %(recipe_id)s
+    """
+    recipe = execute_query_single(query, {"recipe_id": recipe_id})
+    
+    if not recipe:
+        return None
+    
+    # Get ingredients
+    ing_query = """
+    SELECT 
+        i.ingredient_id, i.ingredient_name, 
+        ri.quantity, ri.unit, ri.ingredient_state
+    FROM recipe_ingredients ri
+    JOIN ingredients i ON ri.ingredient_id = i.ingredient_id
+    WHERE ri.recipe_id = %(recipe_id)s
+    """
+    ingredients = execute_query(ing_query, {"recipe_id": recipe_id})
+    
+    # Get instructions
+    instr_query = """
+    SELECT instructions
+    FROM recipe_instructions
+    WHERE recipe_id = %(recipe_id)s
+    """
+    instructions = execute_query_single(instr_query, {"recipe_id": recipe_id})
+    
+    # Add to recipe
+    recipe["ingredients"] = ingredients or []
+    recipe["instructions"] = instructions["instructions"] if instructions else None
+    
+    return recipe
+
+def get_recipes(limit=20, offset=0, filters=None, calories_filter=None):
+    """Get a list of recipes with optional filtering."""
+    query = """
+    SELECT 
+        recipe_id, recipe_title, region, sub_region
+    FROM recipes
+    WHERE 1=1
+    """
+    
+    params = {
+        "limit": limit,
+        "offset": offset
+    }
+    
+    # Add filters if provided
+    if filters:
+        for key, value in filters.items():
+            if value:
+                query += f" AND {key} = %({key})s"
+                params[key] = value
+    
+    # Add calorie filters if provided
+    if calories_filter:
+        if "min_calories" in calories_filter:
+            query += " AND calories >= %(min_calories)s"
+            params["min_calories"] = calories_filter["min_calories"]
+        if "max_calories" in calories_filter:
+            query += " AND calories <= %(max_calories)s"
+            params["max_calories"] = calories_filter["max_calories"]
+    
+    # Add ORDER BY and LIMIT clauses
+    query += """
+    ORDER BY recipe_id
+    LIMIT %(limit)s OFFSET %(offset)s
+    """
+    
+    return execute_query(query, params)
+
+def create_recipe(recipe_data):
+    """Create a new recipe."""
+    query = """
+    INSERT INTO recipes (
+        recipe_title, region, sub_region, continent, source,
+        image_url, cook_time, prep_time, total_time, servings,
+        url, calories
+    ) VALUES (
+        %(recipe_title)s, %(region)s, %(sub_region)s, %(continent)s, %(source)s,
+        %(image_url)s, %(cook_time)s, %(prep_time)s, %(total_time)s, %(servings)s,
+        %(url)s, %(calories)s
+    )
+    RETURNING recipe_id
+    """
+    
+    result = execute_query_single(query, recipe_data)
+    return result["recipe_id"] if result else None
+
+def update_recipe(recipe_id, recipe_data):
+    """Update an existing recipe."""
+    # Build the SET clause dynamically
+    set_clauses = []
+    params = {"recipe_id": recipe_id}
+    
+    for key, value in recipe_data.items():
+        if key != "recipe_id" and value is not None:
+            set_clauses.append(f"{key} = %({key})s")
+            params[key] = value
+    
+    if not set_clauses:
+        return False
+    
+    set_clause = ", ".join(set_clauses)
+    query = f"""
+    UPDATE recipes
+    SET {set_clause}
+    WHERE recipe_id = %(recipe_id)s
+    """
+    
+    execute_query(query, params)
+    return True
+
+def delete_recipe(recipe_id):
+    """Delete a recipe and its related data."""
+    # Create a list of queries to execute in a transaction
+    queries = [
+        ("DELETE FROM recipe_embeddings WHERE recipe_id = %(recipe_id)s", {"recipe_id": recipe_id}),
+        ("DELETE FROM recipe_ingredients WHERE recipe_id = %(recipe_id)s", {"recipe_id": recipe_id}),
+        ("DELETE FROM recipe_instructions WHERE recipe_id = %(recipe_id)s", {"recipe_id": recipe_id}),
+        ("DELETE FROM recipe_diet_attributes WHERE recipe_id = %(recipe_id)s", {"recipe_id": recipe_id}),
+        ("DELETE FROM recipes WHERE recipe_id = %(recipe_id)s", {"recipe_id": recipe_id})
+    ]
+    
+    try:
+        execute_transaction(queries)
+        return True
+    except:
+        return False
+
+def get_recipes_without_embeddings(limit=50):
+    """Get recipes that don't have embeddings yet."""
+    query = """
+    SELECT r.recipe_id, r.recipe_title
+    FROM recipes r
+    LEFT JOIN recipe_embeddings re ON r.recipe_id = re.recipe_id
+    WHERE re.embedding_id IS NULL
+    LIMIT %(limit)s
+    """
+    
+    return execute_query(query, {"limit": limit})
+////////////////////////////////////////////////////////////////////////////////
+
+│   ├── queries_recommend.py
+
+////////////////////////////////////////////////////////////////////////////////
+"""
+Recommendation-specific database queries.
+"""
+from config.db import execute_query, execute_query_single
+
+def get_trending_recipes(time_window="day", limit=10, content_type=None, cuisine=None, dietary_restriction=None):
+    """Get trending recipes based on recent interactions."""
+    # Map time window to SQL interval
+    time_intervals = {
+        'day': "interval '1 day'",
+        'week': "interval '7 days'",
+        'month': "interval '30 days'"
+    }
+    
+    interval = time_intervals.get(time_window, "interval '1 day'")
+    
+    query = f"""
+    WITH popular_recipes AS (
+        SELECT 
+            r.recipe_id,
+            r.recipe_title,
+            COUNT(ui.interaction_id) as popularity,
+            ROW_NUMBER() OVER (ORDER BY COUNT(ui.interaction_id) DESC) as rank
+        FROM recipes r
+        LEFT JOIN user_interactions ui ON r.recipe_id = ui.recipe_id
+        WHERE ui.created_at > CURRENT_TIMESTAMP - {interval}
+    """
+    
+    params = {"limit": limit}
+    
+    # Add filters
+    if cuisine:
+        query += " AND (r.region = %(cuisine)s OR r.sub_region = %(cuisine)s)"
+        params["cuisine"] = cuisine
+    
+    if dietary_restriction:
+        query += """
+        AND EXISTS (
+            SELECT 1 FROM recipe_diet_attributes rda 
+            WHERE rda.recipe_id = r.recipe_id AND
+            CASE 
+                WHEN %(dietary)s = 'vegan' THEN rda.vegan = TRUE
+                WHEN %(dietary)s = 'pescetarian' THEN rda.pescetarian = TRUE
+                WHEN %(dietary)s = 'lacto_vegetarian' THEN rda.lacto_vegetarian = TRUE
+                ELSE FALSE
+            END
+        )
+        """
+        params["dietary"] = dietary_restriction
+    
+    # Complete the query
+    query += """
+        GROUP BY r.recipe_id, r.recipe_title
+    )
+    SELECT 
+        recipe_id,
+        recipe_title as title,
+        popularity
+    FROM popular_recipes
+    WHERE rank <= %(limit)s
+    ORDER BY popularity DESC
+    """
+    
+    results = execute_query(query, params)
+    
+    # If no results (no interactions yet), get fallback recommendations
+    if not results:
+        return get_fallback_recommendations(limit, cuisine, dietary_restriction)
+    
+    return results
+
+def get_fallback_recommendations(limit=10, cuisine=None, dietary_restriction=None):
+    """Get fallback recommendations when no interaction data is available."""
+    query = """
+    SELECT recipe_id, recipe_title as title
+    FROM recipes
+    WHERE 1=1
+    """
+    
+    params = {"limit": limit}
+    
+    # Add filters
+    if cuisine:
+        query += " AND (region = %(cuisine)s OR sub_region = %(cuisine)s)"
+        params["cuisine"] = cuisine
+    
+    if dietary_restriction:
+        query += """
+        AND EXISTS (
+            SELECT 1 FROM recipe_diet_attributes rda 
+            WHERE rda.recipe_id = recipes.recipe_id AND
+            CASE 
+                WHEN %(dietary)s = 'vegan' THEN rda.vegan = TRUE
+                WHEN %(dietary)s = 'pescetarian' THEN rda.pescetarian = TRUE
+                WHEN %(dietary)s = 'lacto_vegetarian' THEN rda.lacto_vegetarian = TRUE
+                ELSE FALSE
+            END
+        )
+        """
+        params["dietary"] = dietary_restriction
+    
+    query += """
+    ORDER BY recipe_id
+    LIMIT %(limit)s
+    """
+    
+    return execute_query(query, params)
+
+def get_user_recent_interactions(user_id, limit=5, content_type=None):
+    """Get a user's recent interactions."""
+    query = """
+    SELECT recipe_id, interaction_type, rating, created_at
+    FROM user_interactions
+    WHERE user_id = %(user_id)s
+    """
+    
+    params = {
+        "user_id": user_id,
+        "limit": limit
+    }
+    
+    query += """
+    ORDER BY created_at DESC
+    LIMIT %(limit)s
+    """
+    
+    return execute_query(query, params)
+
+def record_interaction(user_id, recipe_id, interaction_type, rating=None):
+    """Record a user interaction with a recipe."""
+    query = """
+    INSERT INTO user_interactions
+    (user_id, recipe_id, interaction_type, rating)
+    VALUES (%(user_id)s, %(recipe_id)s, %(interaction_type)s, %(rating)s)
+    ON CONFLICT (user_id, recipe_id, interaction_type) 
+    DO UPDATE SET 
+        rating = EXCLUDED.rating,
+        created_at = CURRENT_TIMESTAMP
+    """
+    
+    # Ensure recipe_id is a string
+    if recipe_id and not isinstance(recipe_id, str):
+        recipe_id = str(recipe_id)
+    
+    params = {
+        "user_id": user_id,
+        "recipe_id": recipe_id,
+        "interaction_type": interaction_type,
+        "rating": rating if interaction_type == 'rating' else None
+    }
+    
+    execute_query(query, params)
+    return True
+def find_similar_users(user_id, min_common_items=2, limit=10):
+    """Find users with similar interaction patterns."""
+    query = """
+    WITH user_items AS (
+        SELECT recipe_id
+        FROM user_interactions
+        WHERE user_id = %(user_id)s
+    ),
+    similar_users AS (
+        SELECT 
+            ui.user_id,
+            COUNT(DISTINCT ui.recipe_id) as common_items,
+            ROW_NUMBER() OVER (ORDER BY COUNT(DISTINCT ui.recipe_id) DESC) as rank
+        FROM user_interactions ui
+        JOIN user_items uir ON ui.recipe_id = uir.recipe_id
+        WHERE ui.user_id != %(user_id)s
+        GROUP BY ui.user_id
+        HAVING COUNT(DISTINCT ui.recipe_id) >= %(min_common)s
+    )
+    SELECT user_id
+    FROM similar_users
+    WHERE rank <= %(limit)s
+    """
+    
+    params = {
+        "user_id": user_id,
+        "min_common": min_common_items,
+        "limit": limit
+    }
+    
+    results = execute_query(query, params)
+    return [row["user_id"] for row in results] if results else []
+
+def get_content_from_similar_users(similar_users, user_id, limit=10):
+    """Get content that similar users have interacted with."""
+    if not similar_users:
+        return []
+    
+    # Create placeholders for IN clause
+    placeholders = [f"%({i})s" for i in range(len(similar_users))]
+    user_placeholders = ", ".join(placeholders)
+    
+    # Create parameters dictionary
+    params = {
+        "user_id": user_id,
+        "limit": limit
+    }
+    
+    # Add user IDs to parameters
+    for i, user in enumerate(similar_users):
+        params[str(i)] = user
+    
+    query = f"""
+    WITH user_recommendations AS (
+        SELECT 
+            ui.recipe_id,
+            r.recipe_title as title,
+            COUNT(*) as interaction_count,
+            ROW_NUMBER() OVER (ORDER BY COUNT(*) DESC) as rank
+        FROM user_interactions ui
+        JOIN recipes r ON ui.recipe_id = r.recipe_id
+        WHERE ui.user_id IN ({user_placeholders})
+        AND NOT EXISTS (
+            SELECT 1 
+            FROM user_interactions ui2
+            WHERE ui2.user_id = %(user_id)s
+            AND ui2.recipe_id = ui.recipe_id
+        )
+        GROUP BY ui.recipe_id, r.recipe_title
+    )
+    SELECT recipe_id, title, interaction_count
+    FROM user_recommendations
+    WHERE rank <= %(limit)s
+    ORDER BY interaction_count DESC
+    """
+    
+    return execute_query(query, params)
+
+def get_user_dietary_preferences(user_id):
+    """Get a user's dietary preferences."""
+    query = """
+    SELECT dietary_restriction
+    FROM user_dietary_preference
+    WHERE user_id = %(user_id)s
+    """
+    
+    results = execute_query(query, {"user_id": user_id})
+    return [row["dietary_restriction"] for row in results] if results else []
+
+def set_user_dietary_preference(user_id, dietary_restriction):
+    """Add a dietary preference for a user."""
+    query = """
+    INSERT INTO user_dietary_preference (user_id, dietary_restriction)
+    VALUES (%(user_id)s, %(dietary_restriction)s)
+    ON CONFLICT (user_id, dietary_restriction) DO NOTHING
+    """
+    
+    execute_query(query, {
+        "user_id": user_id,
+        "dietary_restriction": dietary_restriction
+    })
+    return True
+
+def remove_user_dietary_preference(user_id, dietary_restriction):
+    """Remove a dietary preference for a user."""
+    query = """
+    DELETE FROM user_dietary_preference
+    WHERE user_id = %(user_id)s AND dietary_restriction = %(dietary_restriction)s
+    """
+    
+    execute_query(query, {
+        "user_id": user_id,
+        "dietary_restriction": dietary_restriction
+    })
+    return True
+////////////////////////////////////////////////////////////////////////////////
+
+│   └── queries_search.py
+
+////////////////////////////////////////////////////////////////////////////////
+"""
+Search-specific database queries.
+"""
+from config.db import execute_query
+from config.config import MIN_SIMILARITY_SCORE
+
+def find_similar_content(embedding, exclude_ids=None, limit=10, min_similarity=MIN_SIMILARITY_SCORE):
+    """Find recipes with similar embeddings."""
+    # Convert embedding to a proper format for PostgreSQL vector
+    if isinstance(embedding, list):
+        embedding_str = f"[{', '.join(map(str, embedding))}]"
+    else:
+        embedding_str = embedding
+    
+    # Prepare query parameters
+    params = {
+        "embedding": embedding_str,
+        "limit": limit,
+        "min_similarity": min_similarity
+    }
+    
+    # Build exclusion clause if needed
+    exclude_clause = ""
+    if exclude_ids and len(exclude_ids) > 0:
+        exclude_ids_str = ",".join(str(id) for id in exclude_ids)
+        exclude_clause = f"AND r.recipe_id NOT IN ({exclude_ids_str})"
+    
+    # Execute similarity search
+    query = f"""
+    SELECT 
+        r.recipe_id,
+        r.recipe_title, 
+        1 - (re.embedding <=> %(embedding)s::vector) AS similarity
+    FROM recipe_embeddings re
+    JOIN recipes r ON re.recipe_id = r.recipe_id
+    WHERE 1 = 1 {exclude_clause}
+    AND 1 - (re.embedding <=> %(embedding)s::vector) > %(min_similarity)s
+    ORDER BY similarity DESC
+    LIMIT %(limit)s
+    """
+    
+    return execute_query(query, params)
+
+def get_similar_by_ingredients(recipe_id, limit=10):
+    """Get recipes similar by ingredients."""
+    query = """
+    WITH recipe_ingredients AS (
+        SELECT ingredient_id
+        FROM recipe_ingredients
+        WHERE recipe_id = %(recipe_id)s
+    ),
+    similarity_scores AS (
+        SELECT 
+            r.recipe_id, 
+            r.recipe_title, 
+            COUNT(ri.ingredient_id) as ingredient_match_count,
+            COUNT(ri.ingredient_id)::float / 
+            (SELECT COUNT(*) FROM recipe_ingredients WHERE recipe_id = %(recipe_id)s)::float as similarity
+        FROM recipes r
+        JOIN recipe_ingredients ri ON r.recipe_id = ri.recipe_id
+        JOIN recipe_ingredients src ON ri.ingredient_id = src.ingredient_id
+        WHERE r.recipe_id != %(recipe_id)s
+        GROUP BY r.recipe_id, r.recipe_title
+    )
+    SELECT recipe_id, recipe_title as title, ingredient_match_count, similarity
+    FROM similarity_scores
+    WHERE similarity > 0.2
+    ORDER BY similarity DESC, ingredient_match_count DESC
+    LIMIT %(limit)s
+    """
+    
+    return execute_query(query, {"recipe_id": recipe_id, "limit": limit})
+
+def get_cuisine_recommendations(cuisine_name, limit=10):
+    """Get recipe recommendations for a specific cuisine or region."""
+    query = """
+    SELECT r.recipe_id, r.recipe_title as title
+    FROM recipes r
+    WHERE r.region = %(cuisine_name)s OR r.sub_region = %(cuisine_name)s
+    ORDER BY r.recipe_id
+    LIMIT %(limit)s
+    """
+    
+    return execute_query(query, {"cuisine_name": cuisine_name, "limit": limit})
+
+def get_dietary_recommendations(dietary_restriction, limit=10):
+    """Get recipe recommendations based on dietary restrictions."""
+    query = """
+    SELECT r.recipe_id, r.recipe_title as title
+    FROM recipes r
+    JOIN recipe_diet_attributes rda ON r.recipe_id = rda.recipe_id
+    WHERE 
+        CASE 
+            WHEN %(dietary)s = 'vegan' THEN rda.vegan = TRUE
+            WHEN %(dietary)s = 'pescetarian' THEN rda.pescetarian = TRUE
+            WHEN %(dietary)s = 'lacto_vegetarian' THEN rda.lacto_vegetarian = TRUE
+            ELSE FALSE
+        END
+    ORDER BY r.recipe_id
+    LIMIT %(limit)s
+    """
+    
+    return execute_query(query, {"dietary": dietary_restriction, "limit": limit})
+////////////////////////////////////////////////////////////////////////////////
+
+├── recommenders
+│   ├── __pycache__
+│   └── hybrid.py
+
+////////////////////////////////////////////////////////////////////////////////
+"""
+Hybrid recommender implementation combining multiple recommendation strategies.
+"""
+import logging
+from typing import List, Dict, Any, Optional
+
+from models.queries_recommend import (
+    get_trending_recipes, get_user_recent_interactions, 
+    find_similar_users, get_content_from_similar_users
+)
+from models.queries_recipe import get_recipe
+from models.queries_search import find_similar_content
+
+logger = logging.getLogger(__name__)
+
+class HybridRecommender:
+    """
+    Hybrid recommendation strategy.
+    Combines multiple recommendation strategies with fallbacks:
+    1. User-based collaborative filtering
+    2. Content-based recommendations
+    3. Popularity-based recommendations
+    """
+    
+    def get_recommendations(
+        self, 
+        user_id: Optional[str] = None,
+        content_type: Optional[str] = None,
+        limit: int = 10,
+        recommendation_type: str = "hybrid",
+        **kwargs
+    ) -> List[Dict[str, Any]]:
+        """
+        Get hybrid recommendations using multiple strategies with fallbacks.
+        
+        Args:
+            user_id: The ID of the user for personalized recommendations
+            content_type: Optional content type filter
+            limit: Maximum number of recommendations
+            recommendation_type: Type of recommendation algorithm to use
+            kwargs: Additional parameters like cuisine and dietary_restriction
+            
+        Returns:
+            List of recommended items
+        """
+        all_recommendations = {}
+        strategy_weights = {
+            'collaborative': 1.0,
+            'content': 0.8,
+            'popularity': 0.5
+        }
+        
+        # If a specific recommendation type is requested
+        if recommendation_type != "hybrid":
+            if recommendation_type == "collaborative":
+                return self._get_collaborative_recommendations(user_id, content_type, limit, **kwargs)
+            elif recommendation_type == "content":
+                return self._get_content_based_recommendations(user_id, content_type, limit, **kwargs)
+            elif recommendation_type == "popularity":
+                return self._get_popularity_recommendations(content_type, limit, **kwargs)
+        
+        # Step 1: Try collaborative filtering if we have a user_id
+        if user_id:
+            collaborative_items = self._get_collaborative_recommendations(
+                user_id=user_id,
+                content_type=content_type,
+                limit=limit * 2,  # Request more items for better blending
+                **kwargs
+            )
+            
+            # Add to all recommendations with collaborative weight
+            for item in collaborative_items:
+                item_id = item.get("id")
+                if item_id:
+                    score = item.get("score", 0.5) * strategy_weights['collaborative']
+                    if item_id in all_recommendations:
+                        all_recommendations[item_id]['score'] = max(
+                            all_recommendations[item_id]['score'],
+                            score
+                        )
+                    else:
+                        item['score'] = score
+                        all_recommendations[item_id] = item
+            
+            logger.info(f"Collaborative filtering added {len(collaborative_items)} items")
+        
+        # Step 2: Try content-based if we have user interactions
+        if user_id:
+            content_based_items = self._get_content_based_recommendations(
+                user_id=user_id,
+                content_type=content_type,
+                limit=limit * 2,  # Request more items for better blending
+                **kwargs
+            )
+            
+            # Add to all recommendations with content-based weight
+            for item in content_based_items:
+                item_id = item.get("id")
+                if item_id:
+                    score = item.get("score", 0.5) * strategy_weights['content']
+                    if item_id in all_recommendations:
+                        all_recommendations[item_id]['score'] = max(
+                            all_recommendations[item_id]['score'],
+                            score
+                        )
+                    else:
+                        item['score'] = score
+                        all_recommendations[item_id] = item
+            
+            logger.info(f"Content-based filtering added {len(content_based_items)} items")
+        
+        # Step 3: Add popularity-based recommendations to fill any gaps
+        popularity_items = self._get_popularity_recommendations(
+            content_type=content_type,
+            limit=limit * 2,  # Request more items for better blending
+            **kwargs
+        )
+        
+        # Add to all recommendations with popularity weight
+        for item in popularity_items:
+            item_id = item.get("id")
+            if item_id:
+                score = item.get("score", 0.5) * strategy_weights['popularity']
+                if item_id in all_recommendations:
+                    # Only use popularity as a boost, not a replacement
+                    all_recommendations[item_id]['score'] += score * 0.2
+                else:
+                    item['score'] = score
+                    all_recommendations[item_id] = item
+        
+        logger.info(f"Popularity-based filtering added {len(popularity_items)} items")
+        
+        # Convert dict to list, sort by score, and limit results
+        recommended_items = list(all_recommendations.values())
+        recommended_items.sort(key=lambda x: x.get('score', 0), reverse=True)
+        
+        logger.info(f"Hybrid recommender generated {len(recommended_items)} items total")
+        return recommended_items[:limit]
+    
+    def _get_collaborative_recommendations(
+        self, 
+        user_id: str,
+        content_type: Optional[str] = None,
+        limit: int = 10,
+        **kwargs
+    ) -> List[Dict[str, Any]]:
+        """Get collaborative filtering recommendations for a user."""
+        # Find similar users
+        similar_users = find_similar_users(
+            user_id=user_id,
+            min_common_items=2,
+            limit=10
+        )
+        
+        if not similar_users:
+            logger.info(f"No similar users found for user {user_id}")
+            return []
+        
+        # Get content from similar users
+        items = get_content_from_similar_users(
+            similar_users=similar_users,
+            user_id=user_id,
+            limit=limit
+        )
+        
+        # Transform the data format
+        recommendations = []
+        for item in items:
+            recommendations.append({
+                "id": str(item["recipe_id"]),
+                "content_type": "recipe",
+                "title": item["title"],
+                "score": item.get("interaction_count", 1) / 10.0  # Normalize
+            })
+        
+        # Apply additional filters
+        cuisine = kwargs.get('cuisine')
+        if cuisine and recommendations:
+            # This would be more efficient with a separate query, but for now just filter
+            recommendations = [r for r in recommendations if cuisine.lower() in r["title"].lower()]
+        
+        return recommendations
+    
+    def _get_content_based_recommendations(
+        self, 
+        user_id: Optional[str] = None,
+        content_type: Optional[str] = None,
+        limit: int = 10,
+        **kwargs
+    ) -> List[Dict[str, Any]]:
+        """Get content-based recommendations for a user."""
+        # If we have a user, get their recent interactions
+        if user_id:
+            recent_interactions = get_user_recent_interactions(
+                user_id=user_id,
+                limit=1
+            )
+            
+            if not recent_interactions:
+                logger.info(f"No recent interactions found for user {user_id}")
+                return []
+            
+            # Get the most recent interaction
+            recent = recent_interactions[0]
+            recipe_id = recent["recipe_id"]
+            
+            # Get the recipe to generate an embedding
+            recipe = get_recipe(recipe_id)
+            if not recipe:
+                logger.info(f"Recipe {recipe_id} not found")
+                return []
+            
+            # Generate embedding
+            from embedding.embeddings import EmbeddingGenerator
+            generator = EmbeddingGenerator()
+            embedding = generator.generate_recipe_embedding(recipe)
+            
+            if not embedding:
+                logger.info(f"Failed to generate embedding for recipe {recipe_id}")
+                return []
+            
+            # Find similar content
+            similar_items = find_similar_content(
+                embedding=embedding,
+                exclude_ids=[recipe_id],
+                limit=limit
+            )
+            
+            # Transform the data format
+            recommendations = []
+            for item in similar_items:
+                recommendations.append({
+                    "id": str(item["recipe_id"]),
+                    "content_type": "recipe",
+                    "title": item["recipe_title"],
+                    "score": item.get("similarity", 0.5)
+                })
+            
+            # Apply additional filters
+            cuisine = kwargs.get('cuisine')
+            if cuisine and recommendations:
+                recommendations = [r for r in recommendations if cuisine.lower() in r["title"].lower()]
+            
+            return recommendations
+        
+        return []
+    
+    def _get_popularity_recommendations(
+        self, 
+        content_type: Optional[str] = None,
+        limit: int = 10,
+        **kwargs
+    ) -> List[Dict[str, Any]]:
+        """Get popularity-based recommendations."""
+        # Get trending recipes
+        cuisine = kwargs.get('cuisine')
+        dietary_restriction = kwargs.get('dietary_restriction')
+        
+        trending_items = get_trending_recipes(
+            time_window="week",
+            limit=limit,
+            cuisine=cuisine,
+            dietary_restriction=dietary_restriction
+        )
+        
+        # Transform the data format
+        recommendations = []
+        for item in trending_items:
+            recommendations.append({
+                "id": str(item["recipe_id"]),
+                "content_type": "recipe",
+                "title": item["title"],
+                "score": item.get("popularity", 1) / 10.0 if item.get("popularity") else 0.5
+            })
+        
+        return recommendations
+////////////////////////////////////////////////////////////////////////////////
+
+├── requirements.txt
+
+////////////////////////////////////////////////////////////////////////////////
+fastapi==0.95.1
+uvicorn==0.21.1
+psycopg2-binary==2.9.5
+python-dotenv==1.0.0
+pandas==2.0.1
+numpy==1.26.0
+scikit-learn==1.2.2
+pydantic==1.10.7
+pytest==7.2.2
+python-multipart==0.0.6
+httpx==0.23.3
+tqdm>=4.62.2
+cf-step>=0.2.3
+torch>=1.9.0
+pgvector>=0.1.6
+sqlalchemy==2.0.7
+sentence-transformers==2.6.1
+huggingface_hub>=0.22.0
+////////////////////////////////////////////////////////////////////////////////
+
+├── run.sh
+
+////////////////////////////////////////////////////////////////////////////////
+#!/bin/bash
+
+# Load environment variables from .env file
+if [ -f .env ]; then
+    set -a
+    # shellcheck disable=SC1091
+    source .env
+    set +a
+fi
+
+# Determine reload flag
+if [ "$RELOAD" = "True" ]; then
+    RELOAD_FLAG="--reload"
+else
+    RELOAD_FLAG=""
+fi
+
+# Run the uvicorn server
+./venv/bin/python -m uvicorn main:app \
+    --host "$API_HOST" \
+    --port "$API_PORT" \
+    $RELOAD_FLAG
+////////////////////////////////////////////////////////////////////////////////
+
+└── schema
+    └── schema.sql
+
+////////////////////////////////////////////////////////////////////////////////
+-- Ingredients Master Table
+CREATE TABLE ingredients (
+    ingredient_id SERIAL PRIMARY KEY,
+    ingredient_name VARCHAR(255) NOT NULL,
+    generic_name VARCHAR(255),
+    frequency INTEGER,
+    wiki_link TEXT,
+    wiki_image TEXT,
+    flavor_db_category VARCHAR(100),
+    dietrx_category VARCHAR(100),
+    flavor_db_link TEXT,
+    diet_rx_link TEXT,
+    ingredient_raw VARCHAR(255)
+);
+
+-- Nutrition Information Table
+CREATE TABLE ingredient_nutrition (
+    ingredient_id INTEGER PRIMARY KEY,
+    serving_size DECIMAL(10,2),
+    energy_kcal DECIMAL(10,2),
+    protein_g DECIMAL(10,2),
+    carbohydrate_g DECIMAL(10,2),
+    total_fat_g DECIMAL(10,2),
+    total_sugar_g DECIMAL(10,2),
+    FOREIGN KEY (ingredient_id) REFERENCES ingredients(ingredient_id)
+);
+
+-- Recipes Master Table
+CREATE TABLE recipes (
+    recipe_id SERIAL PRIMARY KEY,
+    recipe_title TEXT NOT NULL,
+    region VARCHAR(100),
+    sub_region VARCHAR(100),
+    continent VARCHAR(50),
+    source VARCHAR(100),
+    image_url TEXT,
+    cook_time INTEGER,
+    prep_time INTEGER,
+    total_time INTEGER,
+    servings INTEGER,
+    url TEXT,
+    calories DECIMAL(10,2)
+);
+
+-- Recipe Vegetarian Attributes
+CREATE TABLE recipe_diet_attributes (
+    recipe_id INTEGER PRIMARY KEY,
+    vegan BOOLEAN DEFAULT FALSE,
+    pescetarian BOOLEAN DEFAULT FALSE,
+    ovo_vegetarian BOOLEAN DEFAULT FALSE,
+    lacto_vegetarian BOOLEAN DEFAULT FALSE,
+    ovo_lacto_vegetarian BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (recipe_id) REFERENCES recipes(recipe_id)
+);
+
+-- Recipe Cooking Process
+CREATE TABLE recipe_processes (
+    recipe_id INTEGER,
+    process_step TEXT,
+    step_order INTEGER,
+    PRIMARY KEY (recipe_id, step_order),
+    FOREIGN KEY (recipe_id) REFERENCES recipes(recipe_id)
+);
+
+-- Recipe Utensils Used
+CREATE TABLE recipe_utensils (
+    recipe_id INTEGER,
+    utensil VARCHAR(100),
+    FOREIGN KEY (recipe_id) REFERENCES recipes(recipe_id)
+);
+
+-- Recipe Ingredient Composition
+CREATE TABLE recipe_ingredients (
+    recipe_id INTEGER,
+    ingredient_id INTEGER,
+    ingredient_phrase TEXT,
+    quantity DECIMAL(10,2),
+    unit VARCHAR(50),
+    ingredient_state VARCHAR(100),
+    size VARCHAR(50),
+    PRIMARY KEY (recipe_id, ingredient_id),
+    FOREIGN KEY (recipe_id) REFERENCES recipes(recipe_id),
+    FOREIGN KEY (ingredient_id) REFERENCES ingredients(ingredient_id)
+);
+
+-- Recipe Instructions
+CREATE TABLE recipe_instructions (
+    recipe_id INTEGER PRIMARY KEY,
+    instructions TEXT,
+    FOREIGN KEY (recipe_id) REFERENCES recipes(recipe_id)
+);
+
+-- Index for performance optimization
+CREATE INDEX idx_ingredient_name ON ingredients(ingredient_name);
+CREATE INDEX idx_recipe_title ON recipes(recipe_title);
+CREATE INDEX idx_recipe_region ON recipes(region, sub_region);
+
+-- Enable the pgvector extension
+CREATE EXTENSION IF NOT EXISTS vector;
+
+-- Recipe Embeddings Table - streamlined for just recipes
+CREATE TABLE IF NOT EXISTS recipe_embeddings (
+    embedding_id SERIAL PRIMARY KEY,
+    recipe_id INTEGER NOT NULL REFERENCES recipes(recipe_id),
+    embedding VECTOR(384),  -- Explicitly set dimension to match EMBEDDING_DIMENSION
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(recipe_id)
+);
+
+-- Create an index for efficient vector similarity searches
+CREATE INDEX IF NOT EXISTS idx_recipe_embeddings ON recipe_embeddings USING ivfflat (embedding vector_cosine_ops);
+
+-- Function to find similar recipes using vector similarity
+CREATE OR REPLACE FUNCTION get_similar_recipes(
+    query_embedding VECTOR(384),  -- Explicitly set dimension
+    similarity_threshold FLOAT DEFAULT 0.6,
+    max_results INTEGER DEFAULT 10
+)
+RETURNS TABLE (
+    recipe_id INTEGER,
+    recipe_title TEXT,
+    similarity FLOAT
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        r.recipe_id,
+        r.recipe_title,
+        1 - (re.embedding <=> query_embedding) AS similarity
+    FROM 
+        recipe_embeddings re
+    JOIN 
+        recipes r ON re.recipe_id = r.recipe_id
+    WHERE 
+        1 - (re.embedding <=> query_embedding) > similarity_threshold
+    ORDER BY 
+        similarity DESC
+    LIMIT 
+        max_results;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Matrix Factorization Models Table
+CREATE TABLE IF NOT EXISTS matrix_factorization_models (
+    model_id SERIAL PRIMARY KEY,
+    model_name VARCHAR(100) NOT NULL UNIQUE,
+    user_map JSONB NOT NULL, -- Serialized mapping of user_id to index
+    item_map JSONB NOT NULL, -- Serialized mapping of item_id to index
+    n_factors INTEGER NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- User Interactions Table
+CREATE TABLE IF NOT EXISTS user_interactions (
+    interaction_id SERIAL PRIMARY KEY,
+    user_id VARCHAR(100) NOT NULL,
+    recipe_id INTEGER NOT NULL REFERENCES recipes(recipe_id),
+    interaction_type VARCHAR(50) NOT NULL, -- 'view', 'like', 'save', 'cook', 'rating'
+    rating DECIMAL(3,1), -- Optional rating value (1-5)
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, recipe_id, interaction_type)
+);
+
+-- Indices for fast querying
+CREATE INDEX IF NOT EXISTS idx_interactions_user_id ON user_interactions(user_id);
+CREATE INDEX IF NOT EXISTS idx_interactions_recipe_id ON user_interactions(recipe_id);
+CREATE INDEX IF NOT EXISTS idx_interactions_type ON user_interactions(interaction_type);
+CREATE INDEX IF NOT EXISTS idx_interactions_timestamp ON user_interactions(created_at);
+
+-- Add this script to the schema.sql file
+ALTER TABLE recipe_diet_attributes ALTER COLUMN vegan SET DEFAULT FALSE;
+ALTER TABLE recipe_diet_attributes ALTER COLUMN pescetarian SET DEFAULT FALSE;
+ALTER TABLE recipe_diet_attributes ALTER COLUMN ovo_vegetarian SET DEFAULT FALSE;
+ALTER TABLE recipe_diet_attributes ALTER COLUMN lacto_vegetarian SET DEFAULT FALSE;
+ALTER TABLE recipe_diet_attributes ALTER COLUMN ovo_lacto_vegetarian SET DEFAULT FALSE;
+
+-- User Interactions Table (updated to accept string recipe_id)
+CREATE TABLE IF NOT EXISTS user_interactions (
+    interaction_id SERIAL PRIMARY KEY,
+    user_id VARCHAR(100) NOT NULL,
+    recipe_id VARCHAR(100) NOT NULL, -- Using VARCHAR type
+    interaction_type VARCHAR(50) NOT NULL, -- 'view', 'like', 'save', 'cook', 'rating'
+    rating DECIMAL(3,1), -- Optional rating value (1-5)
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, recipe_id, interaction_type)
+);
+
+-- User Dietary Preferences Table
+CREATE TABLE IF NOT EXISTS user_dietary_preference (
+    id SERIAL PRIMARY KEY,
+    user_id VARCHAR(100) NOT NULL,
+    dietary_restriction VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, dietary_restriction)
+);
+////////////////////////////////////////////////////////////////////////////////
+

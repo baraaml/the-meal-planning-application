@@ -1,16 +1,20 @@
 const express = require("express");
 const { authenticateUser } = require("../middlewares/authentication");
-const { getRecommendedMeals } = require("../controllers/meal.controller");
+const { 
+  getRecommendedMeals, 
+  getMealById, 
+  getTrendingMeals,
+  recordMealInteraction
+} = require("../controllers/meal.controller");
+
 const router = express.Router();
 
-// Route for getting recommended meals
+// Public routes
 router.get("/recommended", getRecommendedMeals);
+router.get("/trending", getTrendingMeals);
+router.get("/:id", getMealById);
 
-// Additional routes can be added here
-// For example:
-// router.post("/", authenticateUser, createMeal);
-// router.get("/:id", getMealById);
-// router.patch("/:id", authenticateUser, updateMeal);
-// router.delete("/:id", authenticateUser, deleteMeal);
+// Protected routes (require authentication)
+router.post("/interaction", authenticateUser, recordMealInteraction);
 
 module.exports = router;

@@ -9,6 +9,7 @@ from models.queries_recipe import (
     get_recipe, get_recipes, create_recipe, update_recipe, delete_recipe
 )
 from embedding.embeddings import EmbeddingGenerator
+from config.db import execute_query  # Add this import
 
 router = APIRouter(prefix="/api/v1", tags=["recipes"])
 
@@ -20,14 +21,17 @@ def get_recipe_endpoint(recipe_id: int):
         raise HTTPException(status_code=404, detail=f"Recipe with ID {recipe_id} not found")
     return recipe
 
+
 @router.get("/recipes", response_model=List[RecipeBase])
 def get_recipes_endpoint(
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
     region: Optional[str] = None,
-    sub_region: Optional[str] = None
+    sub_region: Optional[str] = None,
+    min_calories: Optional[int] = None,
+    max_calories: Optional[int] = None
 ):
-    """Get a list of recipes."""
+    """Get a list of recipes with optional filtering."""
     # Calculate offset based on page and limit
     offset = (page - 1) * limit
     
@@ -37,8 +41,15 @@ def get_recipes_endpoint(
         filters["region"] = region
     if sub_region:
         filters["sub_region"] = sub_region
+        
+    # Add calorie filters to the query parameters
+    calories_filter = {}
+    if min_calories is not None:
+        calories_filter["min_calories"] = min_calories
+    if max_calories is not None:
+        calories_filter["max_calories"] = max_calories
     
-    recipes = get_recipes(limit=limit, offset=offset, filters=filters)
+    recipes = get_recipes(limit=limit, offset=offset, filters=filters, calories_filter=calories_filter)
     return recipes
 
 @router.post("/recipes", response_model=RecipeDetail, status_code=status.HTTP_201_CREATED)
@@ -88,3 +99,34 @@ def delete_recipe_endpoint(recipe_id: int):
         raise HTTPException(status_code=500, detail="Failed to delete recipe")
     
     return None
+
+
+@router.get("/recipes/filter/calories", response_model=List[RecipeBase])
+def filter_recipes_by_calories(
+    min: float = Query(0, ge=0),
+    max: float = Query(1000, ge=0),
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100)
+):
+    """Filter recipes by calorie range."""
+    # Calculate offset based on page and limit
+    offset = (page - 1) * limit
+    
+    query = """
+    SELECT 
+        recipe_id, recipe_title, region, sub_region
+    FROM recipes
+    WHERE calories >= %(min)s AND calories <= %(max)s
+    ORDER BY recipe_id
+    LIMIT %(limit)s OFFSET %(offset)s
+    """
+    
+    params = {
+        "min": min,
+        "max": max,
+        "limit": limit,
+        "offset": offset
+    }
+    
+    return execute_query(query, params)
+

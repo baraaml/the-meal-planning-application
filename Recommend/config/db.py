@@ -2,7 +2,7 @@
 Database connection handling with connection pooling and transaction management.
 """
 import logging
-from typing import Any, Dict, Optional, Generator
+from typing import Any, Dict, Optional, List
 from contextlib import contextmanager
 import psycopg2
 import psycopg2.extras
@@ -59,24 +59,33 @@ def get_cursor():
         finally:
             cursor.close()
 
-def execute_query(query: str, params: Optional[Dict[str, Any]] = None):
+def execute_query(query: str, params: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
     """Execute a query and return all results."""
     with get_cursor() as cursor:
         cursor.execute(query, params or {})
         if cursor.description:
             return cursor.fetchall()
-        return None
+        return []
 
-def execute_query_single(query: str, params: Optional[Dict[str, Any]] = None):
+def execute_query_single(query: str, params: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
     """Execute a query and return a single result."""
     with get_cursor() as cursor:
         cursor.execute(query, params or {})
         if cursor.description:
-            return cursor.fetchone()
+            result = cursor.fetchone()
+            return result
         return None
 
-def execute_transaction(queries_params):
-    """Execute multiple queries in a transaction."""
+def execute_transaction(queries_params: List[tuple]):
+    """
+    Execute multiple queries in a transaction.
+    
+    Args:
+        queries_params: List of (query, params) tuples to execute
+    
+    Returns:
+        True if successful, False otherwise
+    """
     with get_connection() as conn:
         try:
             with conn.cursor() as cursor:
@@ -89,7 +98,7 @@ def execute_transaction(queries_params):
             logger.error(f"Transaction error: {e}")
             raise
 
-def check_connection():
+def check_connection() -> bool:
     """Test database connection."""
     try:
         with get_cursor() as cursor:

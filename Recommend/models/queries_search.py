@@ -8,7 +8,7 @@ def find_similar_content(embedding, exclude_ids=None, limit=10, min_similarity=M
     """Find recipes with similar embeddings."""
     # Convert embedding to a proper format for PostgreSQL vector
     if isinstance(embedding, list):
-        embedding_str = str(embedding).replace('[', '{').replace(']', '}')
+        embedding_str = f"[{', '.join(map(str, embedding))}]"
     else:
         embedding_str = embedding
     

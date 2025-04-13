@@ -572,11 +572,11 @@ def main():
     logger.info("Starting MealFlow database import")
     
     # Import in order to respect foreign key constraints
-    # import_ingredients(file_paths['ingredients'])
-    # import_recipes(file_paths['recipes'])
-    # import_ingredient_phrases(file_paths['ingredient_phrases'])
+    import_ingredients(file_paths['ingredients'])
+    import_recipes(file_paths['recipes'])
+    import_ingredient_phrases(file_paths['ingredient_phrases'])
     import_instructions(file_paths['instructions'])
-    # import_ingredient_flavors(file_paths['ingredient_flavors'])
+    import_ingredient_flavors(file_paths['ingredient_flavors'])
     
     logger.info("MealFlow database import completed")
 

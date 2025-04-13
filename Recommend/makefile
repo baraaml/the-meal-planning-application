@@ -1,4 +1,4 @@
-.PHONY: setup install clean run test load-data setup-db reset-db drop-db create-db init-embeddings test-db train-mf-model help
+.PHONY: setup install clean run test load-data setup-db reset-db drop-db create-db init-embeddings test-db help
 
 # Python from virtual environment
 PYTHON = ./venv/bin/python
@@ -51,7 +51,6 @@ test:
 	@echo "Running tests..."
 	pytest -xvs tests/
 
-
 # Load data from CSV and JSON files
 load-data:
 	@echo "Loading data from CSV and JSON files..."
@@ -80,7 +79,8 @@ drop-db:
 # Generate all initial embeddings
 init-embeddings:
 	@echo "Generating initial embeddings..."
-	PYTHONPATH=. ./venv/bin/python ./embeddings/generator.py
+	PYTHONPATH=. $(PYTHON) -c "import logging; logging.basicConfig(level=logging.INFO); from embedding.embeddings import EmbeddingGenerator; generator = EmbeddingGenerator(); generator.generate_all_embeddings()"
+	@echo "✓ Embeddings generated"
 
 # Create database
 create-db:
@@ -94,17 +94,6 @@ test-db:
 	@psql $(DATABASE_URL) -c "SELECT 1" >/dev/null 2>&1 || \
 		(echo "Database connection failed. Please check your DATABASE_URL in .env file."; exit 1)
 	@echo "✓ Database connection successful"
-
-
-# Train matrix factorization model
-train-mf-model:
-	@echo "Training matrix factorization model..."
-	curl -X POST "http://$(API_HOST):$(API_PORT)/models/matrix-factorization/train" \
-		 -H "Content-Type: application/json" \
-		 -d '{"n_factors": 32, "learning_rate": 0.05, "batch_size": 512}'
-	@echo "✓ Matrix factorization model training started"
-
-
 
 # Help
 help:

@@ -1,0 +1,443 @@
+{
+	"info": {
+		"_postman_id": "mealflow-recommendation-service-v1",
+		"name": "MealFlow Recommendation Service",
+		"description": "Comprehensive API collection for MealFlow Recommendation Service\n\nBase URL: {{protocol}}://{{host}}:{{port}}/api/{{version}}",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Recommendations",
+			"item": [
+				{
+					"name": "User Recommendations",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{protocol}}://{{host}}:{{port}}/api/{{version}}/recommend/user/{{user_id}}?limit={{limit}}&recommendation_type={{recommendation_type}}&cuisine={{cuisine}}&dietary_restriction={{dietary_restriction}}",
+							"protocol": "{{protocol}}",
+							"host": ["{{host}}"],
+							"port": "{{port}}",
+							"path": ["api", "{{version}}", "recommend", "user", "{{user_id}}"],
+							"query": [
+								{"key": "limit", "value": "{{limit}}"},
+								{"key": "recommendation_type", "value": "{{recommendation_type}}"},
+								{"key": "cuisine", "value": "{{cuisine}}"},
+								{"key": "dietary_restriction", "value": "{{dietary_restriction}}"}
+							]
+						}
+					}
+				},
+				{
+					"name": "Similar Recipes",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{protocol}}://{{host}}:{{port}}/api/{{version}}/recommend/similar/{{recipe_id}}?limit={{limit}}&similarity_method={{similarity_method}}",
+							"protocol": "{{protocol}}",
+							"host": ["{{host}}"],
+							"port": "{{port}}",
+							"path": ["api", "{{version}}", "recommend", "similar", "{{recipe_id}}"],
+							"query": [
+								{"key": "limit", "value": "{{limit}}"},
+								{"key": "similarity_method", "value": "{{similarity_method}}"}
+							]
+						}
+					}
+				},
+				{
+					"name": "Trending Recipes",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{protocol}}://{{host}}:{{port}}/api/{{version}}/trending?time_window={{time_window}}&limit={{limit}}&cuisine={{cuisine}}&dietary_restriction={{dietary_restriction}}",
+							"protocol": "{{protocol}}",
+							"host": ["{{host}}"],
+							"port": "{{port}}",
+							"path": ["api", "{{version}}", "trending"],
+							"query": [
+								{"key": "time_window", "value": "{{time_window}}"},
+								{"key": "limit", "value": "{{limit}}"},
+								{"key": "cuisine", "value": "{{cuisine}}"},
+								{"key": "dietary_restriction", "value": "{{dietary_restriction}}"}
+							]
+						}
+					}
+				},
+				{
+					"name": "Cuisine Recommendations",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{protocol}}://{{host}}:{{port}}/api/{{version}}/recommend/cuisine/{{cuisine_id}}?limit={{limit}}",
+							"protocol": "{{protocol}}",
+							"host": ["{{host}}"],
+							"port": "{{port}}",
+							"path": ["api", "{{version}}", "recommend", "cuisine", "{{cuisine_id}}"],
+							"query": [
+								{"key": "limit", "value": "{{limit}}"}
+							]
+						}
+					}
+				},
+				{
+					"name": "Dietary Recommendations",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{protocol}}://{{host}}:{{port}}/api/{{version}}/recommend/dietary/{{dietary_restriction}}?limit={{limit}}",
+							"protocol": "{{protocol}}",
+							"host": ["{{host}}"],
+							"port": "{{port}}",
+							"path": ["api", "{{version}}", "recommend", "dietary", "{{dietary_restriction}}"],
+							"query": [
+								{"key": "limit", "value": "{{limit}}"}
+							]
+						}
+					}
+				},
+				{
+					"name": "Regional Recommendations",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{protocol}}://{{host}}:{{port}}/api/{{version}}/recommend/region/{{region}}?limit={{limit}}",
+							"protocol": "{{protocol}}",
+							"host": ["{{host}}"],
+							"port": "{{port}}",
+							"path": ["api", "{{version}}", "recommend", "region", "{{region}}"],
+							"query": [
+								{"key": "limit", "value": "{{limit}}"}
+							]
+						}
+					}
+				},
+				{
+					"name": "Continental Recommendations",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{protocol}}://{{host}}:{{port}}/api/{{version}}/recommend/continent/{{continent}}?limit={{limit}}",
+							"protocol": "{{protocol}}",
+							"host": ["{{host}}"],
+							"port": "{{port}}",
+							"path": ["api", "{{version}}", "recommend", "continent", "{{continent}}"],
+							"query": [
+								{"key": "limit", "value": "{{limit}}"}
+							]
+						}
+					}
+				},
+				{
+					"name": "Calorie Range Recommendations",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{protocol}}://{{host}}:{{port}}/api/{{version}}/recommend/calories?min={{min_calories}}&max={{max_calories}}&limit={{limit}}",
+							"protocol": "{{protocol}}",
+							"host": ["{{host}}"],
+							"port": "{{port}}",
+							"path": ["api", "{{version}}", "recommend", "calories"],
+							"query": [
+								{"key": "min", "value": "{{min_calories}}"},
+								{"key": "max", "value": "{{max_calories}}"},
+								{"key": "limit", "value": "{{limit}}"}
+							]
+						}
+					}
+				},
+				{
+					"name": "Quick Recipe Recommendations",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{protocol}}://{{host}}:{{port}}/api/{{version}}/recommend/quick?max_time={{max_total_time}}&limit={{limit}}",
+							"protocol": "{{protocol}}",
+							"host": ["{{host}}"],
+							"port": "{{port}}",
+							"path": ["api", "{{version}}", "recommend", "quick"],
+							"query": [
+								{"key": "max_time", "value": "{{max_total_time}}"},
+								{"key": "limit", "value": "{{limit}}"}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Recipes",
+			"item": [
+				{
+					"name": "Get Recipe by ID",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{protocol}}://{{host}}:{{port}}/api/{{version}}/recipes/{{recipe_id}}",
+							"protocol": "{{protocol}}",
+							"host": ["{{host}}"],
+							"port": "{{port}}",
+							"path": ["api", "{{version}}", "recipes", "{{recipe_id}}"]
+						}
+					}
+				},
+				{
+					"name": "List Recipes",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{protocol}}://{{host}}:{{port}}/api/{{version}}/recipes?page={{page}}&limit={{limit}}&region={{region}}&sub_region={{sub_region}}&dietary_restriction={{dietary_restriction}}",
+							"protocol": "{{protocol}}",
+							"host": ["{{host}}"],
+							"port": "{{port}}",
+							"path": ["api", "{{version}}", "recipes"],
+							"query": [
+								{"key": "page", "value": "{{page}}"},
+								{"key": "limit", "value": "{{limit}}"},
+								{"key": "region", "value": "{{region}}"},
+								{"key": "sub_region", "value": "{{sub_region}}"},
+								{"key": "dietary_restriction", "value": "{{dietary_restriction}}"}
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Recipe",
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"recipe_title\": \"{{recipe_title}}\",\n    \"region\": \"{{region}}\",\n    \"sub_region\": \"{{sub_region}}\",\n    \"continent\": \"{{continent}}\",\n    \"cook_time\": {{cook_time}},\n    \"prep_time\": {{prep_time}},\n    \"calories\": {{calories}}\n}"
+						},
+						"url": {
+							"raw": "{{protocol}}://{{host}}:{{port}}/api/{{version}}/recipes",
+							"protocol": "{{protocol}}",
+							"host": ["{{host}}"],
+							"port": "{{port}}",
+							"path": ["api", "{{version}}", "recipes"]
+						}
+					}
+				},
+				{
+					"name": "Update Recipe",
+					"request": {
+						"method": "PUT",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"recipe_title\": \"{{recipe_title}}\",\n    \"region\": \"{{region}}\",\n    \"sub_region\": \"{{sub_region}}\"\n}"
+						},
+						"url": {
+							"raw": "{{protocol}}://{{host}}:{{port}}/api/{{version}}/recipes/{{recipe_id}}",
+							"protocol": "{{protocol}}",
+							"host": ["{{host}}"],
+							"port": "{{port}}",
+							"path": ["api", "{{version}}", "recipes", "{{recipe_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Delete Recipe",
+					"request": {
+						"method": "DELETE",
+						"url": {
+							"raw": "{{protocol}}://{{host}}:{{port}}/api/{{version}}/recipes/{{recipe_id}}",
+							"protocol": "{{protocol}}",
+							"host": ["{{host}}"],
+							"port": "{{port}}",
+							"path": ["api", "{{version}}", "recipes", "{{recipe_id}}"]
+						}
+					}
+				},
+				{
+					"name": "Search Recipes",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{protocol}}://{{host}}:{{port}}/api/{{version}}/recipes/search?query={{search_query}}&page={{page}}&limit={{limit}}",
+							"protocol": "{{protocol}}",
+							"host": ["{{host}}"],
+							"port": "{{port}}",
+							"path": ["api", "{{version}}", "recipes", "search"],
+							"query": [
+								{"key": "query", "value": "{{search_query}}"},
+								{"key": "page", "value": "{{page}}"},
+								{"key": "limit", "value": "{{limit}}"}
+							]
+						}
+					}
+				},
+				{
+					"name": "Filter Recipes by Calories",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{protocol}}://{{host}}:{{port}}/api/{{version}}/recipes/filter/calories?min={{min_calories}}&max={{max_calories}}&page={{page}}&limit={{limit}}",
+							"protocol": "{{protocol}}",
+							"host": ["{{host}}"],
+							"port": "{{port}}",
+							"path": ["api", "{{version}}", "recipes", "filter", "calories"],
+							"query": [
+								{"key": "min", "value": "{{min_calories}}"},
+								{"key": "max", "value": "{{max_calories}}"},
+								{"key": "page", "value": "{{page}}"},
+								{"key": "limit", "value": "{{limit}}"}
+							]
+						}
+					}
+				},
+				{
+					"name": "Filter Recipes by Time",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{protocol}}://{{host}}:{{port}}/api/{{version}}/recipes/filter/time?max_total={{max_total_time}}&page={{page}}&limit={{limit}}",
+							"protocol": "{{protocol}}",
+							"host": ["{{host}}"],
+							"port": "{{port}}",
+							"path": ["api", "{{version}}", "recipes", "filter", "time"],
+							"query": [
+								{"key": "max_total", "value": "{{max_total_time}}"},
+								{"key": "page", "value": "{{page}}"},
+								{"key": "limit", "value": "{{limit}}"}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Interactions",
+			"item": [
+				{
+					"name": "Record Interaction",
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"user_id\": \"{{user_id}}\",\n    \"meal_id\": \"{{recipe_id}}\",\n    \"interaction_type\": \"{{interaction_type}}\",\n    \"rating\": {{rating}}\n}"
+						},
+						"url": {
+							"raw": "{{protocol}}://{{host}}:{{port}}/api/{{version}}/interactions",
+							"protocol": "{{protocol}}",
+							"host": ["{{host}}"],
+							"port": "{{port}}",
+							"path": ["api", "{{version}}", "interactions"]
+						}
+					}
+				},
+				{
+					"name": "Get User Interactions",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{protocol}}://{{host}}:{{port}}/api/{{version}}/interactions/user/{{user_id}}?interaction_type={{interaction_type}}&limit={{limit}}",
+							"protocol": "{{protocol}}",
+							"host": ["{{host}}"],
+							"port": "{{port}}",
+							"path": ["api", "{{version}}", "interactions", "user", "{{user_id}}"],
+							"query": [
+								{"key": "interaction_type", "value": "{{interaction_type}}"},
+								{"key": "limit", "value": "{{limit}}"}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Recipe Interactions",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{protocol}}://{{host}}:{{port}}/api/{{version}}/interactions/recipe/{{recipe_id}}?interaction_type={{interaction_type}}&limit={{limit}}",
+							"protocol": "{{protocol}}",
+							"host": ["{{host}}"],
+							"port": "{{port}}",
+							"path": ["api", "{{version}}", "interactions", "recipe", "{{recipe_id}}"],
+							"query": [
+								{"key": "interaction_type", "value": "{{interaction_type}}"},
+								{"key": "limit", "value": "{{limit}}"}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "System",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{protocol}}://{{host}}:{{port}}/api/{{version}}/health",
+							"protocol": "{{protocol}}",
+							"host": ["{{host}}"],
+							"port": "{{port}}",
+							"path": ["api", "{{version}}", "health"]
+						}
+					}
+				},
+				{
+					"name": "API Stats",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{protocol}}://{{host}}:{{port}}/api/{{version}}/stats",
+							"protocol": "{{protocol}}",
+							"host": ["{{host}}"],
+							"port": "{{port}}",
+							"path": ["api", "{{version}}", "stats"]
+						}
+					}
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{"key": "user_id", "value": "user123", "type": "string"},
+		{"key": "recipe_id", "value": "2610", "type": "string"},
+		{"key": "limit", "value": "10", "type": "string"},
+		{"key": "page", "value": "1", "type": "string"},
+		{"key": "recommendation_type", "value": "hybrid", "type": "string"},
+		{"key": "cuisine", "value": "Middle Eastern", "type": "string"},
+		{"key": "region", "value": "Middle Eastern", "type": "string"},
+		{"key": "sub_region", "value": "Egyptian", "type": "string"},
+		{"key": "dietary_restriction", "value": "vegan", "type": "string"},
+		{"key": "interaction_type", "value": "like", "type": "string"},
+		{"key": "similarity_method", "value": "content", "type": "string"},
+		{"key": "time_window", "value": "day", "type": "string"},
+		{"key": "recipe_title", "value": "Egyptian Lentil Soup", "type": "string"},
+		{"key": "continent", "value": "Africa", "type": "string"},
+		{"key": "cook_time", "value": "30", "type": "number"},
+		{"key": "prep_time", "value": "15", "type": "number"},
+		{"key": "calories", "value": "196", "type": "number"},
+		{"key": "rating", "value": "4.5", "type": "number"},
+		{"key": "min_calories", "value": "100", "type": "number"},
+		{"key": "max_calories", "value": "500", "type": "number"},
+		{"key": "max_total_time", "value": "30", "type": "number"},
+		{"key": "search_query", "value": "lentil", "type": "string"}
+	]
+}

@@ -211,6 +211,36 @@ def create_interaction_endpoint(interaction: InteractionCreate):
     """Record a user interaction with a recipe."""
     start_time = time.time()
     
+    # Validate recipe_id
+    recipe_id = interaction.meal_id
+    if recipe_id and "{{" in recipe_id:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid recipe_id format. Template variables not resolved."
+        )
+    
+    success = record_interaction(
+        user_id=interaction.user_id,
+        recipe_id=recipe_id,
+        interaction_type=interaction.interaction_type,
+        rating=interaction.rating if interaction.interaction_type == 'rating' else None
+    )
+    
+    execution_time = (time.time() - start_time) * 1000
+    
+    if success:
+        return {
+            "status": "recorded",
+            "execution_time_ms": round(execution_time, 2)
+        }
+    else:
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to record interaction"
+        )
+    """Record a user interaction with a recipe."""
+    start_time = time.time()
+    
     success = record_interaction(
         user_id=interaction.user_id,
         recipe_id=interaction.meal_id,
@@ -230,3 +260,79 @@ def create_interaction_endpoint(interaction: InteractionCreate):
             status_code=500,
             detail="Failed to record interaction"
         )
+
+
+# Add this endpoint to the endpoints/recommendations.py file
+@router.get("/recommend/quick", response_model=RecommendationResponse)
+def get_quick_recipes(
+    max_time: int = Query(30, description="Maximum total preparation time in minutes"),
+    limit: int = Query(DEFAULT_RECOMMENDATION_LIMIT, description="Maximum number of items"),
+    cuisine: Optional[str] = None,
+    dietary_restriction: Optional[str] = None
+):
+    """Get quick recipe recommendations based on preparation time."""
+    start_time = time.time()
+    
+    # Query for recipes with preparation time less than max_time
+    query = """
+    SELECT 
+        recipe_id,
+        recipe_title as title
+    FROM recipes
+    WHERE 1=1
+    AND (total_time <= %(max_time)s OR 
+         (prep_time + COALESCE(cook_time, 0)) <= %(max_time)s)
+    """
+    
+    params = {
+        "max_time": max_time,
+        "limit": limit
+    }
+    
+    # Add filters
+    if cuisine:
+        query += " AND (region = %(cuisine)s OR sub_region = %(cuisine)s)"
+        params["cuisine"] = cuisine
+    
+    if dietary_restriction:
+        query += """
+        AND EXISTS (
+            SELECT 1 FROM recipe_diet_attributes rda 
+            WHERE rda.recipe_id = recipes.recipe_id AND
+            CASE 
+                WHEN %(dietary)s = 'vegan' THEN rda.vegan = TRUE
+                WHEN %(dietary)s = 'pescetarian' THEN rda.pescetarian = TRUE
+                WHEN %(dietary)s = 'lacto_vegetarian' THEN rda.lacto_vegetarian = TRUE
+                ELSE FALSE
+            END
+        )
+        """
+        params["dietary"] = dietary_restriction
+    
+    # Complete the query with ordering and limit
+    query += """
+    ORDER BY (COALESCE(prep_time, 0) + COALESCE(cook_time, 0))
+    LIMIT %(limit)s
+    """
+    
+    # Execute the query
+    from config.db import execute_query
+    quick_recipes = execute_query(query, params)
+    
+    # Format the items
+    items = []
+    for item in quick_recipes:
+        items.append(RecommendationItem(
+            id=str(item["recipe_id"]),
+            content_type="recipe",
+            title=item["title"],
+            score=None
+        ))
+    
+    execution_time = (time.time() - start_time) * 1000
+    
+    return RecommendationResponse(
+        items=items,
+        count=len(items),
+        execution_time_ms=round(execution_time, 2)
+    )

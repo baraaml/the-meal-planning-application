@@ -138,6 +138,10 @@ def record_interaction(user_id, recipe_id, interaction_type, rating=None):
         created_at = CURRENT_TIMESTAMP
     """
     
+    # Ensure recipe_id is a string
+    if recipe_id and not isinstance(recipe_id, str):
+        recipe_id = str(recipe_id)
+    
     params = {
         "user_id": user_id,
         "recipe_id": recipe_id,
@@ -147,7 +151,6 @@ def record_interaction(user_id, recipe_id, interaction_type, rating=None):
     
     execute_query(query, params)
     return True
-
 def find_similar_users(user_id, min_common_items=2, limit=10):
     """Find users with similar interaction patterns."""
     query = """

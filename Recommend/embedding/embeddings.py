@@ -29,7 +29,7 @@ class EmbeddingGenerator:
         self.embedding_dimension = EMBEDDING_DIMENSION
     
     def generate_recipe_embedding(self, recipe_data: Dict[str, Any]) -> Optional[List[float]]:
-        """Generate an embedding for a single recipe."""
+        """Generate an embedding for a single recipe with improved error handling."""
         try:
             # Create a comprehensive text representation of the recipe
             title = recipe_data.get("recipe_title", "")
@@ -42,18 +42,31 @@ class EmbeddingGenerator:
             # Generate embedding
             embedding = self.model.encode(text_for_embedding)
             
-            # Convert to list for storage
-            return embedding.tolist()
+            # Ensure it's a list of floats
+            if not isinstance(embedding, list):
+                embedding = embedding.tolist()
+            
+            # Validate embedding
+            if not embedding or len(embedding) != self.embedding_dimension:
+                logger.warning(f"Invalid embedding generated. Length: {len(embedding)}, Expected: {self.embedding_dimension}")
+                return None
+            
+            return embedding
             
         except Exception as e:
             logger.error(f"Error generating embedding: {e}")
             return None
-    
+     
     def save_recipe_embedding(self, recipe_id: int, embedding: List[float]) -> bool:
-        """Save a recipe embedding to the database."""
+        """Save a recipe embedding to the database with correct vector formatting."""
         try:
             # Convert embedding to PostgreSQL vector format
-            pg_vector = str(embedding).replace('[', '{').replace(']', '}')
+            # Ensure the embedding is a list and convert to a string 
+            # that starts with "[" and is compatible with PostgreSQL vector
+            if not isinstance(embedding, list):
+                embedding = list(embedding)
+            
+            pg_vector = f"[{', '.join(map(str, embedding))}]"
             
             query = """
             INSERT INTO recipe_embeddings (recipe_id, embedding)
@@ -70,7 +83,7 @@ class EmbeddingGenerator:
         except Exception as e:
             logger.error(f"Error saving embedding for recipe {recipe_id}: {e}")
             return False
-    
+     
     def update_recipe_embedding(self, recipe_id: int) -> bool:
         """Update the embedding for a specific recipe."""
         try:
@@ -91,7 +104,7 @@ class EmbeddingGenerator:
             logger.error(f"Error updating embedding for recipe {recipe_id}: {e}")
             return False
     
-    def generate_all_embeddings(self, batch_size: int = 50) -> int:
+    def generate_all_embeddings(self, batch_size: int = 5000) -> int:
         """Generate embeddings for recipes that don't have them yet."""
         count = 0
         
