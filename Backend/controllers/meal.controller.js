@@ -100,9 +100,171 @@ const recordMealInteraction = async (req, res) => {
   }
 };
 
+// NEW CONTROLLER METHODS
+
+// Get quick meals (recipes that can be prepared quickly)
+const getQuickMeals = async (req, res) => {
+  try {
+    const maxTime = parseInt(req.query.max_time) || 30;
+    const limit = parseInt(req.query.limit) || 10;
+    const cuisine = req.query.cuisine || null;
+    const dietaryRestriction = req.query.dietary_restriction || null;
+    
+    const meals = await recipeService.getQuickMeals(maxTime, limit, cuisine, dietaryRestriction);
+    
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: "Quick meals retrieved successfully",
+      count: meals.length,
+      data: meals
+    });
+  } catch (error) {
+    console.error("Error fetching quick meals:", error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: "Failed to retrieve quick meals",
+      error: error.message
+    });
+  }
+};
+
+// Get cuisine recommendations
+const getCuisineRecommendations = async (req, res) => {
+  try {
+    const cuisineId = req.params.cuisine_id;
+    const limit = parseInt(req.query.limit) || 10;
+    
+    const meals = await recipeService.getCuisineRecommendations(cuisineId, limit);
+    
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: `${cuisineId} cuisine recommendations retrieved successfully`,
+      count: meals.length,
+      data: meals
+    });
+  } catch (error) {
+    console.error(`Error fetching cuisine recommendations for ${req.params.cuisine_id}:`, error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: "Failed to retrieve cuisine recommendations",
+      error: error.message
+    });
+  }
+};
+
+// Get dietary recommendations
+const getDietaryRecommendations = async (req, res) => {
+  try {
+    const dietaryRestriction = req.params.dietary_restriction;
+    const limit = parseInt(req.query.limit) || 10;
+    
+    const meals = await recipeService.getDietaryRecommendations(dietaryRestriction, limit);
+    
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: `${dietaryRestriction} dietary recommendations retrieved successfully`,
+      count: meals.length,
+      data: meals
+    });
+  } catch (error) {
+    console.error(`Error fetching dietary recommendations for ${req.params.dietary_restriction}:`, error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: "Failed to retrieve dietary recommendations",
+      error: error.message
+    });
+  }
+};
+
+// Get similar meals
+const getSimilarMeals = async (req, res) => {
+  try {
+    const mealId = req.params.id;
+    const limit = parseInt(req.query.limit) || 5;
+    
+    const meals = await recipeService.getSimilarMeals(mealId, limit);
+    
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: "Similar meals retrieved successfully",
+      count: meals.length,
+      data: meals
+    });
+  } catch (error) {
+    console.error(`Error fetching similar meals for ${req.params.id}:`, error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: "Failed to retrieve similar meals",
+      error: error.message
+    });
+  }
+};
+
+// Get filtered recipes
+const getFilteredRecipes = async (req, res) => {
+  try {
+    const options = {
+      page: parseInt(req.query.page) || 1,
+      limit: parseInt(req.query.limit) || 20,
+      region: req.query.region,
+      subRegion: req.query.sub_region,
+      minCalories: req.query.min_calories ? parseInt(req.query.min_calories) : null,
+      maxCalories: req.query.max_calories ? parseInt(req.query.max_calories) : null
+    };
+    
+    const meals = await recipeService.getFilteredRecipes(options);
+    
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: "Filtered recipes retrieved successfully",
+      count: meals.length,
+      data: meals
+    });
+  } catch (error) {
+    console.error("Error fetching filtered recipes:", error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: "Failed to retrieve filtered recipes",
+      error: error.message
+    });
+  }
+};
+
+// Get recipes by calorie range
+const getRecipesByCalories = async (req, res) => {
+  try {
+    const min = parseFloat(req.query.min) || 0;
+    const max = parseFloat(req.query.max) || 1000;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    
+    const meals = await recipeService.getRecipesByCalories(min, max, page, limit);
+    
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: "Recipes by calorie range retrieved successfully",
+      count: meals.length,
+      data: meals
+    });
+  } catch (error) {
+    console.error("Error fetching recipes by calories:", error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: "Failed to retrieve recipes by calorie range",
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   getRecommendedMeals,
   getMealById,
   getTrendingMeals,
-  recordMealInteraction
+  recordMealInteraction,
+  getQuickMeals,
+  getCuisineRecommendations,
+  getDietaryRecommendations,
+  getSimilarMeals,
+  getFilteredRecipes,
+  getRecipesByCalories
 };
