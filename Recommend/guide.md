@@ -27,7 +27,6 @@
   - `Saudi Arabian`
   - `Iraqi`
   - `Palestinian`
-  - `Israeli`
 
 - `sub_region`: 
   - Same values as cuisine/region
