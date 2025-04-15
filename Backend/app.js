@@ -14,6 +14,7 @@ const authRouter = require("./routes/auth.routes");
 const userRouter = require("./routes/user.routes");
 const communityRouter = require("./routes/community.routes");
 const mealRouter = require("./routes/meal.routes");
+const systemRouter = require("./routes/system.routes"); // Add the system routes
 const notFound = require("./middlewares/notFound");
 const errorHandlerMiddleware = require("./middlewares/errorHandler");
 
@@ -24,6 +25,7 @@ app.use("/api/v1/users", userRouter);
 app.use("/api/v1/community", communityRouter);
 app.use("/api/v1/upload", uploadRouter);
 app.use("/api/v1/meal", mealRouter);
+app.use("/api/v1/system", systemRouter); // Use the system routes
 
 app.get("/", (req, res) => {
   res.send("Hello ma man");

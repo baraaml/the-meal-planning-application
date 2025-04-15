@@ -1,5 +1,6 @@
 const express = require("express");
 const { authenticateUser } = require("../middlewares/authentication");
+
 const { 
   getRecommendedMeals, 
   getMealById, 
@@ -10,12 +11,14 @@ const {
   getDietaryRecommendations,
   getSimilarMeals,
   getFilteredRecipes,
-  getRecipesByCalories
+  getRecipesByCalories,
+  advancedSearch  
 } = require("../controllers/meal.controller");
 
 const router = express.Router();
 
 // Public routes
+router.get("/search/advanced", advancedSearch);
 router.get("/recommended", getRecommendedMeals);
 router.get("/trending", getTrendingMeals);
 router.get("/quick", getQuickMeals);
@@ -30,3 +33,4 @@ router.get("/:id", getMealById);
 router.post("/interaction", authenticateUser, recordMealInteraction);
 
 module.exports = router;
+

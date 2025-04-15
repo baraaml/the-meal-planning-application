@@ -104,6 +104,7 @@ const authRouter = require("./routes/auth.routes");
 const userRouter = require("./routes/user.routes");
 const communityRouter = require("./routes/community.routes");
 const mealRouter = require("./routes/meal.routes");
+const systemRouter = require("./routes/system.routes"); // Add the system routes
 const notFound = require("./middlewares/notFound");
 const errorHandlerMiddleware = require("./middlewares/errorHandler");
 
@@ -114,6 +115,7 @@ app.use("/api/v1/users", userRouter);
 app.use("/api/v1/community", communityRouter);
 app.use("/api/v1/upload", uploadRouter);
 app.use("/api/v1/meal", mealRouter);
+app.use("/api/v1/system", systemRouter); // Use the system routes
 
 app.get("/", (req, res) => {
   res.send("Hello ma man");
@@ -156,7 +158,6 @@ if (require.main === module) {
 
 // Export the Express app (without starting the server) for testing
 module.exports = app;
-
 ////////////////////////////////////////////////////////////////////////////////
 
 ├── config
@@ -190,10 +191,178 @@ module.exports = prisma;
 │   └── pythonService.js
 
 ////////////////////////////////////////////////////////////////////////////////
+const axios = require('axios');
+const config = require('../config/pythonService');
+const recipeTransformer = require('../transformers/recipeTransformer');
+// config/pythonService.js
 require('dotenv').config();
 
+
+
+class RecipeService {
+  constructor() {
+    this.client = axios.create({
+      baseURL: `${config.baseUrl}/api/${config.apiVersion}`,
+      timeout: config.timeout
+    });
+  }
+
+  async getRecommendedMeals(userId = config.defaultUserId, limit = 10) {
+    try {
+      const response = await this.client.get(`/recommend/user/${userId}`, {
+        params: { limit, recommendation_type: 'hybrid' }
+      });
+      
+      return this._transformItems(response.data.items);
+    } catch (error) {
+      console.error('Failed to fetch recommended meals:', error);
+      throw error;
+    }
+  }
+
+  async getTrendingMeals(limit = 10, timeWindow = 'week') {
+    try {
+      const response = await this.client.get('/trending', {
+        params: { limit, time_window: timeWindow }
+      });
+      
+      return this._transformItems(response.data.items);
+    } catch (error) {
+      console.error('Failed to fetch trending meals:', error);
+      throw error;
+    }
+  }
+
+  async getSimilarMeals(recipeId, limit = 5) {
+    try {
+      const response = await this.client.get(`/recommend/similar/${recipeId}`, {
+        params: { limit }
+      });
+      
+      return this._transformItems(response.data.items);
+    } catch (error) {
+      console.error(`Failed to fetch similar meals for recipe ${recipeId}:`, error);
+      throw error;
+    }
+  }
+
+  async getMealDetails(recipeId) {
+    try {
+      const response = await this.client.get(`/recipes/${recipeId}`);
+      return recipeTransformer.transformToMeal(response.data);
+    } catch (error) {
+      console.error(`Failed to fetch meal details for recipe ${recipeId}:`, error);
+      throw error;
+    }
+  }
+
+  async recordInteraction(userId, mealId, interactionType, rating = null) {
+    try {
+      await this.client.post('/interactions', {
+        user_id: userId,
+        meal_id: mealId,
+        interaction_type: interactionType,
+        rating
+      });
+      return true;
+    } catch (error) {
+      console.error(`Failed to record interaction for user ${userId} on meal ${mealId}:`, error);
+      throw error;
+    }
+  }
+
+  // NEW ENDPOINTS
+
+  async getQuickMeals(maxTime = 30, limit = 10, cuisine = null, dietaryRestriction = null) {
+    try {
+      const response = await this.client.get('/recommend/quick', {
+        params: { 
+          max_time: maxTime, 
+          limit, 
+          cuisine, 
+          dietary_restriction: dietaryRestriction
+        }
+      });
+      
+      return this._transformItems(response.data.items);
+    } catch (error) {
+      console.error('Failed to fetch quick meals:', error);
+      throw error;
+    }
+  }
+
+  async getCuisineRecommendations(cuisineId, limit = 10) {
+    try {
+      const response = await this.client.get(`/recommend/cuisine/${cuisineId}`, {
+        params: { limit }
+      });
+      
+      return this._transformItems(response.data.items);
+    } catch (error) {
+      console.error(`Failed to fetch cuisine recommendations for ${cuisineId}:`, error);
+      throw error;
+    }
+  }
+
+  async getDietaryRecommendations(dietaryRestriction, limit = 10) {
+    try {
+      const response = await this.client.get(`/recommend/dietary/${dietaryRestriction}`, {
+        params: { limit }
+      });
+      
+      return this._transformItems(response.data.items);
+    } catch (error) {
+      console.error(`Failed to fetch dietary recommendations for ${dietaryRestriction}:`, error);
+      throw error;
+    }
+  }
+
+  async getFilteredRecipes(options = {}) {
+    try {
+      const { page = 1, limit = 20, region, subRegion, minCalories, maxCalories } = options;
+      
+      const response = await this.client.get('/recipes', {
+        params: {
+          page,
+          limit,
+          region,
+          sub_region: subRegion,
+          min_calories: minCalories,
+          max_calories: maxCalories
+        }
+      });
+      
+      return response.data.map(recipe => recipeTransformer.transformToMeal(recipe));
+    } catch (error) {
+      console.error('Failed to fetch filtered recipes:', error);
+      throw error;
+    }
+  }
+
+  async getRecipesByCalories(min = 0, max = 1000, page = 1, limit = 20) {
+    try {
+      const response = await this.client.get('/recipes/filter/calories', {
+        params: { min, max, page, limit }
+      });
+      
+      return response.data.map(recipe => recipeTransformer.transformToMeal(recipe));
+    } catch (error) {
+      console.error('Failed to fetch recipes by calories:', error);
+      throw error;
+    }
+  }
+
+  _transformItems(items) {
+    if (!items || !Array.isArray(items)) return [];
+    return Promise.all(items.map(item => 
+      this.getMealDetails(item.id)
+    ));
+  }
+}
+
+module.exports = new RecipeService();
 module.exports = {
-  baseUrl: process.env.PYTHON_SERVICE_URL || 'http://localhost:9999',
+  baseUrl: process.env.PYTHON_SERVICE_URL || 'http://127.0.0.1:9999',
   apiVersion: process.env.PYTHON_API_VERSION || 'v1',
   timeout: parseInt(process.env.PYTHON_SERVICE_TIMEOUT || '5000'),
   defaultUserId: process.env.DEFAULT_USER_ID || 'default_user'
@@ -1094,10 +1263,10 @@ const getRecommendedMeals = async (req, res) => {
     if (req.user && req.user.userId) {
       userId = req.user.userId;
     }
-    
+
     const limit = parseInt(req.query.limit) || 10;
     const meals = await recipeService.getRecommendedMeals(userId, limit);
-    
+
     res.status(StatusCodes.OK).json({
       success: true,
       message: "Recommended meals retrieved successfully",
@@ -1119,12 +1288,12 @@ const getMealById = async (req, res) => {
   try {
     const mealId = req.params.id;
     const meal = await recipeService.getMealDetails(mealId);
-    
+
     // Record view interaction
     if (req.user && req.user.userId) {
       await recipeService.recordInteraction(req.user.userId, mealId, "view");
     }
-    
+
     res.status(StatusCodes.OK).json({
       success: true,
       message: "Meal retrieved successfully",
@@ -1145,9 +1314,9 @@ const getTrendingMeals = async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 10;
     const timeWindow = req.query.time_window || "week";
-    
+
     const meals = await recipeService.getTrendingMeals(limit, timeWindow);
-    
+
     res.status(StatusCodes.OK).json({
       success: true,
       message: "Trending meals retrieved successfully",
@@ -1169,9 +1338,9 @@ const recordMealInteraction = async (req, res) => {
   try {
     const { meal_id, interaction_type, rating } = req.body;
     const userId = req.user.userId;
-    
+
     await recipeService.recordInteraction(userId, meal_id, interaction_type, rating);
-    
+
     res.status(StatusCodes.OK).json({
       success: true,
       message: `${interaction_type} recorded successfully`
@@ -1186,11 +1355,229 @@ const recordMealInteraction = async (req, res) => {
   }
 };
 
+// NEW CONTROLLER METHODS
+
+// Get quick meals (recipes that can be prepared quickly)
+const getQuickMeals = async (req, res) => {
+  try {
+    const maxTime = parseInt(req.query.max_time) || 30;
+    const limit = parseInt(req.query.limit) || 10;
+    const cuisine = req.query.cuisine || null;
+    const dietaryRestriction = req.query.dietary_restriction || null;
+
+    const meals = await recipeService.getQuickMeals(maxTime, limit, cuisine, dietaryRestriction);
+
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: "Quick meals retrieved successfully",
+      count: meals.length,
+      data: meals
+    });
+  } catch (error) {
+    console.error("Error fetching quick meals:", error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: "Failed to retrieve quick meals",
+      error: error.message
+    });
+  }
+};
+
+// Get cuisine recommendations
+const getCuisineRecommendations = async (req, res) => {
+  try {
+    const cuisineId = req.params.cuisine_id;
+    const limit = parseInt(req.query.limit) || 10;
+
+    const meals = await recipeService.getCuisineRecommendations(cuisineId, limit);
+
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: `${cuisineId} cuisine recommendations retrieved successfully`,
+      count: meals.length,
+      data: meals
+    });
+  } catch (error) {
+    console.error(`Error fetching cuisine recommendations for ${req.params.cuisine_id}:`, error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: "Failed to retrieve cuisine recommendations",
+      error: error.message
+    });
+  }
+};
+
+// Get dietary recommendations
+const getDietaryRecommendations = async (req, res) => {
+  try {
+    const dietaryRestriction = req.params.dietary_restriction;
+    const limit = parseInt(req.query.limit) || 10;
+
+    const meals = await recipeService.getDietaryRecommendations(dietaryRestriction, limit);
+
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: `${dietaryRestriction} dietary recommendations retrieved successfully`,
+      count: meals.length,
+      data: meals
+    });
+  } catch (error) {
+    console.error(`Error fetching dietary recommendations for ${req.params.dietary_restriction}:`, error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: "Failed to retrieve dietary recommendations",
+      error: error.message
+    });
+  }
+};
+
+// Get similar meals
+const getSimilarMeals = async (req, res) => {
+  try {
+    const mealId = req.params.id;
+    const limit = parseInt(req.query.limit) || 5;
+
+    const meals = await recipeService.getSimilarMeals(mealId, limit);
+
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: "Similar meals retrieved successfully",
+      count: meals.length,
+      data: meals
+    });
+  } catch (error) {
+    console.error(`Error fetching similar meals for ${req.params.id}:`, error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: "Failed to retrieve similar meals",
+      error: error.message
+    });
+  }
+};
+
+// Get filtered recipes
+const getFilteredRecipes = async (req, res) => {
+  try {
+    const options = {
+      page: parseInt(req.query.page) || 1,
+      limit: parseInt(req.query.limit) || 20,
+      region: req.query.region,
+      subRegion: req.query.sub_region,
+      minCalories: req.query.min_calories ? parseInt(req.query.min_calories) : null,
+      maxCalories: req.query.max_calories ? parseInt(req.query.max_calories) : null
+    };
+
+    const meals = await recipeService.getFilteredRecipes(options);
+
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: "Filtered recipes retrieved successfully",
+      count: meals.length,
+      data: meals
+    });
+  } catch (error) {
+    console.error("Error fetching filtered recipes:", error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: "Failed to retrieve filtered recipes",
+      error: error.message
+    });
+  }
+};
+
+// Get recipes by calorie range
+const getRecipesByCalories = async (req, res) => {
+  try {
+    const min = parseFloat(req.query.min) || 0;
+    const max = parseFloat(req.query.max) || 1000;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+
+    const meals = await recipeService.getRecipesByCalories(min, max, page, limit);
+
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: "Recipes by calorie range retrieved successfully",
+      count: meals.length,
+      data: meals
+    });
+  } catch (error) {
+    console.error("Error fetching recipes by calories:", error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: "Failed to retrieve recipes by calorie range",
+      error: error.message
+    });
+  }
+};
+// Add this to your meal.controller.js
+
+/**
+ * Advanced search for recipes with multiple criteria
+ * @route GET /api/v1/meal/search/advanced
+ * @access Public
+ */
+const advancedSearch = async (req, res) => {
+  try {
+    // Extract all search parameters from query
+    const criteria = {
+      // Text search
+      query: req.query.query || null,
+
+      // Array parameters (convert comma-separated strings to arrays)
+      cuisines: req.query.cuisines ? req.query.cuisines.split(',').map(c => c.trim()) : [],
+      dietaryRestrictions: req.query.dietary ? req.query.dietary.split(',').map(d => d.trim()) : [],
+      includeIngredients: req.query.include_ingredients ? req.query.include_ingredients.split(',').map(i => i.trim()) : [],
+      excludeIngredients: req.query.exclude_ingredients ? req.query.exclude_ingredients.split(',').map(i => i.trim()) : [],
+
+      // Numerical parameters (convert to numbers when present)
+      minCalories: req.query.min_calories ? parseInt(req.query.min_calories) : null,
+      maxCalories: req.query.max_calories ? parseInt(req.query.max_calories) : null,
+      maxPrepTime: req.query.max_prep_time ? parseInt(req.query.max_prep_time) : null,
+      maxCookTime: req.query.max_cook_time ? parseInt(req.query.max_cook_time) : null,
+      maxTotalTime: req.query.max_total_time ? parseInt(req.query.max_total_time) : null,
+
+      // Sorting and pagination
+      sortBy: req.query.sort_by || 'relevance',
+      sortOrder: req.query.sort_order || 'desc',
+      page: parseInt(req.query.page || '1'),
+      limit: parseInt(req.query.limit || '20')
+    };
+
+    // Perform the search
+    const meals = await recipeService.advancedSearch(criteria);
+
+    // Return the results
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: "Advanced search completed successfully",
+      count: meals.length,
+      page: criteria.page,
+      limit: criteria.limit,
+      data: meals
+    });
+  } catch (error) {
+    console.error("Error performing advanced search:", error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: "Failed to perform advanced search",
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
+  advancedSearch,
   getRecommendedMeals,
   getMealById,
   getTrendingMeals,
-  recordMealInteraction
+  recordMealInteraction,
+  getQuickMeals,
+  getCuisineRecommendations,
+  getDietaryRecommendations,
+  getSimilarMeals,
+  getFilteredRecipes,
+  getRecipesByCalories
 };
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -2481,22 +2868,109 @@ module.exports = router;
 ////////////////////////////////////////////////////////////////////////////////
 const express = require("express");
 const { authenticateUser } = require("../middlewares/authentication");
+
 const { 
   getRecommendedMeals, 
   getMealById, 
   getTrendingMeals,
-  recordMealInteraction
+  recordMealInteraction,
+  getQuickMeals,
+  getCuisineRecommendations,
+  getDietaryRecommendations,
+  getSimilarMeals,
+  getFilteredRecipes,
+  getRecipesByCalories,
+  advancedSearch  
 } = require("../controllers/meal.controller");
 
 const router = express.Router();
 
 // Public routes
+router.get("/search/advanced", advancedSearch);
 router.get("/recommended", getRecommendedMeals);
 router.get("/trending", getTrendingMeals);
+router.get("/quick", getQuickMeals);
+router.get("/cuisine/:cuisine_id", getCuisineRecommendations);
+router.get("/dietary/:dietary_restriction", getDietaryRecommendations);
+router.get("/similar/:id", getSimilarMeals);
+router.get("/filter", getFilteredRecipes);
+router.get("/filter/calories", getRecipesByCalories);
 router.get("/:id", getMealById);
 
 // Protected routes (require authentication)
 router.post("/interaction", authenticateUser, recordMealInteraction);
+
+module.exports = router;
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+│   ├── system.routes.js
+
+////////////////////////////////////////////////////////////////////////////////
+const express = require("express");
+const router = express.Router();
+const config = require("../config/pythonService");
+const axios = require("axios");
+
+// System health check endpoint
+router.get("/health", async (req, res) => {
+  try {
+    const systemInfo = {
+      status: "ok",
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || "development",
+      nodejs: {
+        version: process.version,
+        uptime: process.uptime(),
+        memoryUsage: process.memoryUsage(),
+      },
+      config: {
+        pythonService: {
+          baseUrl: config.baseUrl,
+          apiVersion: config.apiVersion,
+          timeout: config.timeout,
+          defaultUserId: config.defaultUserId
+        }
+      }
+    };
+
+    // Check Python service connectivity
+    try {
+      const pythonServiceUrl = `${config.baseUrl}/api/${config.apiVersion}/health`;
+      console.log(`Checking Python service at: ${pythonServiceUrl}`);
+      
+      const response = await axios.get(pythonServiceUrl, { timeout: 3000 });
+      systemInfo.pythonService = {
+        status: "connected",
+        response: response.data
+      };
+    } catch (error) {
+      systemInfo.pythonService = {
+        status: "error",
+        error: error.message,
+        code: error.code,
+        details: error.isAxiosError 
+          ? {
+              config: error.config ? {
+                url: error.config.url,
+                method: error.config.method,
+                timeout: error.config.timeout
+              } : 'No config available'
+            }
+          : 'Not an Axios error'
+      };
+    }
+
+    res.status(200).json(systemInfo);
+  } catch (error) {
+    res.status(500).json({
+      status: "error",
+      message: error.message,
+      stack: process.env.NODE_ENV === "development" ? error.stack : undefined
+    });
+  }
+});
 
 module.exports = router;
 ////////////////////////////////////////////////////////////////////////////////
@@ -3009,63 +3483,94 @@ const recipeTransformer = require('../transformers/recipeTransformer');
 
 class RecipeService {
   constructor() {
+    // Validate configuration
+    if (!config.baseUrl) {
+      console.error('ERROR: PYTHON_SERVICE_URL is not defined in environment variables');
+      console.error('Fallback to default URL: http://127.0.0.1:9999');
+    }
+
+    if (!config.apiVersion) {
+      console.error('ERROR: PYTHON_API_VERSION is not defined in environment variables');
+      console.error('Fallback to default version: v1');
+    }
+
+    // Log the configuration for debugging
+    console.log(`RecipeService initializing with:`, {
+      baseUrl: config.baseUrl,
+      apiVersion: config.apiVersion,
+      timeout: config.timeout,
+      defaultUserId: config.defaultUserId
+    });
+
+    // Create axios client with validated configuration
     this.client = axios.create({
       baseURL: `${config.baseUrl}/api/${config.apiVersion}`,
-      timeout: config.timeout
+      timeout: config.timeout || 5000
+    });
+
+    // Add request interceptor for debugging
+    this.client.interceptors.request.use(request => {
+      console.log(`Making request to: ${request.baseURL}${request.url}`);
+      return request;
     });
   }
 
   async getRecommendedMeals(userId = config.defaultUserId, limit = 10) {
     try {
+      console.log(`Fetching recommended meals for user: ${userId}, limit: ${limit}`);
       const response = await this.client.get(`/recommend/user/${userId}`, {
         params: { limit, recommendation_type: 'hybrid' }
       });
-      
+
       return this._transformItems(response.data.items);
     } catch (error) {
-      console.error('Failed to fetch recommended meals:', error);
+      this._handleError('Failed to fetch recommended meals:', error);
       throw error;
     }
   }
 
   async getTrendingMeals(limit = 10, timeWindow = 'week') {
     try {
+      console.log(`Fetching trending meals, limit: ${limit}, time window: ${timeWindow}`);
       const response = await this.client.get('/trending', {
         params: { limit, time_window: timeWindow }
       });
-      
+
       return this._transformItems(response.data.items);
     } catch (error) {
-      console.error('Failed to fetch trending meals:', error);
+      this._handleError('Failed to fetch trending meals:', error);
       throw error;
     }
   }
 
   async getSimilarMeals(recipeId, limit = 5) {
     try {
+      console.log(`Fetching similar meals for recipe: ${recipeId}, limit: ${limit}`);
       const response = await this.client.get(`/recommend/similar/${recipeId}`, {
         params: { limit }
       });
-      
+
       return this._transformItems(response.data.items);
     } catch (error) {
-      console.error(`Failed to fetch similar meals for recipe ${recipeId}:`, error);
+      this._handleError(`Failed to fetch similar meals for recipe ${recipeId}:`, error);
       throw error;
     }
   }
 
   async getMealDetails(recipeId) {
     try {
+      console.log(`Fetching meal details for recipe: ${recipeId}`);
       const response = await this.client.get(`/recipes/${recipeId}`);
       return recipeTransformer.transformToMeal(response.data);
     } catch (error) {
-      console.error(`Failed to fetch meal details for recipe ${recipeId}:`, error);
+      this._handleError(`Failed to fetch meal details for recipe ${recipeId}:`, error);
       throw error;
     }
   }
 
   async recordInteraction(userId, mealId, interactionType, rating = null) {
     try {
+      console.log(`Recording ${interactionType} interaction for user: ${userId}, meal: ${mealId}`);
       await this.client.post('/interactions', {
         user_id: userId,
         meal_id: mealId,
@@ -3074,16 +3579,234 @@ class RecipeService {
       });
       return true;
     } catch (error) {
-      console.error(`Failed to record interaction for user ${userId} on meal ${mealId}:`, error);
+      this._handleError(`Failed to record interaction for user ${userId} on meal ${mealId}:`, error);
       throw error;
     }
   }
 
-  _transformItems(items) {
-    if (!items || !Array.isArray(items)) return [];
-    return Promise.all(items.map(item => 
-      this.getMealDetails(item.id)
-    ));
+  async getQuickMeals(maxTime = 30, limit = 10, cuisine = null, dietaryRestriction = null) {
+    try {
+      console.log(`Fetching quick meals, max time: ${maxTime}, limit: ${limit}`);
+      const response = await this.client.get('/recommend/quick', {
+        params: {
+          max_time: maxTime,
+          limit,
+          cuisine,
+          dietary_restriction: dietaryRestriction
+        }
+      });
+
+      return this._transformItems(response.data.items);
+    } catch (error) {
+      this._handleError('Failed to fetch quick meals:', error);
+      throw error;
+    }
+  }
+
+  async getCuisineRecommendations(cuisineId, limit = 10) {
+    try {
+      console.log(`Fetching cuisine recommendations for ${cuisineId}, limit: ${limit}`);
+      const response = await this.client.get(`/recommend/cuisine/${cuisineId}`, {
+        params: { limit }
+      });
+
+      return this._transformItems(response.data.items);
+    } catch (error) {
+      this._handleError(`Failed to fetch cuisine recommendations for ${cuisineId}:`, error);
+      throw error;
+    }
+  }
+
+  async getDietaryRecommendations(dietaryRestriction, limit = 10) {
+    try {
+      console.log(`Fetching dietary recommendations for ${dietaryRestriction}, limit: ${limit}`);
+      const response = await this.client.get(`/recommend/dietary/${dietaryRestriction}`, {
+        params: { limit }
+      });
+
+      return this._transformItems(response.data.items);
+    } catch (error) {
+      this._handleError(`Failed to fetch dietary recommendations for ${dietaryRestriction}:`, error);
+      throw error;
+    }
+  }
+
+  async getFilteredRecipes(options = {}) {
+    try {
+      const { page = 1, limit = 20, region, subRegion, minCalories, maxCalories } = options;
+      console.log(`Fetching filtered recipes with options:`, options);
+
+      const response = await this.client.get('/recipes', {
+        params: {
+          page,
+          limit,
+          region,
+          sub_region: subRegion,
+          min_calories: minCalories,
+          max_calories: maxCalories
+        }
+      });
+
+      return response.data.map(recipe => recipeTransformer.transformToMeal(recipe));
+    } catch (error) {
+      this._handleError('Failed to fetch filtered recipes:', error);
+      throw error;
+    }
+  }
+
+  async getRecipesByCalories(min = 0, max = 1000, page = 1, limit = 20) {
+    try {
+      console.log(`Fetching recipes by calories, min: ${min}, max: ${max}, page: ${page}, limit: ${limit}`);
+      const response = await this.client.get('/recipes/filter/calories', {
+        params: { min, max, page, limit }
+      });
+
+      return response.data.map(recipe => recipeTransformer.transformToMeal(recipe));
+    } catch (error) {
+      this._handleError('Failed to fetch recipes by calories:', error);
+      throw error;
+    }
+  }
+
+  // Add this to your RecipeService.js
+
+  /**
+   * Perform an advanced search with multiple filtering criteria
+   * @param {Object} criteria - Search criteria
+   * @returns {Promise<Array>} - Array of meals matching the criteria
+   */
+  async advancedSearch(criteria = {}) {
+    try {
+      console.log(`Performing advanced search with criteria:`, criteria);
+
+      // Extract all possible search criteria with defaults
+      const {
+        query = null,              // Text search query
+        cuisines = [],             // Array of cuisines/regions
+        dietaryRestrictions = [],  // Array of dietary restrictions
+        excludeIngredients = [],   // Ingredients to exclude
+        includeIngredients = [],   // Ingredients that must be included
+        minCalories = null,        // Minimum calories
+        maxCalories = null,        // Maximum calories
+        maxPrepTime = null,        // Maximum preparation time
+        maxCookTime = null,        // Maximum cooking time
+        maxTotalTime = null,       // Maximum total time
+        sortBy = 'relevance',      // Sorting method (relevance, rating, time, calories)
+        sortOrder = 'desc',        // Sort order (asc, desc)
+        page = 1,                  // Page number
+        limit = 20                 // Items per page
+      } = criteria;
+
+      // Build query parameters
+      const params = {
+        page,
+        limit,
+        sort_by: sortBy,
+        sort_order: sortOrder
+      };
+
+      // Add text search if provided
+      if (query) {
+        params.query = query;
+      }
+
+      // Add cuisine/region filters (comma-separated)
+      if (cuisines && cuisines.length > 0) {
+        params.cuisines = cuisines.join(',');
+      }
+
+      // Add dietary restriction filters (comma-separated)
+      if (dietaryRestrictions && dietaryRestrictions.length > 0) {
+        params.dietary = dietaryRestrictions.join(',');
+      }
+
+      // Add ingredient filters
+      if (includeIngredients && includeIngredients.length > 0) {
+        params.include_ingredients = includeIngredients.join(',');
+      }
+
+      if (excludeIngredients && excludeIngredients.length > 0) {
+        params.exclude_ingredients = excludeIngredients.join(',');
+      }
+
+      // Add numerical range filters
+      if (minCalories !== null) {
+        params.min_calories = minCalories;
+      }
+
+      if (maxCalories !== null) {
+        params.max_calories = maxCalories;
+      }
+
+      if (maxPrepTime !== null) {
+        params.max_prep_time = maxPrepTime;
+      }
+
+      if (maxCookTime !== null) {
+        params.max_cook_time = maxCookTime;
+      }
+
+      if (maxTotalTime !== null) {
+        params.max_total_time = maxTotalTime;
+      }
+
+      // Make the API request
+      const response = await this.client.get('/recipes/search', { params });
+
+      // Transform the results
+      return response.data.results.map(recipe => recipeTransformer.transformToMeal(recipe));
+    } catch (error) {
+      this._handleError('Failed to perform advanced search:', error);
+      throw error;
+    }
+  }
+
+  // Helper method to transform items with better error handling
+  async _transformItems(items) {
+    try {
+      if (!items || !Array.isArray(items)) {
+        console.warn('No items to transform or items is not an array');
+        return [];
+      }
+
+      const transformedItems = [];
+      for (const item of items) {
+        try {
+          const mealDetails = await this.getMealDetails(item.id);
+          transformedItems.push(mealDetails);
+        } catch (error) {
+          console.error(`Error transforming item ${item.id}:`, error);
+          // Continue with other items
+        }
+      }
+
+      return transformedItems;
+    } catch (error) {
+      console.error('Error in _transformItems:', error);
+      return [];
+    }
+  }
+
+  // Helper method for consistent error handling
+  _handleError(message, error) {
+    console.error(message, error);
+
+    // Handle specific axios errors
+    if (error.isAxiosError) {
+      if (error.code === 'ECONNREFUSED') {
+        console.error(`Connection refused: Please ensure the Python service is running at ${config.baseUrl}`);
+      } else if (error.code === 'ERR_INVALID_URL') {
+        console.error(`Invalid URL: Please check your PYTHON_SERVICE_URL and PYTHON_API_VERSION in .env file`);
+        console.error(`Current configuration: baseUrl=${config.baseUrl}, apiVersion=${config.apiVersion}`);
+      } else if (error.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        console.error(`API Error ${error.response.status}: ${error.response.data?.detail || 'Unknown error'}`);
+      } else if (error.request) {
+        // The request was made but no response was received
+        console.error('No response received from the server');
+      }
+    }
   }
 }
 
