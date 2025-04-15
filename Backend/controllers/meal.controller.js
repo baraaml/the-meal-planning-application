@@ -255,8 +255,6 @@ const getRecipesByCalories = async (req, res) => {
     });
   }
 };
-// Add this to your meal.controller.js
-
 /**
  * Advanced search for recipes with multiple criteria
  * @route GET /api/v1/meal/search/advanced
@@ -264,7 +262,7 @@ const getRecipesByCalories = async (req, res) => {
  */
 const advancedSearch = async (req, res) => {
   try {
-    // Extract all search parameters from query
+    // Extract all search parameters from query and format them properly
     const criteria = {
       // Text search
       query: req.query.query || null,
@@ -289,6 +287,8 @@ const advancedSearch = async (req, res) => {
       limit: parseInt(req.query.limit || '20')
     };
 
+    console.log('Advanced search criteria:', criteria);
+
     // Perform the search
     const meals = await recipeService.advancedSearch(criteria);
 
@@ -303,14 +303,16 @@ const advancedSearch = async (req, res) => {
     });
   } catch (error) {
     console.error("Error performing advanced search:", error);
+
+    // Provide more detailed error information in the response
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: "Failed to perform advanced search",
-      error: error.message
+      error: error.message,
+      details: error.response?.data?.detail || "No additional details available"
     });
   }
 };
-
 module.exports = {
   advancedSearch,
   getRecommendedMeals,

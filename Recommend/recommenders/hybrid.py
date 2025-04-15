@@ -137,50 +137,50 @@ class HybridRecommender:
         logger.info(f"Hybrid recommender generated {len(recommended_items)} items total")
         return recommended_items[:limit]
     
-    def _get_collaborative_recommendations(
-        self, 
-        user_id: str,
-        content_type: Optional[str] = None,
-        limit: int = 10,
-        **kwargs
-    ) -> List[Dict[str, Any]]:
-        """Get collaborative filtering recommendations for a user."""
-        # Find similar users
-        similar_users = find_similar_users(
-            user_id=user_id,
-            min_common_items=2,
-            limit=10
-        )
-        
-        if not similar_users:
-            logger.info(f"No similar users found for user {user_id}")
-            return []
-        
-        # Get content from similar users
-        items = get_content_from_similar_users(
-            similar_users=similar_users,
-            user_id=user_id,
-            limit=limit
-        )
-        
-        # Transform the data format
-        recommendations = []
-        for item in items:
-            recommendations.append({
-                "id": str(item["recipe_id"]),
-                "content_type": "recipe",
-                "title": item["title"],
-                "score": item.get("interaction_count", 1) / 10.0  # Normalize
-            })
-        
-        # Apply additional filters
-        cuisine = kwargs.get('cuisine')
-        if cuisine and recommendations:
-            # This would be more efficient with a separate query, but for now just filter
-            recommendations = [r for r in recommendations if cuisine.lower() in r["title"].lower()]
-        
-        return recommendations
-    
+	def _get_collaborative_recommendations(
+    	self, 
+    	user_id: str,
+    	content_type: Optional[str] = None,
+    	limit: int = 10,
+    	**kwargs
+	) -> List[Dict[str, Any]]:
+    	"""Get collaborative filtering recommendations for a user."""
+    	try:
+        	# Use our CF-STEP collaborative filtering recommender
+        	from recommenders.collaborative import CollaborativeRecommender
+        	
+        	recommender = CollaborativeRecommender()
+        	if not recommender.model_loaded:
+            	logger.info("Training collaborative filtering model...")
+            	recommender.train()
+        	
+        	# Extract any relevant filters
+        	filters = {}
+        	if kwargs.get('cuisine'):
+            	filters['region'] = kwargs.get('cuisine')
+        	if kwargs.get('dietary_restriction'):
+            	filters['dietary_restriction'] = kwargs.get('dietary_restriction')
+        	
+        	# Get user's interacted items to exclude
+        	exclude_ids = []
+        	user_interactions = get_user_recent_interactions(user_id, limit=100)
+        	if user_interactions:
+            	exclude_ids = [interaction["recipe_id"] for interaction in user_interactions]
+        	
+        	# Get recommendations
+        	items = recommender.get_recommendations(
+            	user_id=user_id,
+            	limit=limit,
+            	exclude_ids=exclude_ids,
+            	filters=filters
+        	)
+        	
+        	logger.info(f"Generated {len(items)} collaborative filtering recommendations")
+        	return items
+        	
+    	except Exception as e:
+        	logger.error(f"Error in collaborative filtering recommendations: {e}")
+        	return []
     def _get_content_based_recommendations(
         self, 
         user_id: Optional[str] = None,

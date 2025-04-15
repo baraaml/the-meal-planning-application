@@ -189,7 +189,7 @@ class RecipeService {
     }
   }
 
-  // Add this to your RecipeService.js
+  // Update the advancedSearch method in services/recipeService.js
 
   /**
    * Perform an advanced search with multiple filtering criteria
@@ -200,87 +200,354 @@ class RecipeService {
     try {
       console.log(`Performing advanced search with criteria:`, criteria);
 
-      // Extract all possible search criteria with defaults
-      const {
-        query = null,              // Text search query
-        cuisines = [],             // Array of cuisines/regions
-        dietaryRestrictions = [],  // Array of dietary restrictions
-        excludeIngredients = [],   // Ingredients to exclude
-        includeIngredients = [],   // Ingredients that must be included
-        minCalories = null,        // Minimum calories
-        maxCalories = null,        // Maximum calories
-        maxPrepTime = null,        // Maximum preparation time
-        maxCookTime = null,        // Maximum cooking time
-        maxTotalTime = null,       // Maximum total time
-        sortBy = 'relevance',      // Sorting method (relevance, rating, time, calories)
-        sortOrder = 'desc',        // Sort order (asc, desc)
-        page = 1,                  // Page number
-        limit = 20                 // Items per page
-      } = criteria;
-
-      // Build query parameters
+      // Format parameters to match Python service's expected format
       const params = {
-        page,
-        limit,
-        sort_by: sortBy,
-        sort_order: sortOrder
+        page: criteria.page || 1,
+        limit: criteria.limit || 20,
+        sort_by: criteria.sortBy || 'relevance',
+        sort_order: criteria.sortOrder || 'desc'
       };
 
       // Add text search if provided
-      if (query) {
-        params.query = query;
+      if (criteria.query) {
+        params.query = criteria.query;
       }
 
       // Add cuisine/region filters (comma-separated)
-      if (cuisines && cuisines.length > 0) {
-        params.cuisines = cuisines.join(',');
+      if (criteria.cuisines && criteria.cuisines.length > 0) {
+        params.cuisines = Array.isArray(criteria.cuisines)
+          ? criteria.cuisines.join(',')
+          : criteria.cuisines;
       }
 
       // Add dietary restriction filters (comma-separated)
-      if (dietaryRestrictions && dietaryRestrictions.length > 0) {
-        params.dietary = dietaryRestrictions.join(',');
+      if (criteria.dietaryRestrictions && criteria.dietaryRestrictions.length > 0) {
+        params.dietary = Array.isArray(criteria.dietaryRestrictions)
+          ? criteria.dietaryRestrictions.join(',')
+          : criteria.dietaryRestrictions;
       }
 
       // Add ingredient filters
-      if (includeIngredients && includeIngredients.length > 0) {
-        params.include_ingredients = includeIngredients.join(',');
+      if (criteria.includeIngredients && criteria.includeIngredients.length > 0) {
+        params.include_ingredients = Array.isArray(criteria.includeIngredients)
+          ? criteria.includeIngredients.join(',')
+          : criteria.includeIngredients;
       }
 
-      if (excludeIngredients && excludeIngredients.length > 0) {
-        params.exclude_ingredients = excludeIngredients.join(',');
+      if (criteria.excludeIngredients && criteria.excludeIngredients.length > 0) {
+        params.exclude_ingredients = Array.isArray(criteria.excludeIngredients)
+          ? criteria.excludeIngredients.join(',')
+          : criteria.excludeIngredients;
       }
 
       // Add numerical range filters
-      if (minCalories !== null) {
-        params.min_calories = minCalories;
+      if (criteria.minCalories !== null && criteria.minCalories !== undefined) {
+        params.min_calories = criteria.minCalories;
       }
 
-      if (maxCalories !== null) {
-        params.max_calories = maxCalories;
+      if (criteria.maxCalories !== null && criteria.maxCalories !== undefined) {
+        params.max_calories = criteria.maxCalories;
       }
 
-      if (maxPrepTime !== null) {
-        params.max_prep_time = maxPrepTime;
+      if (criteria.maxPrepTime !== null && criteria.maxPrepTime !== undefined) {
+        params.max_prep_time = criteria.maxPrepTime;
       }
 
-      if (maxCookTime !== null) {
-        params.max_cook_time = maxCookTime;
+      if (criteria.maxCookTime !== null && criteria.maxCookTime !== undefined) {
+        params.max_cook_time = criteria.maxCookTime;
       }
 
-      if (maxTotalTime !== null) {
-        params.max_total_time = maxTotalTime;
+      if (criteria.maxTotalTime !== null && criteria.maxTotalTime !== undefined) {
+        params.max_total_time = criteria.maxTotalTime;
       }
 
-      // Make the API request
-      const response = await this.client.get('/recipes/search', { params });
+      // Log the final request params for debugging
+      console.log('Sending request to Python service with params:', JSON.stringify(params));
 
-      // Transform the results
-      return response.data.results.map(recipe => recipeTransformer.transformToMeal(recipe));
+      try {
+        // Make the API request to the Python service at the correct endpoint
+        const response = await this.client.get('/recipes/search', { params });
+
+        // Add error handling to see the actual response
+        console.log('Response status:', response.status);
+        console.log('Response data structure:', Object.keys(response.data));
+
+        // Transform the results
+        if (response.data && response.data.results) {
+          return response.data.results.map(recipe => recipeTransformer.transformToMeal(recipe));
+        } else {
+          console.warn('Unexpected response structure:', response.data);
+          return [];
+        }
+      } catch (axiosError) {
+        // Enhanced error logging for debugging
+        if (axiosError.response) {
+          // The request was made and the server responded with a status code
+          // that falls out of the range of 2xx
+          console.error(`API Error ${axiosError.response.status}:`, axiosError.response.data);
+
+          // Log the detailed validation errors if available
+          if (axiosError.response.data && axiosError.response.data.detail) {
+            console.error('Validation errors:', JSON.stringify(axiosError.response.data.detail));
+          }
+        } else if (axiosError.request) {
+          // The request was made but no response was received
+          console.error('No response received:', axiosError.request);
+        } else {
+          // Something happened in setting up the request that triggered an Error
+          console.error('Error setting up request:', axiosError.message);
+        }
+
+        // Re-throw the error after logging
+        throw axiosError;
+      }
     } catch (error) {
       this._handleError('Failed to perform advanced search:', error);
       throw error;
     }
   }
+
+
+  /**
+   * Advanced search for recipes with multiple criteria
+   * @route GET /api/v1/meal/search/advanced
+   * @access Public
+   */
+  // Update the advancedSearch method in services/recipeService.js
+
+  /**
+   * Perform an advanced search with multiple filtering criteria
+   * @param {Object} criteria - Search criteria
+   * @returns {Promise<Array>} - Array of meals matching the criteria
+   */
+  async advancedSearch(criteria = {}) {
+    try {
+      console.log(`Performing advanced search with criteria:`, criteria);
+
+      // Format parameters to match Python service's expected format
+      const params = {
+        page: criteria.page || 1,
+        limit: criteria.limit || 20,
+        sort_by: criteria.sortBy || 'relevance',
+        sort_order: criteria.sortOrder || 'desc'
+      };
+
+      // Add text search if provided
+      if (criteria.query) {
+        params.query = criteria.query;
+      }
+
+      // Add cuisine/region filters (comma-separated)
+      if (criteria.cuisines && criteria.cuisines.length > 0) {
+        params.cuisines = Array.isArray(criteria.cuisines)
+          ? criteria.cuisines.join(',')
+          : criteria.cuisines;
+      }
+
+      // Add dietary restriction filters (comma-separated)
+      if (criteria.dietaryRestrictions && criteria.dietaryRestrictions.length > 0) {
+        params.dietary = Array.isArray(criteria.dietaryRestrictions)
+          ? criteria.dietaryRestrictions.join(',')
+          : criteria.dietaryRestrictions;
+      }
+
+      // Add ingredient filters
+      if (criteria.includeIngredients && criteria.includeIngredients.length > 0) {
+        params.include_ingredients = Array.isArray(criteria.includeIngredients)
+          ? criteria.includeIngredients.join(',')
+          : criteria.includeIngredients;
+      }
+
+      if (criteria.excludeIngredients && criteria.excludeIngredients.length > 0) {
+        params.exclude_ingredients = Array.isArray(criteria.excludeIngredients)
+          ? criteria.excludeIngredients.join(',')
+          : criteria.excludeIngredients;
+      }
+
+      // Add numerical range filters
+      if (criteria.minCalories !== null && criteria.minCalories !== undefined) {
+        params.min_calories = criteria.minCalories;
+      }
+
+      if (criteria.maxCalories !== null && criteria.maxCalories !== undefined) {
+        params.max_calories = criteria.maxCalories;
+      }
+
+      if (criteria.maxPrepTime !== null && criteria.maxPrepTime !== undefined) {
+        params.max_prep_time = criteria.maxPrepTime;
+      }
+
+      if (criteria.maxCookTime !== null && criteria.maxCookTime !== undefined) {
+        params.max_cook_time = criteria.maxCookTime;
+      }
+
+      if (criteria.maxTotalTime !== null && criteria.maxTotalTime !== undefined) {
+        params.max_total_time = criteria.maxTotalTime;
+      }
+
+      // Log the final request params for debugging
+      console.log('Sending request to Python service with params:', JSON.stringify(params));
+
+      try {
+        // Make the API request to the Python service at the correct endpoint
+        const response = await this.client.get('/recipes/search', { params });
+
+        // Add error handling to see the actual response
+        console.log('Response status:', response.status);
+        console.log('Response data structure:', Object.keys(response.data));
+
+        // Transform the results
+        if (response.data && response.data.results) {
+          return response.data.results.map(recipe => recipeTransformer.transformToMeal(recipe));
+        } else {
+          console.warn('Unexpected response structure:', response.data);
+          return [];
+        }
+      } catch (axiosError) {
+        // Enhanced error logging for debugging
+        if (axiosError.response) {
+          // The request was made and the server responded with a status code
+          // that falls out of the range of 2xx
+          console.error(`API Error ${axiosError.response.status}:`, axiosError.response.data);
+
+          // Log the detailed validation errors if available
+          if (axiosError.response.data && axiosError.response.data.detail) {
+            console.error('Validation errors:', JSON.stringify(axiosError.response.data.detail));
+          }
+        } else if (axiosError.request) {
+          // The request was made but no response was received
+          console.error('No response received:', axiosError.request);
+        } else {
+          // Something happened in setting up the request that triggered an Error
+          console.error('Error setting up request:', axiosError.message);
+        }
+
+        // Re-throw the error after logging
+        throw axiosError;
+      }
+    } catch (error) {
+      this._handleError('Failed to perform advanced search:', error);
+      throw error;
+    }
+  }
+
+
+  /**
+   * Perform an advanced search with multiple filtering criteria
+   * @param {Object} criteria - Search criteria
+   * @returns {Promise<Array>} - Array of meals matching the criteria
+   */
+  async advancedSearch(criteria = {}) {
+    try {
+      console.log(`Performing advanced search with criteria:`, criteria);
+
+      // Format parameters to match Python service's expected format
+      const params = {
+        page: criteria.page || 1,
+        limit: criteria.limit || 20,
+        sort_by: criteria.sortBy || 'relevance',
+        sort_order: criteria.sortOrder || 'desc'
+      };
+
+      // Add text search if provided
+      if (criteria.query) {
+        params.query = criteria.query;
+      }
+
+      // Add cuisine/region filters (comma-separated)
+      if (criteria.cuisines && criteria.cuisines.length > 0) {
+        params.cuisines = Array.isArray(criteria.cuisines)
+          ? criteria.cuisines.join(',')
+          : criteria.cuisines;
+      }
+
+      // Add dietary restriction filters (comma-separated)
+      if (criteria.dietaryRestrictions && criteria.dietaryRestrictions.length > 0) {
+        params.dietary = Array.isArray(criteria.dietaryRestrictions)
+          ? criteria.dietaryRestrictions.join(',')
+          : criteria.dietaryRestrictions;
+      }
+
+      // Add ingredient filters
+      if (criteria.includeIngredients && criteria.includeIngredients.length > 0) {
+        params.include_ingredients = Array.isArray(criteria.includeIngredients)
+          ? criteria.includeIngredients.join(',')
+          : criteria.includeIngredients;
+      }
+
+      if (criteria.excludeIngredients && criteria.excludeIngredients.length > 0) {
+        params.exclude_ingredients = Array.isArray(criteria.excludeIngredients)
+          ? criteria.excludeIngredients.join(',')
+          : criteria.excludeIngredients;
+      }
+
+      // Add numerical range filters
+      if (criteria.minCalories !== null && criteria.minCalories !== undefined) {
+        params.min_calories = criteria.minCalories;
+      }
+
+      if (criteria.maxCalories !== null && criteria.maxCalories !== undefined) {
+        params.max_calories = criteria.maxCalories;
+      }
+
+      if (criteria.maxPrepTime !== null && criteria.maxPrepTime !== undefined) {
+        params.max_prep_time = criteria.maxPrepTime;
+      }
+
+      if (criteria.maxCookTime !== null && criteria.maxCookTime !== undefined) {
+        params.max_cook_time = criteria.maxCookTime;
+      }
+
+      if (criteria.maxTotalTime !== null && criteria.maxTotalTime !== undefined) {
+        params.max_total_time = criteria.maxTotalTime;
+      }
+
+      // Log the final request params for debugging
+      console.log('Sending request to Python service with params:', JSON.stringify(params));
+
+      try {
+        // Make the API request to the Python service at the correct endpoint
+        const response = await this.client.get('/recipes/search', { params });
+
+        // Add error handling to see the actual response
+        console.log('Response status:', response.status);
+        console.log('Response data structure:', Object.keys(response.data));
+
+        // Transform the results
+        if (response.data && response.data.results) {
+          return response.data.results.map(recipe => recipeTransformer.transformToMeal(recipe));
+        } else {
+          console.warn('Unexpected response structure:', response.data);
+          return [];
+        }
+      } catch (axiosError) {
+        // Enhanced error logging for debugging
+        if (axiosError.response) {
+          // The request was made and the server responded with a status code
+          // that falls out of the range of 2xx
+          console.error(`API Error ${axiosError.response.status}:`, axiosError.response.data);
+
+          // Log the detailed validation errors if available
+          if (axiosError.response.data && axiosError.response.data.detail) {
+            console.error('Validation errors:', JSON.stringify(axiosError.response.data.detail));
+          }
+        } else if (axiosError.request) {
+          // The request was made but no response was received
+          console.error('No response received:', axiosError.request);
+        } else {
+          // Something happened in setting up the request that triggered an Error
+          console.error('Error setting up request:', axiosError.message);
+        }
+
+        // Re-throw the error after logging
+        throw axiosError;
+      }
+    } catch (error) {
+      this._handleError('Failed to perform advanced search:', error);
+      throw error;
+    }
+  }
+
 
   // Helper method to transform items with better error handling
   async _transformItems(items) {

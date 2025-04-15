@@ -3,13 +3,15 @@ API endpoints for recipe management.
 """
 from fastapi import APIRouter, HTTPException, Query, status
 from typing import Dict, Optional, List
+import time
+import math
 
 from models.models import RecipeCreate, RecipeUpdate, RecipeBase, RecipeDetail
 from models.queries_recipe import (
     get_recipe, get_recipes, create_recipe, update_recipe, delete_recipe
 )
 from embedding.embeddings import EmbeddingGenerator
-from config.db import execute_query  # Add this import
+from config.db import execute_query, execute_query_single  # Make sure these are imported
 
 router = APIRouter(prefix="/api/v1", tags=["recipes"])
 
@@ -24,17 +26,14 @@ def get_recipe_endpoint(recipe_id: int):
 
 @router.get("/recipes", response_model=List[RecipeBase])
 def get_recipes_endpoint(
-    page: int = Query(1, ge=1),
+    offset: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
     region: Optional[str] = None,
     sub_region: Optional[str] = None,
     min_calories: Optional[int] = None,
     max_calories: Optional[int] = None
-):
+    ):
     """Get a list of recipes with optional filtering."""
-    # Calculate offset based on page and limit
-    offset = (page - 1) * limit
-    
     # Prepare filters
     filters = {}
     if region:
@@ -105,13 +104,10 @@ def delete_recipe_endpoint(recipe_id: int):
 def filter_recipes_by_calories(
     min: float = Query(0, ge=0),
     max: float = Query(1000, ge=0),
-    page: int = Query(1, ge=1),
+    offset: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100)
-):
+    ):
     """Filter recipes by calorie range."""
-    # Calculate offset based on page and limit
-    offset = (page - 1) * limit
-    
     query = """
     SELECT 
         recipe_id, recipe_title, region, sub_region
@@ -130,8 +126,6 @@ def filter_recipes_by_calories(
     
     return execute_query(query, params)
 
-# Add this to your endpoints/recipes.py file
-
 @router.get("/recipes/search", response_model=Dict[str, Any])
 def search_recipes(
     query: Optional[str] = None,
@@ -146,7 +140,7 @@ def search_recipes(
     max_total_time: Optional[int] = None,
     sort_by: str = "relevance",
     sort_order: str = "desc",
-    page: int = Query(1, ge=1),
+    offset: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100)
 ):
     """
@@ -165,13 +159,10 @@ def search_recipes(
     - max_total_time: Maximum total time in minutes
     - sort_by: Field to sort by (relevance, rating, time, calories)
     - sort_order: Sort order (asc, desc)
-    - page: Page number
-    - limit: Items per page
+    - offset: Starting position for pagination
+    - limit: Maximum number of items to return
     """
     start_time = time.time()
-    
-    # Calculate offset based on page and limit
-    offset = (page - 1) * limit
     
     # Initialize SQL query parts
     select_clause = """
@@ -397,7 +388,7 @@ def search_recipes(
     return {
         "results": results,
         "pagination": {
-            "page": page,
+            "offset": offset,
             "limit": limit,
             "total_items": total_count,
             "total_pages": total_pages
