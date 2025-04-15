@@ -17,10 +17,10 @@ EMBEDDING_MODEL=all-MiniLM-L6-v2
 EMBEDDING_DIMENSION=384
 
 # Recommendation settings
-DEFAULT_RECOMMENDATION_LIMIT=10
+DEFAULT_RECOMMENDATION_LIMIT=24
 CONTENT_TYPES=recipe
 ALLOWED_TRENDING_WINDOWS=day,week,month
-INTERACTION_TYPES=view,like,save,cook,comment
+INTERACTION_TYPES=view,like,save,cook,comment,ignore
 
 # Scheduler settings
 EMBEDDING_GENERATION_INTERVAL=60
@@ -674,13 +674,15 @@ API endpoints for recipe management.
 """
 from fastapi import APIRouter, HTTPException, Query, status
 from typing import Dict, Optional, List
+import time
+import math
 
 from models.models import RecipeCreate, RecipeUpdate, RecipeBase, RecipeDetail
 from models.queries_recipe import (
     get_recipe, get_recipes, create_recipe, update_recipe, delete_recipe
 )
 from embedding.embeddings import EmbeddingGenerator
-from config.db import execute_query  # Add this import
+from config.db import execute_query, execute_query_single  # Make sure these are imported
 
 router = APIRouter(prefix="/api/v1", tags=["recipes"])
 
@@ -695,17 +697,14 @@ def get_recipe_endpoint(recipe_id: int):
 
 @router.get("/recipes", response_model=List[RecipeBase])
 def get_recipes_endpoint(
-    page: int = Query(1, ge=1),
+    offset: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
     region: Optional[str] = None,
     sub_region: Optional[str] = None,
     min_calories: Optional[int] = None,
     max_calories: Optional[int] = None
-):
+    ):
     """Get a list of recipes with optional filtering."""
-    # Calculate offset based on page and limit
-    offset = (page - 1) * limit
-    
     # Prepare filters
     filters = {}
     if region:
@@ -776,13 +775,10 @@ def delete_recipe_endpoint(recipe_id: int):
 def filter_recipes_by_calories(
     min: float = Query(0, ge=0),
     max: float = Query(1000, ge=0),
-    page: int = Query(1, ge=1),
+    offset: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100)
-):
+    ):
     """Filter recipes by calorie range."""
-    # Calculate offset based on page and limit
-    offset = (page - 1) * limit
-    
     query = """
     SELECT 
         recipe_id, recipe_title, region, sub_region
@@ -801,8 +797,6 @@ def filter_recipes_by_calories(
     
     return execute_query(query, params)
 
-# Add this to your endpoints/recipes.py file
-
 @router.get("/recipes/search", response_model=Dict[str, Any])
 def search_recipes(
     query: Optional[str] = None,
@@ -817,7 +811,7 @@ def search_recipes(
     max_total_time: Optional[int] = None,
     sort_by: str = "relevance",
     sort_order: str = "desc",
-    page: int = Query(1, ge=1),
+    offset: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100)
 ):
     """
@@ -836,13 +830,10 @@ def search_recipes(
     - max_total_time: Maximum total time in minutes
     - sort_by: Field to sort by (relevance, rating, time, calories)
     - sort_order: Sort order (asc, desc)
-    - page: Page number
-    - limit: Items per page
+    - offset: Starting position for pagination
+    - limit: Maximum number of items to return
     """
     start_time = time.time()
-    
-    # Calculate offset based on page and limit
-    offset = (page - 1) * limit
     
     # Initialize SQL query parts
     select_clause = """
@@ -1068,7 +1059,7 @@ def search_recipes(
     return {
         "results": results,
         "pagination": {
-            "page": page,
+            "offset": offset,
             "limit": limit,
             "total_items": total_count,
             "total_pages": total_pages
@@ -2007,6 +1998,7 @@ class HealthResponse(BaseModel):
 """
 Recipe-specific database queries.
 """
+import math
 from config.db import execute_query, execute_query_single, execute_transaction
 
 def get_recipe(recipe_id: int):
@@ -2157,6 +2149,322 @@ def get_recipes_without_embeddings(limit=50):
     """
     
     return execute_query(query, {"limit": limit})
+
+def filter_recipes_by_calories(min_calories, max_calories, limit=20, offset=0):
+    """Filter recipes by calorie range."""
+    query = """
+    SELECT 
+        recipe_id, recipe_title, region, sub_region
+    FROM recipes
+    WHERE calories >= %(min)s AND calories <= %(max)s
+    ORDER BY recipe_id
+    LIMIT %(limit)s OFFSET %(offset)s
+    """
+    
+    params = {
+        "min": min_calories,
+        "max": max_calories,
+        "limit": limit,
+        "offset": offset
+    }
+    
+    return execute_query(query, params)
+
+def search_recipes(
+    query=None, 
+    cuisines=None, 
+    dietary=None, 
+    include_ingredients=None, 
+    exclude_ingredients=None,
+    min_calories=None, 
+    max_calories=None, 
+    max_prep_time=None, 
+    max_cook_time=None, 
+    max_total_time=None,
+    sort_by="relevance", 
+    sort_order="desc", 
+    limit=20, 
+    offset=0
+):
+    """
+    Advanced search for recipes with multiple criteria.
+    
+    Args:
+        query: Text search query
+        cuisines: List of cuisines (or comma-separated string)
+        dietary: List of dietary restrictions (or comma-separated string)
+        include_ingredients: List of ingredients to include (or comma-separated string)
+        exclude_ingredients: List of ingredients to exclude (or comma-separated string)
+        min_calories: Minimum calories
+        max_calories: Maximum calories
+        max_prep_time: Maximum preparation time in minutes
+        max_cook_time: Maximum cooking time in minutes
+        max_total_time: Maximum total time in minutes
+        sort_by: Field to sort by (relevance, rating, time, calories)
+        sort_order: Sort order (asc, desc)
+        limit: Maximum number of results
+        offset: Offset for pagination
+        
+    Returns:
+        Dict containing results and metadata
+    """
+    # Initialize SQL query parts
+    select_clause = """
+    SELECT 
+        r.recipe_id, 
+        r.recipe_title, 
+        r.region, 
+        r.sub_region, 
+        r.continent,
+        r.source,
+        r.image_url,
+        r.cook_time,
+        r.prep_time,
+        r.total_time,
+        r.servings,
+        r.url,
+        r.calories
+    """
+    
+    from_clause = """
+    FROM recipes r
+    """
+    
+    where_clauses = ["1=1"]
+    join_clauses = []
+    params = {}
+    
+    # Process text search
+    if query:
+        where_clauses.append("(r.recipe_title ILIKE %(query)s OR r.description ILIKE %(query)s)")
+        params["query"] = f"%{query}%"
+    
+    # Process cuisine/region filters
+    if cuisines:
+        if isinstance(cuisines, str):
+            cuisine_list = cuisines.split(',')
+        else:
+            cuisine_list = cuisines
+            
+        cuisine_placeholders = [f"%(cuisine{i})s" for i in range(len(cuisine_list))]
+        where_clauses.append(f"(r.region IN ({','.join(cuisine_placeholders)}) OR r.sub_region IN ({','.join(cuisine_placeholders)}))")
+        for i, cuisine in enumerate(cuisine_list):
+            params[f"cuisine{i}"] = cuisine.strip()
+    
+    # Process dietary restrictions
+    if dietary:
+        if isinstance(dietary, str):
+            dietary_list = dietary.split(',')
+        else:
+            dietary_list = dietary
+            
+        join_clauses.append("LEFT JOIN recipe_diet_attributes rda ON r.recipe_id = rda.recipe_id")
+        
+        dietary_conditions = []
+        for i, diet in enumerate(dietary_list):
+            diet = diet.strip().lower()
+            if diet == "vegan":
+                dietary_conditions.append("rda.vegan = TRUE")
+            elif diet == "pescetarian":
+                dietary_conditions.append("rda.pescetarian = TRUE")
+            elif diet == "lacto_vegetarian":
+                dietary_conditions.append("rda.lacto_vegetarian = TRUE")
+            elif diet == "ovo_vegetarian":
+                dietary_conditions.append("rda.ovo_vegetarian = TRUE")
+            elif diet == "ovo_lacto_vegetarian":
+                dietary_conditions.append("rda.ovo_lacto_vegetarian = TRUE")
+        
+        if dietary_conditions:
+            where_clauses.append(f"({' OR '.join(dietary_conditions)})")
+    
+    # Process ingredient inclusion
+    if include_ingredients:
+        if isinstance(include_ingredients, str):
+            ingredient_list = include_ingredients.split(',')
+        else:
+            ingredient_list = include_ingredients
+            
+        ing_inclusion_conditions = []
+        
+        for i, ingredient in enumerate(ingredient_list):
+            params[f"include_ing{i}"] = f"%{ingredient.strip()}%"
+            ing_inclusion_conditions.append(f"""
+                EXISTS (
+                    SELECT 1 FROM recipe_ingredients ri
+                    JOIN ingredients i ON ri.ingredient_id = i.ingredient_id
+                    WHERE ri.recipe_id = r.recipe_id AND i.ingredient_name ILIKE %(include_ing{i})s
+                )
+            """)
+        
+        if ing_inclusion_conditions:
+            where_clauses.append(f"({' AND '.join(ing_inclusion_conditions)})")
+    
+    # Process ingredient exclusion
+    if exclude_ingredients:
+        if isinstance(exclude_ingredients, str):
+            ingredient_list = exclude_ingredients.split(',')
+        else:
+            ingredient_list = exclude_ingredients
+            
+        ing_exclusion_conditions = []
+        
+        for i, ingredient in enumerate(ingredient_list):
+            params[f"exclude_ing{i}"] = f"%{ingredient.strip()}%"
+            ing_exclusion_conditions.append(f"""
+                NOT EXISTS (
+                    SELECT 1 FROM recipe_ingredients ri
+                    JOIN ingredients i ON ri.ingredient_id = i.ingredient_id
+                    WHERE ri.recipe_id = r.recipe_id AND i.ingredient_name ILIKE %(exclude_ing{i})s
+                )
+            """)
+        
+        if ing_exclusion_conditions:
+            where_clauses.append(f"({' AND '.join(ing_exclusion_conditions)})")
+    
+    # Process numerical filters
+    if min_calories is not None:
+        where_clauses.append("r.calories >= %(min_calories)s")
+        params["min_calories"] = min_calories
+    
+    if max_calories is not None:
+        where_clauses.append("r.calories <= %(max_calories)s")
+        params["max_calories"] = max_calories
+    
+    if max_prep_time is not None:
+        where_clauses.append("(r.prep_time IS NULL OR r.prep_time <= %(max_prep_time)s)")
+        params["max_prep_time"] = max_prep_time
+    
+    if max_cook_time is not None:
+        where_clauses.append("(r.cook_time IS NULL OR r.cook_time <= %(max_cook_time)s)")
+        params["max_cook_time"] = max_cook_time
+    
+    if max_total_time is not None:
+        where_clauses.append("(r.total_time IS NULL OR r.total_time <= %(max_total_time)s)")
+        params["max_total_time"] = max_total_time
+    
+    # Build the ORDER BY clause
+    if sort_by == "relevance" and query:
+        # Relevance sorting only makes sense with a query
+        order_clause = """
+        ORDER BY 
+            CASE
+                WHEN r.recipe_title ILIKE %(exact_query)s THEN 3  -- Exact match in title
+                WHEN r.recipe_title ILIKE %(start_query)s THEN 2  -- Starts with query
+                WHEN r.recipe_title ILIKE %(query)s THEN 1        -- Contains query
+                ELSE 0
+            END DESC
+        """
+        params["exact_query"] = query
+        params["start_query"] = f"{query}%"
+    elif sort_by == "rating":
+        # We'll need to fetch ratings from the user_interactions table
+        join_clauses.append("""
+        LEFT JOIN (
+            SELECT recipe_id, AVG(rating) as avg_rating
+            FROM user_interactions
+            WHERE interaction_type = 'rating'
+            GROUP BY recipe_id
+        ) ratings ON r.recipe_id = ratings.recipe_id
+        """)
+        order_direction = "DESC" if sort_order.upper() == "DESC" else "ASC"
+        order_clause = f"ORDER BY ratings.avg_rating {order_direction} NULLS LAST"
+    elif sort_by == "time":
+        # Sort by total time, using prep_time + cook_time as fallback
+        order_direction = "ASC" if sort_order.upper() == "ASC" else "DESC"  # Default to ASC for time
+        order_clause = f"""
+        ORDER BY 
+            COALESCE(r.total_time, r.prep_time + COALESCE(r.cook_time, 0)) {order_direction},
+            r.recipe_id
+        """
+    elif sort_by == "calories":
+        order_direction = "ASC" if sort_order.upper() == "ASC" else "DESC"
+        order_clause = f"ORDER BY r.calories {order_direction} NULLS LAST, r.recipe_id"
+    else:
+        # Default ordering by recipe_id
+        order_direction = "DESC" if sort_order.upper() == "DESC" else "ASC"
+        order_clause = f"ORDER BY r.recipe_id {order_direction}"
+    
+    # Add pagination
+    pagination_clause = "LIMIT %(limit)s OFFSET %(offset)s"
+    params["limit"] = limit
+    params["offset"] = offset
+    
+    # Count total results without pagination
+    count_query = f"""
+    SELECT COUNT(*) as count
+    {from_clause}
+    {' '.join(join_clauses)}
+    WHERE {' AND '.join(where_clauses)}
+    """
+    
+    # Main query with all clauses
+    main_query = f"""
+    {select_clause}
+    {from_clause}
+    {' '.join(join_clauses)}
+    WHERE {' AND '.join(where_clauses)}
+    {order_clause}
+    {pagination_clause}
+    """
+    
+    # Execute count query
+    count_result = execute_query_single(count_query, params)
+    total_count = count_result["count"] if count_result else 0
+    
+    # Execute main query
+    results = execute_query(main_query, params)
+    
+    # Get ingredients and instructions for each recipe
+    for recipe in results:
+        recipe_id = recipe["recipe_id"]
+        
+        # Get ingredients
+        ing_query = """
+        SELECT 
+            i.ingredient_id, i.ingredient_name, 
+            ri.quantity, ri.unit, ri.ingredient_state
+        FROM recipe_ingredients ri
+        JOIN ingredients i ON ri.ingredient_id = i.ingredient_id
+        WHERE ri.recipe_id = %(recipe_id)s
+        """
+        recipe["ingredients"] = execute_query(ing_query, {"recipe_id": recipe_id}) or []
+        
+        # Get instructions
+        instr_query = """
+        SELECT instructions
+        FROM recipe_instructions
+        WHERE recipe_id = %(recipe_id)s
+        """
+        instructions = execute_query_single(instr_query, {"recipe_id": recipe_id})
+        recipe["instructions"] = instructions["instructions"] if instructions else None
+    
+    # Calculate total pages
+    total_pages = math.ceil(total_count / limit) if total_count > 0 else 0
+    
+    # Return a structured response
+    return {
+        "results": results,
+        "pagination": {
+            "offset": offset,
+            "limit": limit,
+            "total_items": total_count,
+            "total_pages": total_pages
+        },
+        "criteria": {
+            "query": query,
+            "cuisines": cuisines,
+            "dietary": dietary,
+            "include_ingredients": include_ingredients,
+            "exclude_ingredients": exclude_ingredients,
+            "min_calories": min_calories,
+            "max_calories": max_calories,
+            "max_prep_time": max_prep_time, 
+            "max_cook_time": max_cook_time,
+            "max_total_time": max_total_time,
+            "sort_by": sort_by,
+            "sort_order": sort_order
+        }
+    }
 ////////////////////////////////////////////////////////////////////////////////
 
 │   ├── queries_recommend.py
@@ -2541,6 +2849,375 @@ def get_dietary_recommendations(dietary_restriction, limit=10):
 ////////////////////////////////////////////////////////////////////////////////
 
 ├── recommenders
+│   ├── collaborative.py
+
+////////////////////////////////////////////////////////////////////////////////
+# recommenders/collaborative.py
+
+import logging
+import json
+import pickle
+from datetime import datetime
+from typing import List, Dict, Any, Optional
+
+import torch
+import numpy as np
+from torch.utils.data import TensorDataset, DataLoader
+from cf_step import Step, SimpleCF, SGD
+
+from config.db import execute_query, execute_query_single, execute_transaction
+from config.config import DEFAULT_RECOMMENDATION_LIMIT
+
+logger = logging.getLogger(__name__)
+
+class CollaborativeRecommender:
+    """
+    Collaborative filtering recommender using CF-STEP library.
+    Implements incremental matrix factorization for positive-only feedback.
+    """
+    
+    def __init__(self, n_factors=50, model_name="default"):
+        """Initialize the collaborative filtering recommender."""
+        self.n_factors = n_factors
+        self.model_name = model_name
+        self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        self.model = None
+        
+        # Load model if exists
+        self.model_loaded = self._load_model()
+    
+    def _load_model(self):
+        """Load model from database if it exists."""
+        try:
+            query = """
+            SELECT model_id, user_map, item_map, model_data, n_factors, created_at
+            FROM matrix_factorization_models
+            WHERE model_name = %(model_name)s
+            ORDER BY created_at DESC
+            LIMIT 1
+            """
+            
+            result = execute_query_single(query, {"model_name": self.model_name})
+            
+            if not result:
+                logger.info(f"No existing model found for {self.model_name}")
+                return False
+                
+            self.user_map = json.loads(result["user_map"])
+            self.item_map = json.loads(result["item_map"])
+            self.n_factors = result["n_factors"]
+            self.model_id = result["model_id"]
+            self.created_at = result["created_at"]
+            
+            # Initialize CF-STEP model
+            n_users = max(int(uid) for uid in self.user_map.values()) + 1
+            n_items = max(int(iid) for iid in self.item_map.values()) + 1
+            
+            net = SimpleCF(n_users, n_items, factors=self.n_factors, mean=0., std=0.1)
+            objective = lambda pred, targ: targ - pred
+            optimizer = SGD(net.parameters(), lr=0.06)
+            
+            self.model = Step(net, objective, optimizer, device=self.device)
+            
+            # Load model weights
+            model_data = pickle.loads(result["model_data"])
+            self.model.net.load_state_dict(model_data)
+            
+            logger.info(f"Loaded CF model {self.model_name}, created at {self.created_at}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error loading collaborative filtering model: {e}")
+            return False
+    
+    def train(self):
+        """
+        Train the collaborative filtering model using all available interaction data.
+        Uses CF-STEP library for incremental matrix factorization.
+        """
+        try:
+            # Get all user interactions with positive feedback
+            query = """
+            SELECT user_id, recipe_id, 
+                   CASE 
+                       WHEN interaction_type = 'rating' AND rating >= 4 THEN 1
+                       WHEN interaction_type = 'like' THEN 1
+                       WHEN interaction_type = 'save' THEN 1
+                       WHEN interaction_type = 'cook' THEN 1
+                       ELSE 0
+                   END as preference
+            FROM user_interactions
+            WHERE interaction_type IN ('rating', 'like', 'save', 'cook')
+            ORDER BY created_at ASC
+            """
+            
+            interactions = execute_query(query)
+            
+            if not interactions or len(interactions) < 10:
+                logger.warning("Not enough interactions to train collaborative filtering model")
+                return False
+            
+            # Filter positive interactions
+            positive_interactions = [i for i in interactions if i["preference"] == 1]
+            
+            if len(positive_interactions) < 10:
+                logger.warning("Not enough positive interactions to train collaborative filtering model")
+                return False
+            
+            # Create user and item mappings
+            unique_users = list(set(item["user_id"] for item in positive_interactions))
+            unique_items = list(set(str(item["recipe_id"]) for item in positive_interactions))
+            
+            user_map = {user: idx for idx, user in enumerate(unique_users)}
+            item_map = {item: idx for idx, item in enumerate(unique_items)}
+            
+            # Set up CF-STEP model
+            n_users = len(user_map)
+            n_items = len(item_map)
+            
+            net = SimpleCF(n_users, n_items, factors=self.n_factors, mean=0., std=0.1)
+            objective = lambda pred, targ: targ - pred
+            optimizer = SGD(net.parameters(), lr=0.06)
+            
+            self.model = Step(net, objective, optimizer, device=self.device)
+            
+            # Prepare bootstrapping data (20%)
+            bootstrap_count = int(len(positive_interactions) * 0.2)
+            bootstrap_data = positive_interactions[:bootstrap_count]
+            
+            # Prepare dataset for batch training
+            features = []
+            targets = []
+            
+            for interaction in bootstrap_data:
+                user_idx = user_map[interaction["user_id"]]
+                item_idx = item_map[str(interaction["recipe_id"])]
+                preference = interaction["preference"]
+                
+                features.append([user_idx, item_idx, 1.0])  # Rating doesn't matter for CF-STEP
+                targets.append([preference])
+            
+            train_dataset = TensorDataset(
+                torch.tensor(features, dtype=torch.long),
+                torch.tensor(targets, dtype=torch.float)
+            )
+            train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
+            
+            # Batch fit for bootstrapping
+            logger.info(f"Bootstrapping with {bootstrap_count} interactions")
+            self.model.batch_fit(train_loader)
+            
+            # Incremental updates with remaining data
+            streaming_data = positive_interactions[bootstrap_count:]
+            logger.info(f"Incrementally updating with {len(streaming_data)} interactions")
+            
+            for interaction in streaming_data:
+                user_idx = torch.tensor([user_map[interaction["user_id"]]], dtype=torch.long)
+                item_idx = torch.tensor([item_map[str(interaction["recipe_id"])]], dtype=torch.long)
+                rating = torch.tensor([1.0], dtype=torch.float)  # Always 1 for positive feedback
+                pref = torch.tensor([1.0], dtype=torch.float)    # Always 1 for positive feedback
+                
+                self.model.step(user_idx, item_idx, rating, pref)
+            
+            # Store mappings
+            self.user_map = user_map
+            self.item_map = item_map
+            
+            # Save model to database
+            self._save_model()
+            
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error training collaborative filtering model: {e}")
+            return False
+    
+    def _save_model(self):
+        """Save the trained model to the database."""
+        try:
+            # Serialize model data
+            model_data = pickle.dumps(self.model.net.state_dict())
+            user_map_json = json.dumps(self.user_map)
+            item_map_json = json.dumps(self.item_map)
+            
+            query = """
+            INSERT INTO matrix_factorization_models
+            (model_name, user_map, item_map, model_data, n_factors, created_at, updated_at)
+            VALUES
+            (%(model_name)s, %(user_map)s, %(item_map)s, %(model_data)s, %(n_factors)s, NOW(), NOW())
+            RETURNING model_id
+            """
+            
+            params = {
+                "model_name": self.model_name,
+                "user_map": user_map_json,
+                "item_map": item_map_json,
+                "model_data": model_data,
+                "n_factors": self.n_factors
+            }
+            
+            result = execute_query_single(query, params)
+            
+            if result:
+                self.model_id = result["model_id"]
+                self.model_loaded = True
+                logger.info(f"Saved collaborative filtering model {self.model_name} with ID {self.model_id}")
+                return True
+            
+            return False
+            
+        except Exception as e:
+            logger.error(f"Error saving collaborative filtering model: {e}")
+            return False
+    
+    def get_recommendations(self, user_id, limit=DEFAULT_RECOMMENDATION_LIMIT, exclude_ids=None, filters=None):
+        """Get recommendations for a user using collaborative filtering."""
+        try:
+            if not self.model_loaded or not self.model:
+                logger.warning("Collaborative filtering model not loaded")
+                return []
+            
+            # Check if user exists in our model
+            if user_id not in self.user_map:
+                logger.info(f"User {user_id} not found in collaborative filtering model")
+                
+                # Try to find the most similar user instead
+                similar_user = self._find_most_similar_user(user_id)
+                if not similar_user:
+                    return []
+                
+                user_id = similar_user
+            
+            user_idx = self.user_map[user_id]
+            
+            # Get top-k recommendations using CF-STEP predict method
+            user_tensor = torch.tensor([user_idx], dtype=torch.long).to(self.device)
+            predictions = self.model.predict(user_tensor, k=limit*2)  # Get more to allow for filtering
+            
+            # Convert tensor to list and map back to recipe IDs
+            idx_to_item = {idx: item_id for item_id, idx in self.item_map.items()}
+            recommended_items = []
+            
+            for idx in predictions[0].cpu().numpy():
+                if idx in idx_to_item:
+                    item_id = idx_to_item[idx]
+                    recommended_items.append({
+                        "id": item_id,
+                        "content_type": "recipe",
+                        "score": 0.9  # CF-STEP doesn't provide scores, use high confidence
+                    })
+            
+            # Exclude already interacted items
+            if exclude_ids:
+                exclude_set = set(str(id) for id in exclude_ids)
+                recommended_items = [item for item in recommended_items if item["id"] not in exclude_set]
+            
+            # Apply additional filters if specified
+            if filters:
+                filtered_items = self._apply_filters(recommended_items, filters)
+                recommended_items = filtered_items
+            
+            # Get recipe titles for recommendations
+            from models.queries_recipe import get_recipe
+            for item in recommended_items:
+                recipe_id = item["id"]
+                recipe = get_recipe(recipe_id)
+                if recipe:
+                    item["title"] = recipe["recipe_title"]
+            
+            return recommended_items[:limit]
+            
+        except Exception as e:
+            logger.error(f"Error generating collaborative filtering recommendations: {e}")
+            return []
+    
+    def _apply_filters(self, items, filters):
+        """Apply filters to recommended items."""
+        # Query to check if items match filters
+        item_ids = [item["id"] for item in items]
+        if not item_ids:
+            return []
+            
+        filter_query = "SELECT recipe_id::TEXT FROM recipes WHERE recipe_id::TEXT = ANY(%(item_ids)s)"
+        filter_params = {"item_ids": item_ids}
+        
+        # Add filter conditions
+        if filters.get("region"):
+            filter_query += " AND region = %(region)s"
+            filter_params["region"] = filters["region"]
+        
+        if filters.get("sub_region"):
+            filter_query += " AND sub_region = %(sub_region)s"
+            filter_params["sub_region"] = filters["sub_region"]
+        
+        if filters.get("dietary_restriction"):
+            filter_query += """
+            AND EXISTS (
+                SELECT 1 FROM recipe_diet_attributes
+                WHERE recipe_id = recipes.recipe_id
+                AND CASE 
+                    WHEN %(dietary)s = 'vegan' THEN vegan = TRUE
+                    WHEN %(dietary)s = 'pescetarian' THEN pescetarian = TRUE
+                    WHEN %(dietary)s = 'lacto_vegetarian' THEN lacto_vegetarian = TRUE
+                    ELSE FALSE
+                END
+            )
+            """
+            filter_params["dietary"] = filters["dietary_restriction"]
+        
+        # Execute filter query
+        matching_items = execute_query(filter_query, filter_params)
+        matching_ids = set(item["recipe_id"] for item in matching_items)
+        
+        # Filter items
+        return [item for item in items if item["id"] in matching_ids]
+    
+    def _find_most_similar_user(self, user_id):
+        """Find the most similar user in the model to a user not in the model."""
+        try:
+            # Get recent interactions for the user
+            query = """
+            SELECT recipe_id FROM user_interactions
+            WHERE user_id = %(user_id)s
+            ORDER BY created_at DESC
+            LIMIT 10
+            """
+            
+            user_interactions = execute_query(query, {"user_id": user_id})
+            
+            if not user_interactions:
+                return None
+            
+            # Get users who interacted with the same items
+            user_items = [str(interaction["recipe_id"]) for interaction in user_interactions]
+            
+            query = """
+            SELECT user_id, COUNT(*) as common_count
+            FROM user_interactions
+            WHERE recipe_id::TEXT = ANY(%(item_ids)s)
+              AND user_id != %(user_id)s
+            GROUP BY user_id
+            ORDER BY common_count DESC
+            LIMIT 5
+            """
+            
+            similar_users = execute_query(query, {"item_ids": user_items, "user_id": user_id})
+            
+            if not similar_users:
+                return None
+            
+            # Find a user who exists in our model
+            for user in similar_users:
+                if user["user_id"] in self.user_map:
+                    return user["user_id"]
+            
+            return None
+            
+        except Exception as e:
+            logger.error(f"Error finding similar user: {e}")
+            return None
+////////////////////////////////////////////////////////////////////////////////
+
 │   └── hybrid.py
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -2683,50 +3360,50 @@ class HybridRecommender:
         logger.info(f"Hybrid recommender generated {len(recommended_items)} items total")
         return recommended_items[:limit]
     
-    def _get_collaborative_recommendations(
-        self, 
-        user_id: str,
-        content_type: Optional[str] = None,
-        limit: int = 10,
-        **kwargs
-    ) -> List[Dict[str, Any]]:
-        """Get collaborative filtering recommendations for a user."""
-        # Find similar users
-        similar_users = find_similar_users(
-            user_id=user_id,
-            min_common_items=2,
-            limit=10
-        )
-        
-        if not similar_users:
-            logger.info(f"No similar users found for user {user_id}")
-            return []
-        
-        # Get content from similar users
-        items = get_content_from_similar_users(
-            similar_users=similar_users,
-            user_id=user_id,
-            limit=limit
-        )
-        
-        # Transform the data format
-        recommendations = []
-        for item in items:
-            recommendations.append({
-                "id": str(item["recipe_id"]),
-                "content_type": "recipe",
-                "title": item["title"],
-                "score": item.get("interaction_count", 1) / 10.0  # Normalize
-            })
-        
-        # Apply additional filters
-        cuisine = kwargs.get('cuisine')
-        if cuisine and recommendations:
-            # This would be more efficient with a separate query, but for now just filter
-            recommendations = [r for r in recommendations if cuisine.lower() in r["title"].lower()]
-        
-        return recommendations
-    
+	def _get_collaborative_recommendations(
+    	self, 
+    	user_id: str,
+    	content_type: Optional[str] = None,
+    	limit: int = 10,
+    	**kwargs
+	) -> List[Dict[str, Any]]:
+    	"""Get collaborative filtering recommendations for a user."""
+    	try:
+        	# Use our CF-STEP collaborative filtering recommender
+        	from recommenders.collaborative import CollaborativeRecommender
+        	
+        	recommender = CollaborativeRecommender()
+        	if not recommender.model_loaded:
+            	logger.info("Training collaborative filtering model...")
+            	recommender.train()
+        	
+        	# Extract any relevant filters
+        	filters = {}
+        	if kwargs.get('cuisine'):
+            	filters['region'] = kwargs.get('cuisine')
+        	if kwargs.get('dietary_restriction'):
+            	filters['dietary_restriction'] = kwargs.get('dietary_restriction')
+        	
+        	# Get user's interacted items to exclude
+        	exclude_ids = []
+        	user_interactions = get_user_recent_interactions(user_id, limit=100)
+        	if user_interactions:
+            	exclude_ids = [interaction["recipe_id"] for interaction in user_interactions]
+        	
+        	# Get recommendations
+        	items = recommender.get_recommendations(
+            	user_id=user_id,
+            	limit=limit,
+            	exclude_ids=exclude_ids,
+            	filters=filters
+        	)
+        	
+        	logger.info(f"Generated {len(items)} collaborative filtering recommendations")
+        	return items
+        	
+    	except Exception as e:
+        	logger.error(f"Error in collaborative filtering recommendations: {e}")
+        	return []
     def _get_content_based_recommendations(
         self, 
         user_id: Optional[str] = None,
