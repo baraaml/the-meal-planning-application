@@ -236,7 +236,7 @@ load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://mealflow:mealflow@localhost:5432/meals")
 
 # API settings
-API_HOST = os.getenv("API_HOST", "0.0.0.0")
+API_HOST = os.getenv("API_HOST", "127.0.0.1")
 API_PORT = int(os.getenv("API_PORT", "9999"))
 RELOAD = os.getenv("RELOAD", "True").lower() in ("true", "1", "t")
 
@@ -247,7 +247,7 @@ EMBEDDING_DIMENSION = int(os.getenv("EMBEDDING_DIMENSION", "384"))
 # Recommendation settings
 DEFAULT_RECOMMENDATION_LIMIT = int(os.getenv("DEFAULT_RECOMMENDATION_LIMIT", "10"))
 ALLOWED_TRENDING_WINDOWS = ["day", "week", "month"]
-INTERACTION_TYPES = ["view", "like", "save", "cook", "rating"]
+INTERACTION_TYPES = ["view", "like", "save", "cook", "rating","ignore"]
 
 # Search settings
 MIN_SIMILARITY_SCORE = float(os.getenv("MIN_SIMILARITY_SCORE", "0.6"))

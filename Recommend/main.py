@@ -94,7 +94,7 @@ async def shutdown_event():
 if __name__ == "__main__":
     uvicorn.run(
         "main:app", 
-        host=API_HOST, 
+        host="API_HOST", 
         port=API_PORT,
         reload=RELOAD
     )
