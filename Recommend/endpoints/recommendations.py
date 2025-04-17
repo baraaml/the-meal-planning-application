@@ -2,21 +2,16 @@
 API endpoints for recommendation features.
 """
 import time
+import logging
 from fastapi import APIRouter, HTTPException, Query, Depends
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 
 from config.config import DEFAULT_RECOMMENDATION_LIMIT, ALLOWED_TRENDING_WINDOWS
 from models.models import RecommendationResponse, RecommendationItem, InteractionCreate
-from models.queries_recommend import (
-    get_trending_recipes, record_interaction, get_user_recent_interactions,
-    find_similar_users, get_content_from_similar_users
-)
-from models.queries_search import (
-    find_similar_content, get_similar_by_ingredients, 
-    get_cuisine_recommendations, get_dietary_recommendations
-)
-from recommenders.hybrid import HybridRecommender
+from recommenders.recommender_factory import get_recommender
+from models.queries_recommend import record_interaction
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1", tags=["recommendations"])
 
 @router.get("/recommend/user/{user_id}", response_model=RecommendationResponse)
@@ -31,13 +26,14 @@ def get_user_recommendations(
     """Get personalized recommendations for a user."""
     start_time = time.time()
     
-    # Use HybridRecommender from recommenders module
-    recommender = HybridRecommender()
+    # Get the appropriate recommender
+    recommender = get_recommender(recommendation_type)
+    
+    # Get recommendations
     recommended_items = recommender.get_recommendations(
         user_id=user_id,
         content_type=content_type,
         limit=limit,
-        recommendation_type=recommendation_type,
         cuisine=cuisine,
         dietary_restriction=dietary_restriction
     )
@@ -69,33 +65,162 @@ def get_similar_recommendations(
     """Get recommendations similar to a specific item."""
     start_time = time.time()
     
-    # Choose similarity method
-    if similarity_method == "ingredient":
-        similar_items = get_similar_by_ingredients(recipe_id, limit)
-    else:  # Default to content-based
-        # First get the embedding of the recipe
-        from models.queries_recipe import get_recipe
-        recipe = get_recipe(recipe_id)
-        if not recipe:
-            raise HTTPException(status_code=404, detail=f"Recipe with ID {recipe_id} not found")
-        
-        from embedding.embeddings import EmbeddingGenerator
-        generator = EmbeddingGenerator()
-        embedding = generator.generate_recipe_embedding(recipe)
-        
-        if not embedding:
-            raise HTTPException(status_code=500, detail="Failed to generate embedding")
-        
-        similar_items = find_similar_content(embedding, exclude_ids=[recipe_id], limit=limit)
+    # Get content-based recommender
+    recommender = get_recommender("content")
+    
+    similar_items = recommender.get_similar_recommendations(
+        recipe_id=recipe_id,
+        similarity_method=similarity_method,
+        limit=limit
+    )
     
     # Format the items
     items = []
     for item in similar_items:
         items.append(RecommendationItem(
-            id=str(item["recipe_id"]),
+            id=str(item["id"]),
             content_type="recipe",
-            title=item["title"] if "title" in item else item.get("recipe_title", ""),
-            score=item.get("similarity", 0)
+            title=item["title"],
+            score=item.get("score", 0)
+        ))
+    
+    execution_time = (time.time() - start_time) * 1000
+    
+    return RecommendationResponse(
+        items=items,
+        count=len(items),
+        execution_time_ms=round(execution_time, 2)
+    )
+
+@router.post("/interactions")
+def create_interaction_endpoint(interaction: InteractionCreate):
+    """Record a user interaction with a recipe."""
+    start_time = time.time()
+    
+    # Validate recipe_id
+    recipe_id = interaction.meal_id
+    if not recipe_id:
+        raise HTTPException(
+            status_code=400,
+            detail="Missing recipe_id parameter"
+        )
+    
+    success = record_interaction(
+        user_id=interaction.user_id,
+        recipe_id=recipe_id,
+        interaction_type=interaction.interaction_type,
+        rating=interaction.rating if interaction.interaction_type == 'rating' else None
+    )
+    
+    execution_time = (time.time() - start_time) * 1000
+    
+    if success:
+        return {
+            "status": "recorded",
+            "execution_time_ms": round(execution_time, 2)
+        }
+    else:
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to record interaction"
+        )
+
+@router.get("/recommend/cuisine/{cuisine_id}", response_model=RecommendationResponse)
+def get_cuisine_recommendations_endpoint(
+    cuisine_id: str,
+    limit: int = Query(DEFAULT_RECOMMENDATION_LIMIT, description="Maximum number of items")
+):
+    """Get recipe recommendations for a specific cuisine or region."""
+    start_time = time.time()
+    
+    # Get content-based recommender
+    recommender = get_recommender("content")
+    
+    cuisine_items = recommender.get_cuisine_recommendations(
+        cuisine_name=cuisine_id, 
+        limit=limit
+    )
+    
+    # Format the items
+    items = []
+    for item in cuisine_items:
+        items.append(RecommendationItem(
+            id=str(item["id"]),
+            content_type="recipe",
+            title=item["title"],
+            score=None
+        ))
+    
+    execution_time = (time.time() - start_time) * 1000
+    
+    return RecommendationResponse(
+        items=items,
+        count=len(items),
+        execution_time_ms=round(execution_time, 2)
+    )
+
+@router.get("/recommend/dietary/{dietary_restriction}", response_model=RecommendationResponse)
+def get_dietary_recommendations_endpoint(
+    dietary_restriction: str,
+    limit: int = Query(DEFAULT_RECOMMENDATION_LIMIT, description="Maximum number of items")
+):
+    """Get recipe recommendations based on dietary restrictions."""
+    start_time = time.time()
+    
+    # Get content-based recommender
+    recommender = get_recommender("content")
+    
+    dietary_items = recommender.get_dietary_recommendations(
+        dietary_restriction=dietary_restriction,
+        limit=limit
+    )
+    
+    # Format the items
+    items = []
+    for item in dietary_items:
+        items.append(RecommendationItem(
+            id=str(item["id"]),
+            content_type="recipe",
+            title=item["title"],
+            score=None
+        ))
+    
+    execution_time = (time.time() - start_time) * 1000
+    
+    return RecommendationResponse(
+        items=items,
+        count=len(items),
+        execution_time_ms=round(execution_time, 2)
+    )
+
+@router.get("/recommend/quick", response_model=RecommendationResponse)
+def get_quick_recipes(
+    max_time: int = Query(30, description="Maximum total preparation time in minutes"),
+    limit: int = Query(DEFAULT_RECOMMENDATION_LIMIT, description="Maximum number of items"),
+    cuisine: Optional[str] = None,
+    dietary_restriction: Optional[str] = None
+):
+    """Get quick recipe recommendations based on preparation time."""
+    start_time = time.time()
+    
+    # Get content-based recommender
+    recommender = get_recommender("content")
+    
+    quick_items = recommender.get_quick_recommendations(
+        max_time=max_time,
+        limit=limit,
+        cuisine=cuisine,
+        dietary_restriction=dietary_restriction
+    )
+    
+    # Format the items
+    items = []
+    for item in quick_items:
+        items.append(RecommendationItem(
+            id=str(item["id"]),
+            content_type="recipe",
+            title=item["title"],
+            score=None
         ))
     
     execution_time = (time.time() - start_time) * 1000
@@ -122,7 +247,10 @@ def get_trending_content(
             detail=f"Invalid time window. Allowed values are: {', '.join(ALLOWED_TRENDING_WINDOWS)}"
         )
     
-    trending_items = get_trending_recipes(
+    # Get popularity-based recommender
+    recommender = get_recommender("popularity")
+    
+    trending_items = recommender.get_trending_recommendations(
         time_window=time_window,
         limit=limit,
         cuisine=cuisine,
@@ -133,200 +261,10 @@ def get_trending_content(
     items = []
     for item in trending_items:
         items.append(RecommendationItem(
-            id=str(item["recipe_id"]),
+            id=str(item["id"]),
             content_type="recipe",
             title=item["title"],
-            score=item.get("popularity", 0) / 100 if item.get("popularity") else 0.5
-        ))
-    
-    execution_time = (time.time() - start_time) * 1000
-    
-    return RecommendationResponse(
-        items=items,
-        count=len(items),
-        execution_time_ms=round(execution_time, 2)
-    )
-
-@router.get("/recommend/cuisine/{cuisine_id}", response_model=RecommendationResponse)
-def get_cuisine_recommendations_endpoint(
-    cuisine_id: str,
-    limit: int = Query(DEFAULT_RECOMMENDATION_LIMIT, description="Maximum number of items")
-):
-    """Get recipe recommendations for a specific cuisine or region."""
-    start_time = time.time()
-    
-    cuisine_items = get_cuisine_recommendations(cuisine_name=cuisine_id, limit=limit)
-    
-    # Format the items
-    items = []
-    for item in cuisine_items:
-        items.append(RecommendationItem(
-            id=str(item["recipe_id"]),
-            content_type="recipe",
-            title=item["title"],
-            score=None
-        ))
-    
-    execution_time = (time.time() - start_time) * 1000
-    
-    return RecommendationResponse(
-        items=items,
-        count=len(items),
-        execution_time_ms=round(execution_time, 2)
-    )
-
-@router.get("/recommend/dietary/{dietary_restriction}", response_model=RecommendationResponse)
-def get_dietary_recommendations_endpoint(
-    dietary_restriction: str,
-    limit: int = Query(DEFAULT_RECOMMENDATION_LIMIT, description="Maximum number of items")
-):
-    """Get recipe recommendations based on dietary restrictions."""
-    start_time = time.time()
-    
-    dietary_items = get_dietary_recommendations(
-        dietary_restriction=dietary_restriction,
-        limit=limit
-    )
-    
-    # Format the items
-    items = []
-    for item in dietary_items:
-        items.append(RecommendationItem(
-            id=str(item["recipe_id"]),
-            content_type="recipe",
-            title=item["title"],
-            score=None
-        ))
-    
-    execution_time = (time.time() - start_time) * 1000
-    
-    return RecommendationResponse(
-        items=items,
-        count=len(items),
-        execution_time_ms=round(execution_time, 2)
-    )
-
-@router.post("/interactions")
-def create_interaction_endpoint(interaction: InteractionCreate):
-    """Record a user interaction with a recipe."""
-    start_time = time.time()
-    
-    # Validate recipe_id
-    recipe_id = interaction.meal_id
-    if recipe_id and "{{" in recipe_id:
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid recipe_id format. Template variables not resolved."
-        )
-    
-    success = record_interaction(
-        user_id=interaction.user_id,
-        recipe_id=recipe_id,
-        interaction_type=interaction.interaction_type,
-        rating=interaction.rating if interaction.interaction_type == 'rating' else None
-    )
-    
-    execution_time = (time.time() - start_time) * 1000
-    
-    if success:
-        return {
-            "status": "recorded",
-            "execution_time_ms": round(execution_time, 2)
-        }
-    else:
-        raise HTTPException(
-            status_code=500,
-            detail="Failed to record interaction"
-        )
-    """Record a user interaction with a recipe."""
-    start_time = time.time()
-    
-    success = record_interaction(
-        user_id=interaction.user_id,
-        recipe_id=interaction.meal_id,
-        interaction_type=interaction.interaction_type,
-        rating=interaction.rating if interaction.interaction_type == 'rating' else None
-    )
-    
-    execution_time = (time.time() - start_time) * 1000
-    
-    if success:
-        return {
-            "status": "recorded",
-            "execution_time_ms": round(execution_time, 2)
-        }
-    else:
-        raise HTTPException(
-            status_code=500,
-            detail="Failed to record interaction"
-        )
-
-
-# Add this endpoint to the endpoints/recommendations.py file
-@router.get("/recommend/quick", response_model=RecommendationResponse)
-def get_quick_recipes(
-    max_time: int = Query(30, description="Maximum total preparation time in minutes"),
-    limit: int = Query(DEFAULT_RECOMMENDATION_LIMIT, description="Maximum number of items"),
-    cuisine: Optional[str] = None,
-    dietary_restriction: Optional[str] = None
-):
-    """Get quick recipe recommendations based on preparation time."""
-    start_time = time.time()
-    
-    # Query for recipes with preparation time less than max_time
-    query = """
-    SELECT 
-        recipe_id,
-        recipe_title as title
-    FROM recipes
-    WHERE 1=1
-    AND (total_time <= %(max_time)s OR 
-         (prep_time + COALESCE(cook_time, 0)) <= %(max_time)s)
-    """
-    
-    params = {
-        "max_time": max_time,
-        "limit": limit
-    }
-    
-    # Add filters
-    if cuisine:
-        query += " AND (region = %(cuisine)s OR sub_region = %(cuisine)s)"
-        params["cuisine"] = cuisine
-    
-    if dietary_restriction:
-        query += """
-        AND EXISTS (
-            SELECT 1 FROM recipe_diet_attributes rda 
-            WHERE rda.recipe_id = recipes.recipe_id AND
-            CASE 
-                WHEN %(dietary)s = 'vegan' THEN rda.vegan = TRUE
-                WHEN %(dietary)s = 'pescetarian' THEN rda.pescetarian = TRUE
-                WHEN %(dietary)s = 'lacto_vegetarian' THEN rda.lacto_vegetarian = TRUE
-                ELSE FALSE
-            END
-        )
-        """
-        params["dietary"] = dietary_restriction
-    
-    # Complete the query with ordering and limit
-    query += """
-    ORDER BY (COALESCE(prep_time, 0) + COALESCE(cook_time, 0))
-    LIMIT %(limit)s
-    """
-    
-    # Execute the query
-    from config.db import execute_query
-    quick_recipes = execute_query(query, params)
-    
-    # Format the items
-    items = []
-    for item in quick_recipes:
-        items.append(RecommendationItem(
-            id=str(item["recipe_id"]),
-            content_type="recipe",
-            title=item["title"],
-            score=None
+            score=item.get("score", 0.5)
         ))
     
     execution_time = (time.time() - start_time) * 1000

@@ -21,8 +21,16 @@ EMBEDDING_DIMENSION = int(os.getenv("EMBEDDING_DIMENSION", "384"))
 
 # Recommendation settings
 DEFAULT_RECOMMENDATION_LIMIT = int(os.getenv("DEFAULT_RECOMMENDATION_LIMIT", "10"))
-ALLOWED_TRENDING_WINDOWS = ["day", "week", "month"]
-INTERACTION_TYPES = ["view", "like", "save", "cook", "rating","ignore"]
+ALLOWED_TRENDING_WINDOWS = os.getenv("ALLOWED_TRENDING_WINDOWS", "day,week,month").split(",")
+INTERACTION_TYPES = os.getenv("INTERACTION_TYPES", "view,like,save,cook,rating,ignore").split(",")
+
+# Scheduler settings
+EMBEDDING_GENERATION_INTERVAL = int(os.getenv("EMBEDDING_GENERATION_INTERVAL", "60"))
+SCHEDULER_SLEEP_INTERVAL = int(os.getenv("SCHEDULER_SLEEP_INTERVAL", "60"))
+
+# Cache settings
+ENABLE_CACHE = os.getenv("ENABLE_CACHE", "False").lower() in ("true", "1", "t")
+CACHE_EXPIRATION = int(os.getenv("CACHE_EXPIRATION", "300"))
 
 # Search settings
 MIN_SIMILARITY_SCORE = float(os.getenv("MIN_SIMILARITY_SCORE", "0.6"))

@@ -34,21 +34,35 @@ class EmbeddingGenerator:
             # Create a comprehensive text representation of the recipe
             title = recipe_data.get("recipe_title", "")
             instructions = recipe_data.get("instructions", "")
-            ingredients = [ing.get("ingredient_name", "") for ing in recipe_data.get("ingredients", [])]
             
-            ingredients_text = ", ".join(ingredients)
-            text_for_embedding = f"{title}. {instructions} Ingredients: {ingredients_text}"
+            # Handle ingredients which might be a list of dicts or strings
+            ingredients_text = ""
+            ingredients = recipe_data.get("ingredients", [])
+            
+            if ingredients and isinstance(ingredients[0], dict):
+                ingredients_text = ", ".join([ing.get("ingredient_name", "") for ing in ingredients])
+            elif ingredients and isinstance(ingredients[0], str):
+                ingredients_text = ", ".join(ingredients)
+            
+            # Add region and cuisine information if available
+            region = recipe_data.get("region", "")
+            sub_region = recipe_data.get("sub_region", "")
+            cuisine_info = f"Cuisine: {region} {sub_region}".strip() if (region or sub_region) else ""
+            
+            # Create a rich text representation for embedding
+            text_for_embedding = f"{title}. {cuisine_info} {instructions} Ingredients: {ingredients_text}"
+            text_for_embedding = text_for_embedding.strip()
             
             # Generate embedding
             embedding = self.model.encode(text_for_embedding)
             
             # Ensure it's a list of floats
-            if not isinstance(embedding, list):
+            if isinstance(embedding, np.ndarray):
                 embedding = embedding.tolist()
             
             # Validate embedding
             if not embedding or len(embedding) != self.embedding_dimension:
-                logger.warning(f"Invalid embedding generated. Length: {len(embedding)}, Expected: {self.embedding_dimension}")
+                logger.warning(f"Invalid embedding generated. Length: {len(embedding) if embedding else 0}, Expected: {self.embedding_dimension}")
                 return None
             
             return embedding
@@ -104,7 +118,7 @@ class EmbeddingGenerator:
             logger.error(f"Error updating embedding for recipe {recipe_id}: {e}")
             return False
     
-    def generate_all_embeddings(self, batch_size: int = 5000) -> int:
+    def generate_all_embeddings(self, batch_size: int = 50) -> int:
         """Generate embeddings for recipes that don't have them yet."""
         count = 0
         
@@ -187,3 +201,24 @@ class EmbeddingGenerator:
             return {
                 "error": str(e)
             }
+            
+    def get_embedding_from_text(self, text: str) -> Optional[List[float]]:
+        """Generate an embedding directly from text."""
+        try:
+            # Generate embedding
+            embedding = self.model.encode(text)
+            
+            # Ensure it's a list of floats
+            if isinstance(embedding, np.ndarray):
+                embedding = embedding.tolist()
+            
+            # Validate embedding
+            if not embedding or len(embedding) != self.embedding_dimension:
+                logger.warning(f"Invalid embedding generated from text. Length: {len(embedding) if embedding else 0}, Expected: {self.embedding_dimension}")
+                return None
+            
+            return embedding
+            
+        except Exception as e:
+            logger.error(f"Error generating embedding from text: {e}")
+            return None

@@ -13,7 +13,10 @@ from config.db import check_connection, initialize_pool
 from endpoints.middleware import setup_middleware
 from endpoints.recipes import router as recipe_router
 from endpoints.recommendations import router as recommendation_router
+from endpoints.system import router as system_router
+from endpoints.search import router as search_router  # Import the new search router
 from models.models import HealthResponse
+from embedding.scheduler import start_embedding_scheduler
 
 # Configure logging
 logging.basicConfig(
@@ -35,6 +38,8 @@ setup_middleware(app)
 # Include API routers
 app.include_router(recipe_router)
 app.include_router(recommendation_router)
+app.include_router(system_router)
+app.include_router(search_router)  # Add the search router
 
 # Add error handling for 500 errors
 @app.exception_handler(Exception)
@@ -82,19 +87,14 @@ async def startup_event():
     """Initialize resources on startup."""
     logger.info("Initializing application...")
     initialize_pool()
+    # Start the background embedding generation scheduler
+    start_embedding_scheduler()
     logger.info("Application initialization complete")
-
-# Cleanup on shutdown
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Clean up resources on shutdown."""
-    logger.info("Application shutting down...")
-    # Any cleanup code would go here
 
 if __name__ == "__main__":
     uvicorn.run(
         "main:app", 
-        host="API_HOST", 
+        host=API_HOST, 
         port=API_PORT,
         reload=RELOAD
     )

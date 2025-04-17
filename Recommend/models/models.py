@@ -43,10 +43,6 @@ class InteractionCreate(BaseModel):
     interaction_type: str
     rating: Optional[float] = None
 
-class DietaryPreferenceCreate(BaseModel):
-    """Model for creating a dietary preference."""
-    dietary_restriction: str
-
 # Response models
 class RecipeBase(BaseModel):
     """Base model for recipe responses."""
