@@ -302,7 +302,16 @@ class CommunityService {
     return newAdmins;
   }
 
-  
+  /**
+   * Deletes a community given its ID
+   * @param {string} communityId - Community ID
+   */
+  async deleteCommunity(communityId, adminId, memberIDs) {
+    /**
+     * check for communityId and adminId first
+     * check if the community exists
+     */
+  }
 
   /**
    * Format community data for response
