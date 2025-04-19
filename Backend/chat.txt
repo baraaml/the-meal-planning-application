@@ -1,0 +1,164 @@
+Directory Tree: ./
+================================================================================
+
+├── .env
+
+////////////////////////////////////////////////////////////////////////////////
+PORT = 3000
+NODE_ENV = development
+DATABASE_URL="postgresql://mealflow:mealflow@mealflow.ddns.net:5432/mealflow?schema=public"
+
+SMTP_HOST=smtp-relay.brevo.com
+SMTP_PORT=587
+SMTP_USER=864f48001@smtp-brevo.com
+SMTP_PASS=Hd7cLsjtSw1pRyA5
+SMTP_PASS_NODE=xsmtpsib-08fbd981606216e803e1572cccd277c2eeb4962d1bfd6002ac2b2bdb8fa240cb-ZnAy5hROzmt6N9sS
+BREVO_API_KEY =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
+
+COST_FACTOR = 10
+
+JWT_SECRET = 512ffef55e8fe91f270acd298bc208c52101bd5305a2014850489bdaa7807c213bdc9582a4f67fd0ea666fdb945e7f6627b30ef574a4d4678ef0d6ce79a670e7c46e81216508c6c47560879346f5d3de5ccd85afe66fd9b618165fb3e9f4d759fe1ef55d7f4749d52247f368bc89230fb267278e8c5940b74c1395294f6be0980458fa66e82f60911f67739ee6c9e82c2059bd9dd13c66f874e18688c08134c2f0c2d032ac6c75f4310926735733344568b0f94e8e22e153d51ccc8a4b8962813ff9e1d19ed069493b2103bb9d8138f51b0181f16918d862deca368b56696bc2568d1a13a1928af875deaa98b89e7f2aee6c8689aeec7106f309487d9a990727
+JWT_ACCESS_TOKEN_LIFETIME = 6h
+JWT_REFRESH_TOKEN_LIFETIME = 1y
+
+CLOUDINARY_CLOUD_NAME=dtz7ml4c3
+CLOUDINARY_API_KEY=331854897438254
+CLOUDINARY_API_SECRET=nVN0gpJWYrCGp5SObg6p9bTfOcg
+
+
+MONGO_URI = mongodb+srv://amr:287491@clustertaskmanager.4tqui.mongodb.net/someday_to_do_list?retryWrites=true&w=majority&appName=ClusterTaskManager
+
+# Python Recommendation Service Settings
+PYTHON_SERVICE_URL=http://127.0.0.1:9999
+PYTHON_API_VERSION=v1
+PYTHON_SERVICE_TIMEOUT=300000
+DEFAULT_USER_ID=default_user
+////////////////////////////////////////////////////////////////////////////////
+
+├── README.md
+
+////////////////////////////////////////////////////////////////////////////////
+# To-Do List Application
+
+## Project Overview
+This is a simple to-do list application with:
+- **Frontend**: Built using Kotlin for Android.
+- **Backend**: Powered by a server-side framework (Express.js).
+
+The application enables users to:
+- View a shared task list.
+- Add new tasks.
+- Manage task completion status.
+
+---
+
+## Features
+
+### Frontend (Android App)
+- **Task List Display**: View tasks in a RecyclerView.
+- **Add Task**: Add tasks via a dedicated screen.
+- **Task Completion**: Mark tasks as completed with visual cues.
+- **API Integration**: Communicates with the backend to manage tasks.
+- **Error Handling**: Provides feedback via Toast messages.
+
+### Backend
+- **Task Management API**: Endpoints to fetch and add tasks.
+- **Basic Authentication**: Hardcoded user authentication for simplicity.
+- **Database Integration**: Stores tasks and user information.
+- **Deployment**: Hosted on a free service (e.g., Render or Heroku).
+
+---
+
+## Project Setup
+
+### Frontend
+1. Clone the repository.
+2. Open the project in **Android Studio**.
+3. Install dependencies in `build.gradle` (e.g., Retrofit, Coroutines).
+4. Run the app on an emulator or physical device.
+
+### Backend
+1. Clone the repository.
+2. Install dependencies:
+   ```bash
+   npm install  # For Node.js
+
+////////////////////////////////////////////////////////////////////////////////
+
+├── app.js
+
+////////////////////////////////////////////////////////////////////////////////
+const express = require("express");
+require("express-async-errors");
+require("dotenv").config();
+require("./jobs/cron"); // This will automatically start the cleanup job
+const { PrismaClient } = require("@prisma/client");
+const cors = require("cors");
+const path = require("path");
+
+const prisma = new PrismaClient();
+const app = express();
+
+const uploadRouter = require("./routes/upload.routes");
+const authRouter = require("./routes/auth.routes");
+const userRouter = require("./routes/user.routes");
+const communityRouter = require("./routes/community.routes");
+const mealRouter = require("./routes/meal.routes");
+const systemRouter = require("./routes/system.routes"); // Add the system routes
+const notFound = require("./middlewares/notFound");
+const errorHandlerMiddleware = require("./middlewares/errorHandler");
+
+app.use(cors());
+app.use(express.json());
+app.use("/api/v1/users", authRouter);
+app.use("/api/v1/users", userRouter);
+app.use("/api/v1/community", communityRouter);
+app.use("/api/v1/upload", uploadRouter);
+app.use("/api/v1/meal", mealRouter);
+app.use("/api/v1/system", systemRouter); // Use the system routes
+
+app.get("/", (req, res) => {
+  res.send("Hello ma man");
+});
+
+app.use(notFound);
+app.use(errorHandlerMiddleware);
+
+const port = process.env.PORT || 3001;
+
+const startServer = async () => {
+  try {
+    await prisma.$connect();
+    const server = app.listen(port, () =>
+      console.log(`Server is listening on ${port}...`)
+    );
+
+    // Graceful shutdown
+    process.on("SIGINT", async () => {
+      await prisma.$disconnect();
+      console.log("Prisma disconnected. Server shutting down...");
+      server.close(() => process.exit(0));
+    });
+
+    process.on("SIGTERM", async () => {
+      await prisma.$disconnect();
+      console.log("Prisma disconnected due to termination signal.");
+      server.close(() => process.exit(0));
+    });
+  } catch (error) {
+    console.error("Error starting server:", error);
+    process.exit(1);
+  }
+};
+
+// Only start the server if this file is executed directly (not when imported in tests)
+if (require.main === module) {
+  startServer();
+}
+
+// Export the Express app (without starting the server) for testing
+module.exports = app;
+////////////////////////////////////////////////////////////////////////////////
+
+├── config
+│   ├── cloudinary.js

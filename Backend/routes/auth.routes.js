@@ -1,0 +1,68 @@
+const express = require("express");
+
+const {
+  registerUser,
+  loginUser,
+  logoutUser,
+  changePassword,
+  verifyEmail,
+  resendVerification,
+  forgotPassword,
+  refreshAccessToken,
+  resetPassword,
+  quickLoginUser,
+} = require("../controllers/auth.controller");
+
+// register
+const validateRequest = require("../middlewares/validate");
+
+// validators
+const {
+  registerSchema,
+  otpSchema,
+  loginSchema,
+  resendVerificationSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
+  refreshTokenSchema,
+} = require("../validators/authValidator");
+const { valid } = require("joi");
+
+const router = express.Router();
+
+// Public Routes
+router.post("/login", validateRequest(loginSchema), loginUser);
+router.post(
+  "/quick-login",
+  validateRequest(refreshTokenSchema),
+  quickLoginUser
+);
+router.post("/register", validateRequest(registerSchema), registerUser);
+router.post("/verify-email", validateRequest(otpSchema), verifyEmail);
+router.post(
+  "/resend-verification",
+  validateRequest(resendVerificationSchema),
+  resendVerification
+);
+router.post(
+  "/forgot-password",
+  validateRequest(forgotPasswordSchema),
+  forgotPassword
+);
+
+router.post(
+  "/reset-password",
+  validateRequest(resetPasswordSchema),
+  resetPassword
+);
+
+// Protected Routes
+router.post("/logout", validateRequest(refreshTokenSchema), logoutUser);
+router.patch("/change-password", changePassword);
+router.get(
+  "/refresh-token",
+  validateRequest(refreshTokenSchema),
+  refreshAccessToken
+);
+
+module.exports = router;

@@ -5,27 +5,36 @@
   "main": "app.js",
   "scripts": {
     "start": "nodemon app.js",
-    "test": "jest --runInBand"
+    "test": "jest --runInBand --detectOpenHandles"
   },
   "author": "Amr",
   "license": "ISC",
   "dependencies": {
+    "@getbrevo/brevo": "^2.2.0",
     "@prisma/client": "^5.22.0",
+    "axios": "^1.8.4",
     "bcrypt": "^5.1.1",
+    "cloudinary": "^2.6.0",
+    "cors": "^2.8.5",
     "crypto": "^1.0.1",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "express-async-errors": "^3.1.1",
+    "express-fileupload": "^1.5.1",
+    "express-rate-limit": "^7.5.0",
     "http-status-codes": "^2.3.0",
     "install": "^0.13.0",
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.9.5",
+    "multer": "^1.4.5-lts.2",
+    "node-cache": "^5.1.2",
     "node-cron": "^3.0.3",
     "nodemailer": "^6.10.0",
     "nodemon": "^3.1.9",
     "npm": "^11.1.0",
-    "sib-api-v3-sdk": "^8.5.0"
+    "package.json": "^2.0.1",
+    "prisma": "^5.22.0"
   },
   "devDependencies": {
     "jest": "^29.7.0",

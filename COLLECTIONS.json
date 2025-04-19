@@ -1,0 +1,1731 @@
+{
+	"info": {
+		"_postman_id": "2d1c7e09-abc8-44a9-aefd-5807a5cbb4a8",
+		"name": "MealFlow API",
+		"description": "Complete API collection for the MealFlow application, including both Node.js main service and Python recommendation service.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "43063863"
+	},
+	"item": [
+		{
+			"name": "Node.js Main Service",
+			"item": [
+				{
+					"name": "Authentication",
+					"item": [
+						{
+							"name": "Register User",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"username\": \"testuser\",\n  \"email\": \"test@example.com\",\n  \"password\": \"Password1!\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/users/register",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"users",
+										"register"
+									]
+								},
+								"description": "Register a new user in the system"
+							},
+							"response": []
+						},
+						{
+							"name": "Verify Email",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"email\": \"test@example.com\",\n  \"otp\": \"123456\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/users/verify-email",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"users",
+										"verify-email"
+									]
+								},
+								"description": "Verify user email with OTP code"
+							},
+							"response": []
+						},
+						{
+							"name": "Resend Verification",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"email\": \"test@example.com\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/users/resend-verification",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"users",
+										"resend-verification"
+									]
+								},
+								"description": "Resend verification OTP to user's email"
+							},
+							"response": []
+						},
+						{
+							"name": "Login",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"Password1!\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/users/login",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"users",
+										"login"
+									]
+								},
+								"description": "Login with email and password"
+							},
+							"response": []
+						},
+						{
+							"name": "Logout",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/users/logout",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"users",
+										"logout"
+									]
+								},
+								"description": "Logout and invalidate refresh token"
+							},
+							"response": []
+						},
+						{
+							"name": "Quick Login",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/users/quick-login",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"users",
+										"quick-login"
+									]
+								},
+								"description": "Quick login using refresh token"
+							},
+							"response": []
+						},
+						{
+							"name": "Refresh Token",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/users/refresh-token",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"users",
+										"refresh-token"
+									]
+								},
+								"description": "Get new access token using refresh token"
+							},
+							"response": []
+						},
+						{
+							"name": "Forgot Password",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"email\": \"test@example.com\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/users/forgot-password",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"users",
+										"forgot-password"
+									]
+								},
+								"description": "Send password reset link to email"
+							},
+							"response": []
+						},
+						{
+							"name": "Reset Password",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"token\": \"{{resetToken}}\",\n  \"password\": \"NewPassword1!\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/users/reset-password",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"users",
+										"reset-password"
+									]
+								},
+								"description": "Reset password with token"
+							},
+							"response": []
+						}
+					],
+					"description": "User authentication and account management endpoints"
+				},
+				{
+					"name": "User Management",
+					"item": [
+						{
+							"name": "Get User Profile",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{accessToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/users/me",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"users",
+										"me"
+									]
+								},
+								"description": "Get current user profile"
+							},
+							"response": []
+						},
+						{
+							"name": "Update User Profile",
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{accessToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"Updated Name\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/users/me",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"users",
+										"me"
+									]
+								},
+								"description": "Update current user profile"
+							},
+							"response": []
+						},
+						{
+							"name": "Delete User Account",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{accessToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/users/me",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"users",
+										"me"
+									]
+								},
+								"description": "Delete current user account"
+							},
+							"response": []
+						}
+					],
+					"description": "User profile and account management endpoints"
+				},
+				{
+					"name": "Community",
+					"item": [
+						{
+							"name": "Create Community",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{accessToken}}"
+									}
+								],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "name",
+											"value": "Test Community",
+											"type": "text"
+										},
+										{
+											"key": "description",
+											"value": "This is a test community",
+											"type": "text"
+										},
+										{
+											"key": "privacy",
+											"value": "PUBLIC",
+											"type": "text"
+										},
+										{
+											"key": "recipeCreationPermission",
+											"value": "ANY_MEMBER",
+											"type": "text"
+										},
+										{
+											"key": "categories",
+											"value": "[\"Italian Cuisine\", \"Vegan & Plant-Based\"]",
+											"type": "text"
+										},
+										{
+											"key": "image",
+											"type": "file",
+											"src": "/path/to/image.jpg"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/community",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"community"
+									]
+								},
+								"description": "Create a new community"
+							},
+							"response": []
+						},
+						{
+							"name": "Get All Communities",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{accessToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/community",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"community"
+									]
+								},
+								"description": "Get all communities"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Community by ID",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{accessToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/community/{{communityId}}",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"community",
+										"{{communityId}}"
+									]
+								},
+								"description": "Get community details by ID"
+							},
+							"response": []
+						},
+						{
+							"name": "Join Community",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{accessToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/community/{{communityId}}/join",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"community",
+										"{{communityId}}",
+										"join"
+									]
+								},
+								"description": "Join a community"
+							},
+							"response": []
+						},
+						{
+							"name": "Leave Community",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{accessToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/community/{{communityId}}/leave",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"community",
+										"{{communityId}}",
+										"leave"
+									]
+								},
+								"description": "Leave a community"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Community Members",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{accessToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/community/{{communityId}}/members",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"community",
+										"{{communityId}}",
+										"members"
+									]
+								},
+								"description": "Get all members of a community"
+							},
+							"response": []
+						}
+					],
+					"description": "Community management endpoints"
+				},
+				{
+					"name": "Meals (Node.js)",
+					"item": [
+						{
+							"name": "Get Recommended Meals",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{accessToken}}"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/meal/recommended?limit=10&offset=10&recommendation_type=hybrid&cuisine=Middle Eastern&dietary_restriction=vegan",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"meal",
+										"recommended"
+									],
+									"query": [
+										{
+											"key": "limit",
+											"value": "10"
+										},
+										{
+											"key": "offset",
+											"value": "10"
+										},
+										{
+											"key": "recommendation_type",
+											"value": "hybrid"
+										},
+										{
+											"key": "cuisine",
+											"value": "Middle Eastern"
+										},
+										{
+											"key": "dietary_restriction",
+											"value": "vegan"
+										}
+									]
+								},
+								"description": "Get personalized meal recommendations"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Trending Meals",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/meal/trending?limit=20&offset=10&time_window=week",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"meal",
+										"trending"
+									],
+									"query": [
+										{
+											"key": "limit",
+											"value": "20"
+										},
+										{
+											"key": "offset",
+											"value": "10"
+										},
+										{
+											"key": "time_window",
+											"value": "week"
+										}
+									]
+								},
+								"description": "Get trending meals"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Quick Meals",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/meal/quick?max_time=30&limit=20&offset=10",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"meal",
+										"quick"
+									],
+									"query": [
+										{
+											"key": "max_time",
+											"value": "30"
+										},
+										{
+											"key": "limit",
+											"value": "20"
+										},
+										{
+											"key": "offset",
+											"value": "10"
+										}
+									]
+								},
+								"description": "Get meals that can be prepared quickly"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Cuisine Recommendations",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/meal/cuisine/Middle Eastern?limit=20&offset=10",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"meal",
+										"cuisine",
+										"Middle Eastern"
+									],
+									"query": [
+										{
+											"key": "limit",
+											"value": "20"
+										},
+										{
+											"key": "offset",
+											"value": "10"
+										}
+									]
+								},
+								"description": "Get recommendations for a specific cuisine"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Dietary Recommendations",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/meal/dietary/vegan?limit=20&offset=10",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"meal",
+										"dietary",
+										"vegan"
+									],
+									"query": [
+										{
+											"key": "limit",
+											"value": "20"
+										},
+										{
+											"key": "offset",
+											"value": "10"
+										}
+									]
+								},
+								"description": "Get recommendations for a specific dietary restriction"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Meal By ID",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/meal/{{mealId}}",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"meal",
+										"{{mealId}}"
+									]
+								},
+								"description": "Get details of a specific meal"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Similar Meals",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/meal/similar/{{mealId}}?limit=5&offset=10&similarity_method=content",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"meal",
+										"similar",
+										"{{mealId}}"
+									],
+									"query": [
+										{
+											"key": "limit",
+											"value": "5"
+										},
+										{
+											"key": "offset",
+											"value": "10"
+										},
+										{
+											"key": "similarity_method",
+											"value": "content"
+										}
+									]
+								},
+								"description": "Get meals similar to a specific meal"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Filtered Meals",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/meal/filter?page=1&limit=20&offset=10&region=Middle Eastern&min_calories=200&max_calories=600",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"meal",
+										"filter"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "1"
+										},
+										{
+											"key": "limit",
+											"value": "20"
+										},
+										{
+											"key": "offset",
+											"value": "10"
+										},
+										{
+											"key": "region",
+											"value": "Middle Eastern"
+										},
+										{
+											"key": "min_calories",
+											"value": "200"
+										},
+										{
+											"key": "max_calories",
+											"value": "600"
+										}
+									]
+								},
+								"description": "Get meals filtered by various criteria"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Meals By Calorie Range",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/meal/filter/calories?min=200&max=600&offset=1&limit=20",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"meal",
+										"filter",
+										"calories"
+									],
+									"query": [
+										{
+											"key": "min",
+											"value": "200"
+										},
+										{
+											"key": "max",
+											"value": "600"
+										},
+										{
+											"key": "offset",
+											"value": "1"
+										},
+										{
+											"key": "limit",
+											"value": "20"
+										}
+									]
+								},
+								"description": "Get meals within a specific calorie range"
+							},
+							"response": []
+						},
+						{
+							"name": "Advanced Search",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/meal/search/advanced?query=soup&cuisines=Middle Eastern,Egyptian&dietary=vegan&include_ingredients=lentils,garlic&exclude_ingredients=meat&max_cook_time=30&sort_by=relevance&offset=1&limit=20",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"meal",
+										"search",
+										"advanced"
+									],
+									"query": [
+										{
+											"key": "query",
+											"value": "soup"
+										},
+										{
+											"key": "cuisines",
+											"value": "Middle Eastern,Egyptian"
+										},
+										{
+											"key": "dietary",
+											"value": "vegan"
+										},
+										{
+											"key": "include_ingredients",
+											"value": "lentils,garlic"
+										},
+										{
+											"key": "exclude_ingredients",
+											"value": "meat"
+										},
+										{
+											"key": "max_cook_time",
+											"value": "30"
+										},
+										{
+											"key": "sort_by",
+											"value": "relevance"
+										},
+										{
+											"key": "offset",
+											"value": "1"
+										},
+										{
+											"key": "limit",
+											"value": "20"
+										}
+									]
+								},
+								"description": "Advanced search with multiple criteria"
+							},
+							"response": []
+						},
+						{
+							"name": "Record Meal Interaction",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{accessToken}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"meal_id\": \"{{mealId}}\",\n  \"interaction_type\": \"like\",\n  \"rating\": 4.5\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/meal/interaction",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"meal",
+										"interaction"
+									]
+								},
+								"description": "Record user interaction with a meal (like, save, cook, etc.)"
+							},
+							"response": []
+						}
+					],
+					"description": "Meal recommendation endpoints from Node.js service"
+				},
+				{
+					"name": "System",
+					"item": [
+						{
+							"name": "Health Check",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/system/health",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"system",
+										"health"
+									]
+								},
+								"description": "Check system health status"
+							},
+							"response": []
+						}
+					],
+					"description": "System-level endpoints"
+				},
+				{
+					"name": "Upload",
+					"item": [
+						{
+							"name": "Upload Image",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{accessToken}}"
+									}
+								],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "image",
+											"type": "file",
+											"src": "/path/to/image.jpg"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{baseUrl}}/api/v1/upload",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"upload"
+									]
+								},
+								"description": "Upload an image to the server"
+							},
+							"response": []
+						}
+					],
+					"description": "File upload endpoints"
+				}
+			],
+			"description": "Main application service running on Express.js"
+		},
+		{
+			"name": "Python Recommendation Service",
+			"item": [
+				{
+					"name": "Recommendations",
+					"item": [
+						{
+							"name": "Get User Recommendations",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{pythonUrl}}/api/v1/recommend/user/{{userId}}?limit=10&offset=10&recommendation_type=hybrid&cuisine=Middle Eastern&dietary_restriction=vegan",
+									"host": [
+										"{{pythonUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"recommend",
+										"user",
+										"{{userId}}"
+									],
+									"query": [
+										{
+											"key": "limit",
+											"value": "10"
+										},
+										{
+											"key": "offset",
+											"value": "10"
+										},
+										{
+											"key": "recommendation_type",
+											"value": "hybrid"
+										},
+										{
+											"key": "cuisine",
+											"value": "Middle Eastern"
+										},
+										{
+											"key": "dietary_restriction",
+											"value": "vegan"
+										}
+									]
+								},
+								"description": "Get personalized recipe recommendations for a user"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Similar Recipes",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{pythonUrl}}/api/v1/recommend/similar/{{recipeId}}?limit=5&offset=10&similarity_method=content",
+									"host": [
+										"{{pythonUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"recommend",
+										"similar",
+										"{{recipeId}}"
+									],
+									"query": [
+										{
+											"key": "limit",
+											"value": "5"
+										},
+										{
+											"key": "offset",
+											"value": "10"
+										},
+										{
+											"key": "similarity_method",
+											"value": "content"
+										}
+									]
+								},
+								"description": "Get recipes similar to a specific recipe"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Trending Recipes",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{pythonUrl}}/api/v1/trending?time_window=week&limit=10&offset=10&cuisine=Middle Eastern&dietary_restriction=vegan",
+									"host": [
+										"{{pythonUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"trending"
+									],
+									"query": [
+										{
+											"key": "time_window",
+											"value": "week"
+										},
+										{
+											"key": "limit",
+											"value": "10"
+										},
+										{
+											"key": "offset",
+											"value": "10"
+										},
+										{
+											"key": "cuisine",
+											"value": "Middle Eastern"
+										},
+										{
+											"key": "dietary_restriction",
+											"value": "vegan"
+										}
+									]
+								},
+								"description": "Get trending recipes based on recent interactions"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Cuisine Recommendations",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{pythonUrl}}/api/v1/recommend/cuisine/Middle Eastern?limit=10&offset=10",
+									"host": [
+										"{{pythonUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"recommend",
+										"cuisine",
+										"Middle Eastern"
+									],
+									"query": [
+										{
+											"key": "limit",
+											"value": "10"
+										},
+										{
+											"key": "offset",
+											"value": "10"
+										}
+									]
+								},
+								"description": "Get recipe recommendations for a specific cuisine"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Dietary Recommendations",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{pythonUrl}}/api/v1/recommend/dietary/vegan?limit=10&offset=10",
+									"host": [
+										"{{pythonUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"recommend",
+										"dietary",
+										"vegan"
+									],
+									"query": [
+										{
+											"key": "limit",
+											"value": "10"
+										},
+										{
+											"key": "offset",
+											"value": "10"
+										}
+									]
+								},
+								"description": "Get recipe recommendations based on dietary restrictions"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Quick Recipes",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{pythonUrl}}/api/v1/recommend/quick?max_time=30&limit=10&offset=10&cuisine=Middle Eastern&dietary_restriction=vegan",
+									"host": [
+										"{{pythonUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"recommend",
+										"quick"
+									],
+									"query": [
+										{
+											"key": "max_time",
+											"value": "30"
+										},
+										{
+											"key": "limit",
+											"value": "10"
+										},
+										{
+											"key": "offset",
+											"value": "10"
+										},
+										{
+											"key": "cuisine",
+											"value": "Middle Eastern"
+										},
+										{
+											"key": "dietary_restriction",
+											"value": "vegan"
+										}
+									]
+								},
+								"description": "Get recipes that can be prepared quickly"
+							},
+							"response": []
+						},
+						{
+							"name": "Record Interaction",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"user_id\": \"{{userId}}\",\n  \"meal_id\": \"{{recipeId}}\",\n  \"content_type\": \"recipe\",\n  \"interaction_type\": \"like\",\n  \"rating\": 4.5\n}"
+								},
+								"url": {
+									"raw": "{{pythonUrl}}/api/v1/interactions",
+									"host": [
+										"{{pythonUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"interactions"
+									]
+								},
+								"description": "Record a user interaction with a recipe (view, like, save, cook, rating)"
+							},
+							"response": []
+						}
+					],
+					"description": "Recipe recommendation endpoints"
+				},
+				{
+					"name": "Recipe Management",
+					"item": [
+						{
+							"name": "Get Recipe By ID",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{pythonUrl}}/api/v1/recipes/{{recipeId}}",
+									"host": [
+										"{{pythonUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"recipes",
+										"{{recipeId}}"
+									]
+								},
+								"description": "Get details of a specific recipe"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Recipes",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{pythonUrl}}/api/v1/recipes?offset=10&limit=20&region=Middle Eastern&min_calories=200&max_calories=600",
+									"host": [
+										"{{pythonUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"recipes"
+									],
+									"query": [
+										{
+											"key": "offset",
+											"value": "10"
+										},
+										{
+											"key": "limit",
+											"value": "20"
+										},
+										{
+											"key": "region",
+											"value": "Middle Eastern"
+										},
+										{
+											"key": "min_calories",
+											"value": "200"
+										},
+										{
+											"key": "max_calories",
+											"value": "600"
+										}
+									]
+								},
+								"description": "Get recipes with optional filtering"
+							},
+							"response": []
+						},
+						{
+							"name": "Create Recipe",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"recipe_title\": \"Egyptian Lentil Soup\",\n  \"region\": \"Middle Eastern\",\n  \"sub_region\": \"Egyptian\",\n  \"continent\": \"Africa\",\n  \"source\": \"Original Recipe\",\n  \"image_url\": \"https://example.com/images/lentil_soup.jpg\",\n  \"cook_time\": 30,\n  \"prep_time\": 15,\n  \"total_time\": 45,\n  \"servings\": 4,\n  \"calories\": 320\n}"
+								},
+								"url": {
+									"raw": "{{pythonUrl}}/api/v1/recipes",
+									"host": [
+										"{{pythonUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"recipes"
+									]
+								},
+								"description": "Create a new recipe"
+							},
+							"response": []
+						},
+						{
+							"name": "Update Recipe",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"recipe_title\": \"Updated Egyptian Lentil Soup\",\n  \"cook_time\": 25,\n  \"prep_time\": 10,\n  \"calories\": 280\n}"
+								},
+								"url": {
+									"raw": "{{pythonUrl}}/api/v1/recipes/{{recipeId}}",
+									"host": [
+										"{{pythonUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"recipes",
+										"{{recipeId}}"
+									]
+								},
+								"description": "Update an existing recipe"
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Recipe",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{pythonUrl}}/api/v1/recipes/{{recipeId}}",
+									"host": [
+										"{{pythonUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"recipes",
+										"{{recipeId}}"
+									]
+								},
+								"description": "Delete a recipe"
+							},
+							"response": []
+						},
+						{
+							"name": "Filter Recipes By Calories",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{pythonUrl}}/api/v1/recipes/filter/calories?min=200&max=600&offset=10&limit=20",
+									"host": [
+										"{{pythonUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"recipes",
+										"filter",
+										"calories"
+									],
+									"query": [
+										{
+											"key": "min",
+											"value": "200"
+										},
+										{
+											"key": "max",
+											"value": "600"
+										},
+										{
+											"key": "offset",
+											"value": "10"
+										},
+										{
+											"key": "limit",
+											"value": "20"
+										}
+									]
+								},
+								"description": "Filter recipes by calorie range"
+							},
+							"response": []
+						},
+						{
+							"name": "Advanced Recipe Search",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{pythonUrl}}/api/v1/recipes/search?query=soup&cuisines=Middle Eastern,Egyptian&dietary=vegan&include_ingredients=lentils,garlic&exclude_ingredients=meat&max_prep_time=15&max_cook_time=30&sort_by=relevance&sort_order=desc&offset=1&limit=20",
+									"host": [
+										"{{pythonUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"recipes",
+										"search"
+									],
+									"query": [
+										{
+											"key": "query",
+											"value": "soup"
+										},
+										{
+											"key": "cuisines",
+											"value": "Middle Eastern,Egyptian"
+										},
+										{
+											"key": "dietary",
+											"value": "vegan"
+										},
+										{
+											"key": "include_ingredients",
+											"value": "lentils,garlic"
+										},
+										{
+											"key": "exclude_ingredients",
+											"value": "meat"
+										},
+										{
+											"key": "max_prep_time",
+											"value": "15"
+										},
+										{
+											"key": "max_cook_time",
+											"value": "30"
+										},
+										{
+											"key": "sort_by",
+											"value": "relevance"
+										},
+										{
+											"key": "sort_order",
+											"value": "desc"
+										},
+										{
+											"key": "offset",
+											"value": "1"
+										},
+										{
+											"key": "limit",
+											"value": "20"
+										}
+									]
+								},
+								"description": "Advanced search for recipes with multiple criteria"
+							},
+							"response": []
+						}
+					],
+					"description": "Endpoints for managing recipes"
+				},
+				{
+					"name": "System Management",
+					"item": [
+						{
+							"name": "Health Check",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{pythonUrl}}/api/v1/health",
+									"host": [
+										"{{pythonUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"health"
+									]
+								},
+								"description": "Check the health status of the Python service"
+							},
+							"response": []
+						},
+						{
+							"name": "Embedding Stats",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{pythonUrl}}/api/v1/embeddings/stats",
+									"host": [
+										"{{pythonUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"embeddings",
+										"stats"
+									]
+								},
+								"description": "Get statistics about recipe embeddings"
+							},
+							"response": []
+						},
+						{
+							"name": "Generate Embeddings",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{pythonUrl}}/api/v1/embeddings/generate?batch_size=50",
+									"host": [
+										"{{pythonUrl}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"embeddings",
+										"generate"
+									],
+									"query": [
+										{
+											"key": "batch_size",
+											"value": "50"
+										}
+									]
+								},
+								"description": "Generate embeddings for recipes that don't have them yet"
+							},
+							"response": []
+						}
+					],
+					"description": "System-level endpoints for the Python service"
+				}
+			],
+			"description": "Recipe recommendation service built with FastAPI and PostgreSQL"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:3000"
+		},
+		{
+			"key": "pythonUrl",
+			"value": "http://localhost:9999"
+		},
+		{
+			"key": "accessToken",
+			"value": ""
+		},
+		{
+			"key": "refreshToken",
+			"value": ""
+		},
+		{
+			"key": "resetToken",
+			"value": ""
+		},
+		{
+			"key": "userId",
+			"value": "default_user"
+		},
+		{
+			"key": "communityId",
+			"value": ""
+		},
+		{
+			"key": "mealId",
+			"value": ""
+		},
+		{
+			"key": "recipeId",
+			"value": ""
+		}
+	]
+}
