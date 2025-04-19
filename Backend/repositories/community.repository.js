@@ -277,6 +277,12 @@ class CommunityRepository {
     return newAdmins;
   }
 
+  async delteCommunity(communityId) {
+    return prisma.community.delete({
+      where: { id: communityId },
+    });
+  }
+
   async getMembersSortedByJoinDate(communityId) {
     return prisma.communityMember.findMany({
       where: { communityId },

@@ -28,8 +28,14 @@ const leaveCommunitySchema = Joi.object({
   id: Joi.string().required(),
 });
 
+// Updated to validate params instead of body
+const deleteCommunitySchema = Joi.object({
+  id: Joi.string().required(),
+});
+
 module.exports = {
   createCommunitySchema,
   getAllMembersSchema,
   leaveCommunitySchema,
+  deleteCommunitySchema,
 };

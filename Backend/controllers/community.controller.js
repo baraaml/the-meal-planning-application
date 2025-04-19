@@ -146,6 +146,12 @@ const setAdmins = async (req, res) => {
  * @access Private
  */
 const deleteCommunity = async (req, res) => {
+  // Get the user id from the auth layer
+  const { userId } = req.user;
+  const { id } = req.params;
+
+  await communityService.deleteCommunity(id, userId);
+  
   res.status(StatusCodes.OK).json({
     success: true,
     message: "Community is deleted successfully.",

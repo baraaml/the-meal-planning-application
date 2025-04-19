@@ -305,12 +305,36 @@ class CommunityService {
   /**
    * Deletes a community given its ID
    * @param {string} communityId - Community ID
+   * @param {string} adminId - ID of the admin that requesting deletion
+   * @param {Promise<Object>} - A promise that resolves to the deleted community object
    */
   async deleteCommunity(communityId, adminId, memberIDs) {
     /**
      * check for communityId and adminId first
      * check if the community exists
      */
+    // Check if the community exists or not
+    const community = await communityRepository.findById(communityId);
+    if (!community) {
+      throw new CustomAPIError.NotFoundError(
+        `Community with id ${communityId} not found`
+      );
+    }
+
+    // Check if the requesting user is an admin
+    const requestingAdmin = await communityRepository.isMember(
+      communityId,
+      adminId
+    );
+    if (!requestingAdmin || requestingAdmin.role!== "ADMIN") {
+      throw new CustomAPIError.ForbiddenError(
+        "Only admins can delete communities."
+      );
+    }
+
+    // Delete the community
+    const deletedCommunity = await communityRepository.delteCommunity(communityId);
+    return deletedCommunity;
   }
 
   /**
