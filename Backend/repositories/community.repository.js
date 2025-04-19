@@ -183,7 +183,11 @@ class CommunityRepository {
         communityId: communityId,
         userId: userId,
       },
+      include: {
+        user: true,
+      },
     });
+    return membership;
   }
 
   /**
@@ -212,6 +216,77 @@ class CommunityRepository {
         userId: userId,
         role: role,
       },
+    });
+  }
+
+  /**
+   * Gets all the admins for a community
+   * @param {string} communityId  - The ID of the community
+   * @returns {Promise<Array>} - An array of community admins
+   */
+  async getAdmins(communityId) {
+    const admins = await prisma.communityMember.findMany({
+      where: {
+        communityId: communityId,
+        role: "ADMIN",
+      },
+      include: {
+        user: true,
+      },
+    });
+    return admins;
+  }
+
+  /**
+   * Removes an admin from a community
+   * @param {string} communityId  - The ID of the community
+   * @param {string} userId - The ID of the user
+   * @returns {Promise<Array>} - An array of community admins
+   */
+  async removeAdmin(communityId, userId) {
+    const removedAdmin = await prisma.communityMember.delete({
+      where: {
+        communityId: communityId,
+        userId: userId,
+        role: "ADMIN",
+      },
+      include: {
+        user: true,
+      },
+    });
+    return removedAdmin;
+  }
+
+  /**
+   * Makes members admins
+   * @param {string} communityId  - The ID of the community
+   * @param {string[]} memberIDs - An array of user IDs to promote
+   * @returns {Promise<Array>} - An array of community admins
+   */
+  async makeAdmins(communityId, memberIDs) {
+    const newAdmins = await prisma.communityMember.updateMany({
+      where: {
+        communityId: communityId,
+        userId: { in: memberIDs },
+        role: "MEMBER",
+      },
+      data: {
+        role: "ADMIN",
+      },
+    });
+    return newAdmins;
+  }
+
+  async delteCommunity(communityId) {
+    return prisma.community.delete({
+      where: { id: communityId },
+    });
+  }
+
+  async getMembersSortedByJoinDate(communityId) {
+    return prisma.communityMember.findMany({
+      where: { communityId },
+      orderBy: { joinedAt: "asc" }, // Sort by join date (earliest first)
     });
   }
 }

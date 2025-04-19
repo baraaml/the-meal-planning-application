@@ -1,6 +1,6 @@
 /**
- * @fileoverview Community controller for handling HTTP requests
- * @module controllers/community
+ * @fileoverview Community service for handling business logic
+ * @module services/community
  */
 
 const CustomAPIError = require("../errors");
@@ -184,13 +184,157 @@ class CommunityService {
      *  If there are no other members, delete the community.
      * If they are not the only one admin, just remove him.
      */
+
+    // check for communiy Id and userId
+    if (!communityId || !userId) {
+      throw new CustomAPIError.BadRequestError(
+        "Community ID and User ID are required."
+      );
+    }
+
+    // check if user is already a member or not
+    const isMember = await communityRepository.isMember(communityId, userId);
+    if (!isMember) {
+      throw new CustomAPIError.NotFoundError(
+        "User is not a member of this community."
+      );
+    }
+
+    // ckeck if the user is the only admin
+    if (isMember.role === "ADMIN") {
+      const admins = await communityRepository.getAdmins(communityId);
+      console.log(admins.length);
+
+      // check for how many admins are there
+      if (admins.length > 1) {
+        // if there are other admins out there, just remove the current admin
+        const removedAdmin = await communityRepository.removeAdmin(
+          communityId,
+          userId
+        );
+        return removedAdmin;
+      } else {
+        // if he is the only admin
+        const members = await communityRepository.getMembersSortedByJoinDate(
+          communityId
+        );
+        if (members > 1) {
+          const nextAdmin = members.find((member) => member.userId !== userId);
+
+          if (nextAdmin) {
+            this.setAdmins(communityId, userId, [nextAdmin.userId]);
+          }
+
+          // now remove the current admin
+          const removedAdmin = await communityRepository.removeAdmin(
+            communityId,
+            userId
+          );
+          return removedAdmin;
+        }
+      }
+    }
   }
+
   /**
    * Gets all the members of a community
    * @param {string} communityId - Community ID
    */
   async getAllMembers(id) {
     return await communityRepository.getAllMembers(id);
+  }
+
+  /**
+   * Sets members of a community admins
+   * @param {string} userId - User ID
+   * @param {string} communityId - Community ID
+   */
+  async setAdmins(communityId, adminId, memberIDs) {
+    /**
+     * check for communityId and adminId first
+     * check for the membersIDs
+     * make sure that the membersIDs are in the community
+     * make the memebers admins as well
+     */
+    if (
+      !communityId ||
+      !adminId ||
+      !Array.isArray(memberIDs) ||
+      memberIDs.length === 0
+    ) {
+      throw new CustomAPIError.BadRequestError(
+        "Community ID, Admin ID, and valid member IDs are required."
+      );
+    }
+
+    // Check if the requesting user is an admin
+    const requestingAdmin = await communityRepository.isMember(
+      communityId,
+      adminId
+    );
+    if (!requestingAdmin || requestingAdmin.role !== "ADMIN") {
+      throw new CustomAPIError.ForbiddenError(
+        "Only admins can promote members."
+      );
+    }
+
+    // Get all community members
+    const communityMembers = await communityRepository.getAllMembers(
+      communityId
+    );
+    const memberSet = new Set(communityMembers.map((member) => member.userId));
+
+    // Validate that all provided members exist in the community
+    const invalidMembers = memberIDs.filter((id) => !memberSet.has(id));
+    if (invalidMembers.length > 0) {
+      throw new CustomAPIError.BadRequestError(
+        `The following users are not members of this community: ${invalidMembers.join(
+          ", "
+        )}`
+      );
+    }
+
+    // Promote each valid member to admin
+    const newAdmins = await communityRepository.makeAdmins(
+      communityId,
+      memberIDs
+    );
+    return newAdmins;
+  }
+
+  /**
+   * Deletes a community given its ID
+   * @param {string} communityId - Community ID
+   * @param {string} adminId - ID of the admin that requesting deletion
+   * @param {Promise<Object>} - A promise that resolves to the deleted community object
+   */
+  async deleteCommunity(communityId, adminId, memberIDs) {
+    /**
+     * check for communityId and adminId first
+     * check if the community exists
+     */
+    // Check if the community exists or not
+    const community = await communityRepository.findById(communityId);
+    if (!community) {
+      throw new CustomAPIError.NotFoundError(
+        `Community with id ${communityId} not found`
+      );
+    }
+
+    // Check if the requesting user is an admin
+    const requestingAdmin = await communityRepository.isMember(
+      communityId,
+      adminId
+    );
+    if (!requestingAdmin || requestingAdmin.role!== "ADMIN") {
+      throw new CustomAPIError.ForbiddenError(
+        "Only admins can delete communities."
+      );
+    }
+
+    // Delete the community
+    const deletedCommunity = await communityRepository.delteCommunity(communityId);
+    return deletedCommunity;
   }
 
   /**

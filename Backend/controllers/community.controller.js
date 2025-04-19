@@ -1,6 +1,12 @@
+/**
+ * @fileoverview Community controller for handling HTTP requests
+ * @module controllers/community
+ */
+
 const { StatusCodes } = require("http-status-codes");
 const communityService = require("../services/community.service");
 const CustomAPIError = require("../errors");
+const { community } = require("../config/prismaClient");
 
 /**
  * Creates a new community
@@ -70,6 +76,7 @@ const joinCommunity = async (req, res) => {
   const addedMember = await communityService.joinCommunity(id, userId);
 
   res.status(StatusCodes.CREATED).json({
+    success: true,
     message: "Successfully joined the community.",
     community: addedMember,
   });
@@ -88,12 +95,10 @@ const leaveCommunity = async (req, res) => {
 
   console.log(`Community id: ${id}`);
   const community = await communityService.leaveCommunity(id);
-
   console.log(community);
-  const addedMember = await communityService.joinCommunity(id, userId);
 
   res.status(StatusCodes.CREATED).json({
-    message: "Successfully joined the community.",
+    message: "Successfully left the community.",
     community: addedMember,
   });
 };
@@ -115,6 +120,44 @@ const getAllMembers = async (req, res) => {
   });
 };
 
+/**
+ * Sets list of members as admins
+ * @route PATCH /api/v1/community/:id/admins
+ * @access Private
+ */
+const setAdmins = async (req, res) => {
+  // Get the user id from the auth layer
+  const { userId } = req.user;
+  const { id } = req.params;
+  const { memberIDs } = req.body;
+
+  const newAdmins = await communityService.setAdmins(id, userId, memberIDs);
+
+  res.status(StatusCodes.OK).json({
+    success: true,
+    message: "Members successfully promoted to admins.",
+    admins: newAdmins,
+  });
+};
+
+/**
+ * Deletes a community with Id
+ * @route DELETE /api/v1/community/:id/
+ * @access Private
+ */
+const deleteCommunity = async (req, res) => {
+  // Get the user id from the auth layer
+  const { userId } = req.user;
+  const { id } = req.params;
+
+  await communityService.deleteCommunity(id, userId);
+  
+  res.status(StatusCodes.OK).json({
+    success: true,
+    message: "Community is deleted successfully.",
+  });
+};
+
 module.exports = {
   createCommunity,
   getSingleCommunity,
@@ -122,4 +165,6 @@ module.exports = {
   joinCommunity,
   getAllMembers,
   leaveCommunity,
+  setAdmins,
+  deleteCommunity,
 };
