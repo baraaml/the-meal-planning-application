@@ -151,7 +151,7 @@ const deleteCommunity = async (req, res) => {
   const { id } = req.params;
 
   await communityService.deleteCommunity(id, userId);
-  
+
   res.status(StatusCodes.OK).json({
     success: true,
     message: "Community is deleted successfully.",
